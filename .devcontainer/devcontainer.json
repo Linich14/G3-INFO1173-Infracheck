@@ -1,0 +1,25 @@
+{
+  "name": "React Native Expo Dev Container",
+  "build": {
+    "dockerfile": "../Dockerfile"
+  },
+ "runArgs": ["--privileged", "--net", "host"],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json",
+        "expo.vscode-expo-tools",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-eslint"
+      ],
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "typescript.preferences.includePackageJsonAutoImports": "on"
+      }
+    }
+  },
+  // "postCreateCommand": "npm install -g @expo/cli && echo 'Container ready for React Native Expo development!'",
+  "remoteUser": "developer"
+}
