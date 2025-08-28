@@ -47,11 +47,6 @@ RUN yes | sdkmanager --licenses && \
       "platforms;android-33" "build-tools;33.0.0" \
       "platforms;android-34" "build-tools;34.0.0"
 
-# ---------- Node toolchain global ----------
-# Habilitar Corepack para Yarn/Pnpm y Expo CLI global
-RUN corepack enable && npm i -g @expo/cli
-
-
 RUN useradd -m -s /bin/bash developer && \
     usermod -aG sudo developer && \
     echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers

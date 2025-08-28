@@ -20,6 +20,6 @@
       }
     }
   },
-  // "postCreateCommand": "npm install -g @expo/cli && echo 'Container ready for React Native Expo development!'",
+  "postCreateCommand": "cd apps/mobile && npm install && echo 'Container ready for React Native Expo development!'",
   "remoteUser": "developer"
 }
