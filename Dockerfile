@@ -1,63 +1,72 @@
-# Base: Node 20 sobre Debian 11 (Bullseye)
-FROM node:20-bullseye
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
-# Evitar prompts interactivos
-ENV DEBIAN_FRONTEND=noninteractive
+# Usar bash como shell por defecto en los RUN (para poder "sourcear" NVM)
+SHELL ["/bin/bash", "-lc"]
 
-# ---------- Paquetes de sistema ----------
-# Java 17 es la opción más estable con Gradle/Android actualmente.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    curl \
-    wget \
-    unzip \
-    ca-certificates \
-    locales \
-    sudo \
-    python3 \
-    python3-pip \
-    build-essential \
-    openjdk-17-jdk \
+# ------------------------------------------------------------
+# Paquetes base + Java (requerido por sdkmanager)
+# ------------------------------------------------------------
+RUN apt-get update && apt-get install -y \
+  curl ca-certificates git bash build-essential python3 make g++ openssh-client \
+  unzip wget \
+  openjdk-17-jdk-headless \
   && rm -rf /var/lib/apt/lists/*
 
-# ---------- Android SDK ----------
-ENV ANDROID_HOME=/opt/android-sdk
-ENV ANDROID_SDK_ROOT=${ANDROID_HOME}
-# Java home (OpenJDK 17)
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-# PATH Android (cmdline-tools y platform-tools primero)
-ENV PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}
+# ------------------------------------------------------------
+# Crear usuario normal (sin modificar UID/GID del host)
+# ------------------------------------------------------------
+ARG USERNAME=dev
+RUN useradd -m -s /bin/bash ${USERNAME}
 
-# Instalar cmdline-tools (estructura correcta: cmdline-tools/latest)
-# Nota: el ZIP con sufijo *_latest.zip es el canal oficial de Google.
-RUN mkdir -p ${ANDROID_HOME} && \
-    wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/commandlinetools.zip && \
-    mkdir -p ${ANDROID_HOME}/cmdline-tools && \
-    unzip -q /tmp/commandlinetools.zip -d ${ANDROID_HOME}/cmdline-tools && \
-    mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest && \
-    rm -f /tmp/commandlinetools.zip
-
-# Pre-crear archivo de config para evitar warnings de sdkmanager
-RUN mkdir -p /root/.android && touch /root/.android/repositories.cfg
-
-# Aceptar licencias e instalar componentes habituales (33 y 34 por compatibilidad)
-RUN yes | sdkmanager --licenses && \
-    sdkmanager \
-      "platform-tools" \
-      "platforms;android-33" "build-tools;33.0.0" \
-      "platforms;android-34" "build-tools;34.0.0"
-
-RUN useradd -m -s /bin/bash developer && \
-    usermod -aG sudo developer && \
-    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Directorio de trabajo estándar de Dev Containers
-USER developer
+USER ${USERNAME}
+ENV HOME=/home/${USERNAME}
 WORKDIR /workspaces
 
-# Evitar que npm pida telemetry, etc. (opcional)
-ENV npm_config_fund=false
-ENV npm_config_audit=false
+# ------------------------------------------------------------
+# NVM + Node 20 + npm global en ~/.npm-global (sin sudo, sin EACCES)
+# ------------------------------------------------------------
+ENV NVM_DIR=${HOME}/.nvm
+RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
-# Comando por defecto
-CMD [ "bash" ]
+# Importante: NO usar ENV NPM_CONFIG_PREFIX (NVM es incompatible durante nvm install)
+RUN . "$NVM_DIR/nvm.sh" \
+  && nvm install 20 \
+  && nvm alias default 20 \
+  && mkdir -p "$HOME/.npm-global" \
+  && npm config set prefix "$HOME/.npm-global" \
+  && corepack enable
+
+# PATH para sesiones interactivas
+RUN echo 'export NVM_DIR="$HOME/.nvm"' >> "$HOME/.bashrc" \
+  && echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"' >> "$HOME/.bashrc" \
+  && echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> "$HOME/.bashrc" \
+  && echo 'export PATH="$NVM_DIR/versions/node/$(nvm version default)/bin:$PATH"' >> "$HOME/.bashrc"
+
+# PATH también para ejecuciones no interactivas (postCreateCommand, etc.)
+ENV PATH=$HOME/.npm-global/bin:$PATH
+
+# ------------------------------------------------------------
+# Android SDK (cmdline-tools + platform-tools/adb)
+# ------------------------------------------------------------
+ENV ANDROID_HOME=$HOME/android-sdk
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+
+# Descargar e instalar command-line tools (sdkmanager, avdmanager, etc.)
+RUN mkdir -p $ANDROID_HOME/cmdline-tools \
+  && cd $ANDROID_HOME/cmdline-tools \
+  && wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip \
+  && unzip tools.zip -d $ANDROID_HOME/cmdline-tools \
+  && mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest \
+  && rm tools.zip
+
+# Aceptar licencias e instalar ADB (platform-tools)
+RUN yes | sdkmanager --licenses \
+  && sdkmanager "platform-tools"
+
+# (Opcional) Si vas a compilar nativo, instala plataformas y build-tools:
+# RUN sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
+# ------------------------------------------------------------
+# Listo: node/npm/adb en PATH y usuario no-root
+# ------------------------------------------------------------

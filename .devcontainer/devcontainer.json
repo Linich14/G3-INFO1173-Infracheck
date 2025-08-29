@@ -1,9 +1,14 @@
 {
-  "name": "React Native Expo Dev Container",
+  "name": "Node 20 + Expo (usuario no-root)",
   "build": {
     "dockerfile": "../Dockerfile"
   },
- "runArgs": ["--privileged", "--net", "host"],
+  "remoteUser": "dev",
+
+  // Normalmente no hace falta --privileged.
+  // Deja --net=host si quieres usar Metro/Expo en puertos locales.
+  "runArgs": ["--net", "host"],
+
   "customizations": {
     "vscode": {
       "extensions": [
@@ -11,15 +16,15 @@
         "esbenp.prettier-vscode",
         "ms-vscode.vscode-json",
         "expo.vscode-expo-tools",
-        "bradlc.vscode-tailwindcss",
-        "ms-vscode.vscode-eslint"
+        "dbaeumer.vscode-eslint"
       ],
       "settings": {
-        "terminal.integrated.shell.linux": "/bin/bash",
-        "typescript.preferences.includePackageJsonAutoImports": "on"
+        "terminal.integrated.shell.linux": "/bin/bash"
       }
     }
   },
-  "postCreateCommand": "cd apps/mobile && npm install && echo 'Container ready for React Native Expo development!'",
-  "remoteUser": "developer"
+
+  // Ajusta la ruta del proyecto si no usas monorepo
+  "postCreateCommand": " cd apps/mobile/ &&  npm ci || npm install",
+  "postStartCommand": "git config --global --add safe.directory /workspaces"
 }
