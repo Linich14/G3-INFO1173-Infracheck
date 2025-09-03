@@ -12,18 +12,41 @@ La plataforma incluirá un sistema de seguimiento, historial de tiempo sin resol
 ## Arquitectura del Sistema
 
 - **Arquitectura Frontend:** 
+  - **React Native:** `0.79.5` - Aplicación móvil multiplataforma para iOS y Android
+  - **Expo:** `^53.0.22` - Plataforma de desarrollo y build
+  - **Expo Router:** `~5.1.5` - Sistema de navegación basado en archivos
+  - **NativeWind:** Framework de estilos usando clases de Tailwind CSS
+  - **TypeScript:** `~5.8.3` - Tipado estático para mayor robustez del código
+  - **React:** `19.0.0` - Biblioteca de componentes UI
+  - **SafeAreaView:** Manejo seguro de áreas de visualización en dispositivos
+  - **Componentes modulares:** Arquitectura basada en componentes reutilizables
 
 - **Arquitectura Backend:** 
+  - **Django:** Framework web de Python para API REST
 
 - **Diseño de Base de Datos:** 
+  - **PostgreSQL:** Base de datos relacional principal
 
 - **Autenticación y Autorización:** 
 
 - **Subida de archivos imagenes:** 
 
 - **Geolocalización y Mapas:** 
+  - **MapLibre React Native:** `^10.2.1` - Librería de mapas open-source
+  - **MapTiler API:** Servicio de tiles de mapas para visualización
+  - **React Native Maps:** Componentes de mapas nativos
+  - **Geolocalización GPS:** Implementado en componentes de mapa
 
 - **Desarrollo y Despliegue:** 
+  - **TypeScript:** `~5.8.3` - Desarrollo tipado en toda la aplicación
+  - **NativeWind:** `latest` + **Tailwind CSS:** `^3.4.0` - Sistema de estilos
+  - **Expo:** `^53.0.22` - Plataforma de desarrollo y build
+  - **ESLint:** `^9.34.0` + **Prettier:** `^3.2.5` - Calidad y formato de código
+  - **Babel:** `^7.20.0` - Transpilación de código
+  - **Metro:** Bundler de React Native configurado
+  - **Git:** Control de versiones en GitHub
+  - **Docker:** Containerización con Ubuntu 24.04, Node.js 20, Android SDK
+  - **VS Code DevContainer:** Entorno de desarrollo containerizado
 
 
 
@@ -34,9 +57,9 @@ Para mantener un historial de cambios claro y estructurado, todos los integrante
 ### Estructura básica del mensaje de commit
 
 ```
-<tipo>[ámbito opcional][Sprint_]: <descripción>
+<tipo>[ámbito opcional][S_]: <descripción> (0 a 10 palabras)
 [cuerpo opcional]
-[nota(s) al pie opcional(es)]
+[nota(s) al pie opcional(es)] (agregar lista archivos editados)
 ```
 
 #### Tipos principales:
