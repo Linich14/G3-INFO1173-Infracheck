@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 
 export default function MapPage() {
     const key = process.env.EXPO_PUBLIC_MAPTILER_API_KEY;
-    const STYLE_URL = `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
+    const STYLE_URL = `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}a`;
     const temuco = [-72.5901, -38.7399]; // [lng, lat]
     const router = useRouter();
 
