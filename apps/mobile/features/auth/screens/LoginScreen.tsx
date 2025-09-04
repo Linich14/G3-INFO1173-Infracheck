@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 import { formatRut } from '../utils/formatRut'
+import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const LoginScreen: React.FC = () => {
@@ -58,13 +59,17 @@ const LoginScreen: React.FC = () => {
       {/* Sección central */}
     <View className="flex-1 pt-10 -my-10 bg-[#14161E]">
       <View className="flex-row items-center justify-between mb-10 px-4">
-        {/* Botón atrás */}
-        <TouchableOpacity
-          className="bg-[#537CF2] p-2 w-16 h-14 rounded-[12px] shadow active:opacity-80 items-center justify-center"
-          onPress={() => router.replace('/')}
-        >
-          <Text className="text-white font-bold text-2xl">←</Text>
-        </TouchableOpacity>
+    {/* Botón atrás */}
+    <TouchableOpacity
+      onPress={() => router.replace('/')}   // o router.back() si prefieres
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      accessibilityRole="button"
+      accessibilityLabel="Volver"
+      activeOpacity={0.6}
+      className="items-center justify-center bg-primary p-3 px-4 rounded-[12px]" 
+    >
+      <ArrowLeft size={28} color="#fff" />
+    </TouchableOpacity>
 
         {/* Texto centrado */}
         <Text className="text-white text-6xl font-bold">Hola!</Text>
