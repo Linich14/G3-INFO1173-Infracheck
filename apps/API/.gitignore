@@ -1,0 +1,6 @@
+# Ignorar archivos de entorno y credenciales
+.env
+*.env
+.vscode/
+.venv/
+__pycache__/
