@@ -10,20 +10,22 @@ import {
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import { useUserLocation } from '~/utils/userLocation';
-
-type Location = {
-    latitude: number;
-    longitude: number;
-};
+import { MAP_CONFIG } from '~/constants/config';
+import { localizacion, PinDetails } from '../types';
+import PinDetailsModal from '../components/PinDetailsModal';
 
 export default function MapScreen() {
-    const key = process.env.EXPO_PUBLIC_MAPTILER_API_KEY;
-    const STYLE_URL = `https://api.maptiler.com/maps/basic-v2/style.json?key=${key}`;
-    const [location, setLocation] = useState<Location>({
-        latitude: -38.7399,
-        longitude: -72.5901, // Temuco por defecto
+    const [location, setLocation] = useState<localizacion>({
+        latitud: -38.7399,
+        longitud: -72.5901, // Temuco por defecto
+        direccion: '',
     });
-    const { getUserLocation } = useUserLocation(); // Asumiendo que este hook tiene un método para obtener la ubicación del usuario
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [pinDetails, setPinDetails] = useState<PinDetails | null>(null);
+    const [cargando, setCargando] = useState(false);
+
+    const { getUserLocation } = useUserLocation();
     const router = useRouter();
 
     const centerOnUserLocation = async () => {
@@ -31,8 +33,9 @@ export default function MapScreen() {
             const userLocation = await getUserLocation();
             if (userLocation) {
                 setLocation({
-                    latitude: userLocation.coords.latitude,
-                    longitude: userLocation.coords.longitude,
+                    latitud: userLocation.coords.latitude,
+                    longitud: userLocation.coords.longitude,
+                    direccion: '',
                 });
                 console.log('Ubicación del usuario centrada:', userLocation);
             }
@@ -41,14 +44,43 @@ export default function MapScreen() {
         }
     };
 
+    // Función para manejar la selección del pin
+    const handlePinSelected = async () => {
+        setCargando(true);
+        setModalVisible(true);
+
+        try {
+            const detalles: PinDetails = {
+                titulo: 'Vehículo en zona restringida',
+                imagenes: ['https://picsum.photos/400/400'],
+            };
+
+            // simulacion de periodo de carga
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            setPinDetails(detalles);
+        } catch (error) {
+            console.error('Error al cargar detalles del pin:', error);
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    const closeModal = () => {
+        setModalVisible(false);
+        setPinDetails(null);
+    };
+
     return (
         <View className="relative flex-1">
-            <MapView style={{ flex: 1 }} mapStyle={STYLE_URL}>
-                <Camera zoomLevel={13} centerCoordinate={[location.longitude, location.latitude]} />
+            <MapView style={{ flex: 1 }} mapStyle={MAP_CONFIG.STYLE_URL}>
+                <Camera zoomLevel={13} centerCoordinate={[location.longitud, location.latitud]} />
                 <UserLocation />
 
-                {/* Un marcador simple con vista personalizada */}
-                <PointAnnotation id="poi-car" coordinate={[-72.591, -38.74]}>
+                <PointAnnotation
+                    onSelected={handlePinSelected}
+                    id="poi-car"
+                    coordinate={[-72.591, -38.74]}>
                     <View
                         style={{
                             alignItems: 'center',
@@ -76,6 +108,13 @@ export default function MapScreen() {
                     <MaterialCommunityIcons name="plus" size={40} color="#FFFFFF" />
                 </Pressable>
             </View>
+
+            <PinDetailsModal
+                cargando={cargando}
+                pinDetails={pinDetails}
+                visible={modalVisible}
+                onClose={closeModal}
+            />
         </View>
     );
 }

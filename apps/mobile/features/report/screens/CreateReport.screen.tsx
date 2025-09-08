@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, Alert } from 'react-native';
+import { View, Text, ScrollView, Alert, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormReport from '../components/formReport';
 import ModalFileOption from '../components/modalFileOption';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const CreateReportScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -27,11 +28,11 @@ const CreateReportScreen = () => {
 
     return (
         <SafeAreaView className="flex-1 items-center justify-center bg-background">
-            <ScrollView className="w-full flex-1 p-4" showsVerticalScrollIndicator={false}>
-                <View className={style.items}>
-                    <Text className="text-center text-3xl font-bold text-primary">
-                        Nuevo Reporte
-                    </Text>
+            <ScrollView className="relative w-full flex-1 p-4" showsVerticalScrollIndicator={false}>
+                <View className="mb-4 flex-row items-center rounded-lg bg-secondary p-4">
+                    <View className="flex-1 items-center">
+                        <Text className="text-3xl font-bold text-primary">Nuevo Reporte</Text>
+                    </View>
                 </View>
 
                 <FormReport onOpenImageModal={handleOpenImageModal} />
@@ -43,12 +44,13 @@ const CreateReportScreen = () => {
                     onSelectFromGallery={handleSelectFromGallery}
                 />
             </ScrollView>
+            <Pressable
+                onPress={() => Alert.alert('Funcionalidad', 'Enviar reporte - Por implementar')}
+                className="absolute bottom-0 right-0 m-6 aspect-square rounded-full bg-primary p-4">
+                <MaterialIcons className="m-auto" name="send" size={30} color="white" />
+            </Pressable>
         </SafeAreaView>
     );
-};
-
-const style = {
-    items: 'bg-secondary p-4 rounded-lg flex-1 items-center justify-center mb-4',
 };
 
 export default CreateReportScreen;

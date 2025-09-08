@@ -42,7 +42,7 @@ const FormReport = ({ onOpenImageModal }: FormReportProps) => {
                 <View>
                     <TextInput
                         placeholderTextColor={'#FFFFFF'}
-                        className="w-min-[20px] border-b-2 border-b-slate-500 bg-secondary pb-1 text-2xl text-white"
+                        className="w-min-[20px] border-b-2 border-b-slate-600 pb-1 text-2xl text-white"
                         placeholder="Título"
                         value={title}
                         onChangeText={setTitle}
@@ -56,7 +56,7 @@ const FormReport = ({ onOpenImageModal }: FormReportProps) => {
                 <View>
                     <TextInput
                         placeholderTextColor={'#FFFFFF'}
-                        className="w-min-[20px] border-b-2 border-b-slate-500 bg-secondary pb-1 text-white"
+                        className="w-min-[20px] border-b-2 border-b-slate-600 pb-1 text-white"
                         placeholder="Descripción del problema"
                         value={description}
                         onChangeText={setDescription}
@@ -69,13 +69,13 @@ const FormReport = ({ onOpenImageModal }: FormReportProps) => {
                 </View>
 
                 <Pressable
-                    className="group h-[100px] w-full items-center justify-center rounded-lg bg-background p-3 active:bg-slate-500"
+                    className="group h-[100px] w-full items-center justify-center rounded-lg bg-secondary p-3 active:bg-slate-500"
                     onPress={onOpenImageModal}>
                     <MaterialCommunityIcons name="file-image" size={40} color="white" />
                     <Text className="mt-2 text-sm text-white">Agregar imagen</Text>
                 </Pressable>
 
-                <View className="rounded-lg bg-background">
+                <View className="rounded-lg bg-secondary">
                     <Picker
                         mode="dropdown"
                         style={nativeStyles.picker}
@@ -84,17 +84,17 @@ const FormReport = ({ onOpenImageModal }: FormReportProps) => {
                         <Picker.Item
                             label="Selecciona una categoría"
                             value=""
-                            style={{ color: '#999999' }}
+                            style={nativeStyles.pickerItem}
                         />
                         <Picker.Item
                             label="Medio ambiente"
                             value="ambiente"
-                            style={{ color: '#FFFFFF', backgroundColor: '#090A0D' }}
+                            style={nativeStyles.pickerItem}
                         />
                         <Picker.Item
                             label="Infraestructura vial"
                             value="vial"
-                            style={{ color: '#FFFFFF', backgroundColor: '#090A0D' }}
+                            style={nativeStyles.pickerItem}
                         />
                     </Picker>
                 </View>
@@ -105,7 +105,7 @@ const FormReport = ({ onOpenImageModal }: FormReportProps) => {
 
                 <Pressable
                     onPress={handleOpenMapModal}
-                    className="group w-full items-center justify-center rounded-lg bg-background p-3 active:bg-slate-500">
+                    className="group w-full items-center justify-center rounded-lg bg-secondary p-3 active:bg-slate-500">
                     <MaterialCommunityIcons name="map-marker" size={30} color="white" />
                     <Text className="mt-2 text-sm text-white">
                         {selectedLocation
@@ -117,7 +117,7 @@ const FormReport = ({ onOpenImageModal }: FormReportProps) => {
 
             <View className={style.container + 'mt-4'}>
                 <Text className="text-xl text-white">Nivel de Urgencia</Text>
-                <View className="rounded-lg bg-background">
+                <View className="rounded-lg bg-secondary">
                     <Picker
                         mode="dropdown"
                         style={nativeStyles.picker}
@@ -125,24 +125,9 @@ const FormReport = ({ onOpenImageModal }: FormReportProps) => {
                         selectionColor={'#090A0D'}
                         itemStyle={{ backgroundColor: '#090A0D', color: '#000000' }}>
                         <Picker.Item label="Selecciona una gravedad" value="" />
-                        <Picker.Item
-                            label="Bajo"
-                            value="bajo"
-                            style={{
-                                color: '#FFFFFF',
-                                backgroundColor: '#090A0D',
-                            }}
-                        />
-                        <Picker.Item
-                            label="Grave"
-                            value="grave"
-                            style={{ color: '#FFFFFF', backgroundColor: '#090A0D' }}
-                        />
-                        <Picker.Item
-                            label="Alto"
-                            value="alto"
-                            style={{ color: '#FFFFFF', backgroundColor: '#090A0D' }}
-                        />
+                        <Picker.Item label="Bajo" value="bajo" style={nativeStyles.pickerItem} />
+                        <Picker.Item label="Grave" value="grave" style={nativeStyles.pickerItem} />
+                        <Picker.Item label="Alto" value="alto" style={nativeStyles.pickerItem} />
                     </Picker>
                 </View>
             </View>
@@ -160,7 +145,7 @@ const FormReport = ({ onOpenImageModal }: FormReportProps) => {
 };
 
 const style = {
-    container: 'w-full flex-col gap-4 rounded-lg bg-secondary p-4 ',
+    container: 'w-full flex-col gap-4 rounded-lg bg-tertiary p-4 ',
 };
 
 const nativeStyles = {
@@ -169,6 +154,7 @@ const nativeStyles = {
         color: '#FFFFFF',
         borderRadius: 8,
     },
+    pickerItem: { color: '#FFFFFF', backgroundColor: '#13161E' },
 };
 
 export default FormReport;
