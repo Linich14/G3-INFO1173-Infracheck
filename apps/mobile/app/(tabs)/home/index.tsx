@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import ReportCard from '~/components/ReportCard';
 import {
   AlignJustify,
@@ -41,7 +42,7 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => console.log('Perfil')}
+        onPress={() => router.push('/profile')}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         accessibilityRole="button"
         accessibilityLabel="Perfil"
