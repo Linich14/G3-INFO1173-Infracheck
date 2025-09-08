@@ -1,4 +1,4 @@
-# G3-INFO1173-TuVozTemuco
+# G3-INFO1173-Infracheck
 # Descripción del Proyecto
 
 En Temuco, la gestión de los espacios públicos enfrenta una limitación estructural: la Municipalidad no cuenta con equipos suficientes, personal ni sistemas eficientes para inspeccionar de manera constante el estado de calles, veredas, accesos peatonales y otros elementos clave de la infraestructura urbana. Esta carencia genera una brecha crítica entre el deterioro real del entorno urbano y la capacidad institucional para detectarlo y actuar oportunamente. Como resultado, problemas visibles —como baches, veredas rotas o accesos inaccesibles para personas con discapacidad— permanecen sin solución durante meses, afectando la seguridad, la movilidad y la calidad de vida de los habitantes.
