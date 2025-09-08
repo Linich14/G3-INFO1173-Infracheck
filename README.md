@@ -11,16 +11,16 @@ La plataforma incluirá un sistema de seguimiento, historial de tiempo sin resol
 
 
 ### Diagrama de Arquitectura de Software
-![Diagrama de Arquitectura](images/Integracion 4, Grupo 3 - Arq. Software.jpg)
+![Diagrama de Arquitectura](images/Integracion%204,%20Grupo%203%20-%20Arq.%20Software.jpg)
 
 ### Diagrama de Casos de Uso
-![Diagrama de Casos de Uso](images/Integracion 4, Grupo 3 - Caso de Uso.jpg)
+![Diagrama de Casos de Uso](images/Integracion%204,%20Grupo%203%20-%20Caso%20de%20Uso.jpg)
 
 ### Diagrama de Componentes
-![Diagrama de Componentes](images/Integracion 4, Grupo 3 - Componentes.jpg)
+![Diagrama de Componentes](images/Integracion%204,%20Grupo%203%20-%20Componentes.jpg)
 
 ### Modelo Entidad-Relación (MER)
-![Diagrama MER](images/Integracion 4, Grupo 3 - MER.jpg)
+![Diagrama MER](images/Integracion%204,%20Grupo%203%20-%20MER.jpg)
 
 
 ## Arquitectura del Sistema
