@@ -64,7 +64,7 @@ const RegisterScreen: React.FC = () => {
           {/* Campo RUT */}
           <View className="space-y-2 w-72 mb-8">
             <Text className="text-white text-xl font-semibold">RUT</Text>
-            <RutInput value={rut} onChangeText={setRut} />
+            <RutInput value={rut} onChangeText={setRut} keyboardType="numeric" />
           </View>
 
           {/* Campo Nombre */}
@@ -74,6 +74,7 @@ const RegisterScreen: React.FC = () => {
               placeholder="Juan"
               placeholderTextColor="#ccc"
               className="text-white text-lg border-b border-white pb-2"
+              keyboardType="default"
             />
           </View>
 
@@ -84,6 +85,7 @@ const RegisterScreen: React.FC = () => {
               placeholder="Perez Parada"
               placeholderTextColor="#ccc"
               className="text-white text-lg border-b border-white pb-2"
+              keyboardType="default"
             />
           </View>
 
@@ -94,13 +96,13 @@ const RegisterScreen: React.FC = () => {
               placeholder="pepa"
               placeholderTextColor="#ccc"
               className="text-white text-lg border-b border-white pb-2"
+              keyboardType="default"
             />
           </View>
 
           {/* Campo Correo */}
           <View className="space-y-2 w-72 mb-8">
             <Text className="text-white text-xl font-semibold">Correo Electrónico</Text>
-            
             <EmailInput value={email} onChangeText={setEmail} />
           </View>
 
@@ -112,6 +114,7 @@ const RegisterScreen: React.FC = () => {
               placeholderTextColor="#ccc"
               secureTextEntry
               className="text-white text-lg border-b border-white pb-2"
+              keyboardType="default"
             />
           </View>
 
@@ -123,6 +126,7 @@ const RegisterScreen: React.FC = () => {
               placeholderTextColor="#ccc"
               secureTextEntry
               className="text-white text-lg border-b border-white pb-2"
+              keyboardType="default"
             />
           </View>
 
@@ -134,7 +138,7 @@ const RegisterScreen: React.FC = () => {
               <TextInput
                 placeholder="12345678"
                 placeholderTextColor="#ccc"
-                keyboardType="phone-pad"
+                keyboardType="number-pad"
                 className="text-white text-lg border-b border-white pb-2 flex-1"
                 maxLength={8}
               />

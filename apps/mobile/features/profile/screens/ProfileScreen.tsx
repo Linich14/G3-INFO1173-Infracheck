@@ -1,0 +1,74 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { ArrowLeft, Settings } from 'lucide-react-native';
+import { UserInfo } from '~/features/profile/components/UserInfo';
+import { useUser } from '~/features/profile/hooks/useUser';
+
+function ProfileScreen() {
+  const { user, loading, error } = useUser();
+
+  if (loading) {
+    return (
+      <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#537CF2" />
+          <Text className="text-white mt-4">Cargando perfil...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
+        <View className="flex-1 justify-center items-center px-4">
+          <Text className="text-red-500 text-center">{error || 'Error al cargar el perfil'}</Text>
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            className="mt-4 bg-[#537CF2] px-6 py-3 rounded-lg"
+          >
+            <Text className="text-white font-bold">Volver</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
+      {/* Header */}
+      <View className="bg-[#13161E] flex-row justify-between items-center p-4">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Volver"
+          activeOpacity={0.6}
+        >
+          <ArrowLeft size={26} color="white" />
+        </TouchableOpacity>
+        
+        <Text className="text-[#537CF2] font-bold text-2xl">Perfil de usuario</Text>
+        
+        <TouchableOpacity
+          onPress={() => console.log('Configuración')}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Configuración"
+          activeOpacity={0.6}
+        >
+          <Settings size={26} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* User Information */}
+        <UserInfo user={user} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+export default ProfileScreen;

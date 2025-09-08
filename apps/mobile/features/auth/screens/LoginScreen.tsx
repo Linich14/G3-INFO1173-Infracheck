@@ -45,8 +45,12 @@ const LoginScreen: React.FC = () => {
       </View>
 
       
-      {/* Sección central con ScrollView para evitar desbordes */}
-      <ScrollView contentContainerStyle={{ paddingTop: 64, paddingBottom: 32, alignItems: 'center' }} keyboardShouldPersistTaps="handled">
+      {/* Sección central con ScrollView para evitar desbordes y manejo de teclado */}
+      <ScrollView
+        contentContainerStyle={{ paddingTop: 64, paddingBottom: 32, alignItems: 'center' }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <View className="w-full px-6 ">
           <View className="flex-row items-center justify-between mb-10">
             {/* Botón atrás */}
@@ -70,7 +74,7 @@ const LoginScreen: React.FC = () => {
             {/* Campo Usuario */}
             <View className="space-y-2 w-72">
               <Text className="text-white text-2xl font-bold ">Usuario</Text>
-              <RutInput value={rut} onChangeText={setRut} />
+              <RutInput value={rut} onChangeText={setRut} keyboardType="numeric" />
             </View>
             {/* Campo Contraseña */}
             <View className="space-y-2 w-72 pt-8">
@@ -82,6 +86,7 @@ const LoginScreen: React.FC = () => {
                 placeholderTextColor="#ccc"
                 secureTextEntry
                 className="text-white text-xl border-b border-white pb-2"
+                keyboardType="default"
               />
             </View>
           </View>
