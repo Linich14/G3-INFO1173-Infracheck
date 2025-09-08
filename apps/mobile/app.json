@@ -12,7 +12,8 @@
     "plugins": [
       "expo-router",
       "expo-web-browser",
-      "@maplibre/maplibre-react-native"
+      "@maplibre/maplibre-react-native",
+      "expo-location"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -31,14 +32,20 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.InfraCheck"
+      "bundleIdentifier": "com.anonymous.InfraCheck",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show your current position."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.InfraCheck"
+      "package": "com.anonymous.InfraCheck",
+      "permissions": [
+        "ACCESS_FINE_LOCATION"
+      ]
     }
   }
 }

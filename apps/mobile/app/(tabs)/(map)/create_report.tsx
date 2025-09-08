@@ -1,3 +1,3 @@
-import createReportScreen from '@features/map/screens/createReportScreen';
+import createReportScreen from '~/features/report/screens/CreateReport.screen';
 
 export default createReportScreen;
