@@ -50,9 +50,10 @@ const LoginScreen: React.FC = () => {
         contentContainerStyle={{ paddingTop: 64, paddingBottom: 32, alignItems: 'center' }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
+        className='bg-[#14161E] -my-10'
       >
         <View className="w-full px-6 ">
-          <View className="flex-row items-center justify-between mb-10">
+          <View className="flex-row items-center justify-between mb-10 ">
             {/* Botón atrás */}
             <TouchableOpacity
               onPress={() => router.replace('/')}   // o router.back() si prefieres

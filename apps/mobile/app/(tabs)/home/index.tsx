@@ -1,65 +1,112 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity} from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Animated, Easing, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import ReportCard from '~/components/ReportCard';
-import {
-  AlignJustify,
-  UserCircle2,
-  Search,
-} from 'lucide-react-native';
+import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map } from 'lucide-react-native';
+
+const MENU_BG = '#0f172a';
+const HEADER_BG = '#13161E';
+const ACCENT = '#537CF2';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
 
+  const [open, setOpen] = useState(false);
+  const drawerX = useRef(new Animated.Value(-Dimensions.get('window').width * 0.75)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const DRAWER_W = Math.min(320, Dimensions.get('window').width * 0.75);
+
+  const openMenu = () => {
+    setOpen(true);
+    Animated.parallel([
+      Animated.timing(drawerX, {
+        toValue: 0,
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(backdropOpacity, {
+        toValue: 0.45,
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const closeMenu = () => {
+    Animated.parallel([
+      Animated.timing(drawerX, {
+        toValue: -DRAWER_W,
+        duration: 200,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(backdropOpacity, {
+        toValue: 0,
+        duration: 200,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
+      if (finished) setOpen(false);
+    });
+  };
+
+  const handleLogout = () => {
+    // cierra el menú y navega al login
+    closeMenu();
+    router.replace('/(auth)/sign-in');
+  };
+
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
-  {/* Header */}
-  <View className="bg-[#13161E] flex-row justify-between p-4">
-    <View className="flex-row items-center gap-4">
-      <TouchableOpacity
-        onPress={() => console.log('Menú')}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        accessibilityRole="button"
-        accessibilityLabel="Abrir menú"
-        activeOpacity={0.6}
-      >
-        <AlignJustify size={26} color="white" />
-      </TouchableOpacity>
+      {/* Header */}
+      <View className="bg-[#13161E] flex-row justify-between p-4">
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity
+            onPress={openMenu}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir menú"
+            activeOpacity={0.6}
+          >
+            <AlignJustify size={26} color="white" />
+          </TouchableOpacity>
 
-      <Text className="text-[#537CF2] font-bold text-2xl">Reportes</Text>
-    </View>
+          <Text className="text-[#537CF2] font-bold text-2xl">Reportes</Text>
+        </View>
 
-    <View className="flex-row items-center gap-6">
-      <TouchableOpacity
-        onPress={() => console.log('Buscar')}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        accessibilityRole="button"
-        accessibilityLabel="Buscar"
-        activeOpacity={0.6}
-      >
-        <Search size={26} color="white" />
-      </TouchableOpacity>
+        <View className="flex-row items-center gap-6">
+          <TouchableOpacity
+            onPress={() => console.log('Buscar')}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Buscar"
+            activeOpacity={0.6}
+          >
+            <Search size={26} color="white" />
+          </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => router.push('/profile')}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        accessibilityRole="button"
-        accessibilityLabel="Perfil"
-        activeOpacity={0.6}
-      >
-        <UserCircle2 size={26} color="white" />
-      </TouchableOpacity>
-    </View>
-  </View>
+          <TouchableOpacity
+            onPress={() => router.push('/profile')}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Perfil"
+            activeOpacity={0.6}
+          >
+            <UserCircle2 size={26} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Lista de reportes */}
       <ScrollView
         className="px-4 mt-4"
-        // damos aire SOLO al contenido, para que no lo tape la tab bar
         contentContainerStyle={{
           gap: 16,
-          paddingBottom: insets.bottom + 12, // 👈 en vez del safe area del contenedor
+          paddingBottom: insets.bottom + 12,
         }}
       >
         <ReportCard
@@ -91,6 +138,104 @@ export default function HomeScreen() {
           aspectRatio={4 / 3}
         />
       </ScrollView>
+
+      {/* ===== Drawer / Canvas ===== */}
+      {open && (
+        <>
+          {/* Backdrop */}
+          <TouchableWithoutFeedback onPress={closeMenu}>
+            <Animated.View
+              pointerEvents={open ? 'auto' : 'none'}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                backgroundColor: '#000',
+                opacity: backdropOpacity,
+              }}
+            />
+          </TouchableWithoutFeedback>
+
+          {/* Panel */}
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              left: 0,
+              width: DRAWER_W,
+              backgroundColor: MENU_BG,
+              paddingTop: insets.top + 12,
+              paddingHorizontal: 16,
+              transform: [{ translateX: drawerX }],
+              borderRightWidth: 1,
+              borderRightColor: '#1f2937', // separador sutil
+            }}
+          >
+            {/* Encabezado del panel */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: ACCENT, fontSize: 20, fontWeight: '700' }}>Menú</Text>
+            </View>
+
+            {/* Ítems del menú (ejemplos de navegación) */}
+            <TouchableOpacity
+              onPress={() => {
+                closeMenu();
+                router.replace('/(tabs)/home');
+              }}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10 }}
+              activeOpacity={0.7}
+            >
+              <Home size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 16 }}>Inicio</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                closeMenu();
+                router.push('/(map)/index');
+              }}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10 }}
+              activeOpacity={0.7}
+            >
+              <Map size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 16 }}>Mapa</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                closeMenu();
+                router.push('/settings/index');
+              }}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10 }}
+              activeOpacity={0.7}
+            >
+              <Settings size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 16 }}>Ajustes</Text>
+            </TouchableOpacity>
+
+            {/* Separador */}
+            <View style={{ height: 1, backgroundColor: '#1f2937', marginVertical: 12 }} />
+
+            {/* Cerrar sesión */}
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 12,
+                gap: 10,
+              }}
+              activeOpacity={0.7}
+            >
+              <LogOut size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 16 }}>Cerrar sesión</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </>
+      )}
     </SafeAreaView>
   );
 }

@@ -1,28 +1,31 @@
-import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native'
-import { useRouter } from 'expo-router'
-import EmailInput from '../components/EmailInput'
-import RutInput from '../components/RutInput'
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
+import EmailInput from '../components/EmailInput';
+import RutInput from '../components/RutInput';
 import { ArrowLeft } from 'lucide-react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const RegisterScreen: React.FC = () => {
-  const router = useRouter()
-  const [rut, setRut] = useState('')
-  const [email, setEmail] = useState('')
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const [rut, setRut] = useState('');
+  const [email, setEmail] = useState('');
 
   const handleRegister = () => {
-    router.replace('/(tabs)/home')
-  }
+    router.replace('/(tabs)/home');
+  };
 
   return (
-    <View className="flex-1 bg-[#0f172a]">
-      {/* Sección superior decorativa */}
+    // Respetamos solo el safe area superior; la parte inferior la maneja el contenido
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#0f172a' }}>
       {/* Sección superior decorativa */}
       <View>
-        <View className='flex-row justify-between'>
+        <View className="flex-row justify-between">
           <View className="top-5 left-10 w-32 h-32 bg-white rounded-full justify-center" />
-          <View className='justify-center items-end mr-4'>
-            <Text className=" text-white text-4xl font-bold">Registrarse</Text>
+          <View className="justify-center items-end mr-4">
+            <Text className="text-white text-4xl font-bold">Registrarse</Text>
           </View>
         </View>
       </View>
@@ -31,24 +34,36 @@ const RegisterScreen: React.FC = () => {
       <View>
         <Image
           source={require('@assets/Vectores/Vector 7.png')}
-          className="-left-10 "
+          className="-left-10"
           resizeMode="cover"
-          style={{ width: "120%", height: 120 }}
+          style={{ width: '120%', height: 120 }}
         />
         <Image
           source={require('@assets/Vectores/Vector 6.png')}
-          className="absolute mt-8 -left-10 "
+          className="absolute mt-8 -left-10"
           resizeMode="cover"
-          style={{ width: "120%", height: 120 }}
+          style={{ width: '120%', height: 120 }}
         />
       </View>
 
-      {/* Sección principal con scroll */}
-      <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center', paddingHorizontal: 24, paddingTop: 40, backgroundColor: '#14161E' }}>
-        <View className='flex-row justify-between w-full mb-20'>
-            {/* Botón atrás */}
+      {/* Sección principal con scroll (sobre fondo #14161E) */}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        className="-my-10 bg-[#14161E]"
+        contentContainerStyle={{
+          paddingTop: 64,
+          paddingBottom: insets.bottom + 16, // aire para no chocar con la tab bar
+          alignItems: 'center',
+          rowGap: 0,
+        }}
+      >
+        <View className="w-full px-6">
+          {/* Header del form: back + Hola! centrado + spacer */}
+          <View className="flex-row items-center justify-between mb-10">
+            {/* Botón atrás (icon-only, sin fondo) */}
             <TouchableOpacity
-              onPress={() => router.replace('/')}   // o router.back() si prefieres
+              onPress={() => router.replace('/')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               accessibilityRole="button"
               accessibilityLabel="Volver"
@@ -57,112 +72,120 @@ const RegisterScreen: React.FC = () => {
             >
               <ArrowLeft size={28} color="#fff" />
             </TouchableOpacity>
-          <Text className="text-white text-6xl font-bold right-60">Hola!</Text>
-        </View>
-        {/* Campos */}
-        <View className="items-center space-y-10 mb-12">
-          {/* Campo RUT */}
-          <View className="space-y-2 w-72 mb-8">
-            <Text className="text-white text-xl font-semibold">RUT</Text>
-            <RutInput value={rut} onChangeText={setRut} keyboardType="numeric" />
+
+            <Text className="text-white text-6xl font-bold">Hola!</Text>
+
+            {/* Spacer del mismo ancho visual que el botón atrás */}
+            <View style={{ width: 36 }} />
           </View>
 
-          {/* Campo Nombre */}
-          <View className="space-y-2 w-72 mb-8">
-            <Text className="text-white text-xl font-semibold">Nombre</Text>
-            <TextInput
-              placeholder="Juan"
-              placeholderTextColor="#ccc"
-              className="text-white text-lg border-b border-white pb-2"
-              keyboardType="default"
-            />
-          </View>
+          {/* Campos */}
+          <View className="items-center mb-8">
+            {/* Campo RUT */}
+            <View className="space-y-2 w-72 mb-8">
+              <Text className="text-white text-2xl font-bold">RUT</Text>
+              <RutInput value={rut} onChangeText={setRut} keyboardType="numeric" />
+            </View>
 
-          {/* Campo Apellido */}
-          <View className="space-y-2 w-72 mb-8">
-            <Text className="text-white text-xl font-semibold">Apellido</Text>
-            <TextInput
-              placeholder="Perez Parada"
-              placeholderTextColor="#ccc"
-              className="text-white text-lg border-b border-white pb-2"
-              keyboardType="default"
-            />
-          </View>
-
-          {/* Campo Nickname */}
-          <View className="space-y-2 w-72 mb-8">
-            <Text className="text-white text-xl font-semibold">Nombre de Usuario</Text>
-            <TextInput
-              placeholder="pepa"
-              placeholderTextColor="#ccc"
-              className="text-white text-lg border-b border-white pb-2"
-              keyboardType="default"
-            />
-          </View>
-
-          {/* Campo Correo */}
-          <View className="space-y-2 w-72 mb-8">
-            <Text className="text-white text-xl font-semibold">Correo Electrónico</Text>
-            <EmailInput value={email} onChangeText={setEmail} />
-          </View>
-
-          {/* Campo Contraseña */}
-          <View className="space-y-2 w-72 mb-8">
-            <Text className="text-white text-xl font-semibold">Contraseña</Text>
-            <TextInput
-              placeholder="************"
-              placeholderTextColor="#ccc"
-              secureTextEntry
-              className="text-white text-lg border-b border-white pb-2"
-              keyboardType="default"
-            />
-          </View>
-
-          {/* Campo Repetir Contraseña */}
-          <View className="space-y-2 w-72 mb-8">
-            <Text className="text-white text-xl font-semibold">Repetir Contraseña</Text>
-            <TextInput
-              placeholder="************"
-              placeholderTextColor="#ccc"
-              secureTextEntry
-              className="text-white text-lg border-b border-white pb-2"
-              keyboardType="default"
-            />
-          </View>
-
-          {/* Campo Teléfono */}
-          <View className="space-y-2 w-72 mb-8">
-            <Text className="text-white text-xl font-semibold">Teléfono</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text className="text-white text-lg mr-2">+569</Text>
+            {/* Campo Nombre */}
+            <View className="space-y-2 w-72 mb-8">
+              <Text className="text-white text-2xl font-bold">Nombre</Text>
               <TextInput
-                placeholder="12345678"
+                placeholder="Juan"
                 placeholderTextColor="#ccc"
-                keyboardType="number-pad"
-                className="text-white text-lg border-b border-white pb-2 flex-1"
-                maxLength={8}
+                className="text-white text-xl border-b border-white pb-2"
+                keyboardType="default"
               />
             </View>
+
+            {/* Campo Apellido */}
+            <View className="space-y-2 w-72 mb-8">
+              <Text className="text-white text-2xl font-bold">Apellido</Text>
+              <TextInput
+                placeholder="Pérez Parada"
+                placeholderTextColor="#ccc"
+                className="text-white text-xl border-b border-white pb-2"
+                keyboardType="default"
+              />
+            </View>
+
+            {/* Campo Nombre de Usuario */}
+            <View className="space-y-2 w-72 mb-8">
+              <Text className="text-white text-2xl font-bold">Nombre de Usuario</Text>
+              <TextInput
+                placeholder="pepa"
+                placeholderTextColor="#ccc"
+                className="text-white text-xl border-b border-white pb-2"
+                keyboardType="default"
+              />
+            </View>
+
+            {/* Campo Correo */}
+            <View className="space-y-2 w-72 mb-8">
+              <Text className="text-white text-2xl font-bold">Correo Electrónico</Text>
+              <EmailInput value={email} onChangeText={setEmail} />
+            </View>
+
+            {/* Campo Contraseña */}
+            <View className="space-y-2 w-72 mb-8">
+              <Text className="text-white text-2xl font-bold">Contraseña</Text>
+              <TextInput
+                placeholder="************"
+                placeholderTextColor="#ccc"
+                secureTextEntry
+                className="text-white text-xl border-b border-white pb-2"
+                keyboardType="default"
+              />
+            </View>
+
+            {/* Campo Repetir Contraseña */}
+            <View className="space-y-2 w-72 mb-8">
+              <Text className="text-white text-2xl font-bold">Repetir Contraseña</Text>
+              <TextInput
+                placeholder="************"
+                placeholderTextColor="#ccc"
+                secureTextEntry
+                className="text-white text-xl border-b border-white pb-2"
+                keyboardType="default"
+              />
+            </View>
+
+            {/* Campo Teléfono */}
+            <View className="space-y-2 w-72 mb-8">
+              <Text className="text-white text-2xl font-bold">Teléfono</Text>
+              <View className="flex-row items-center">
+                <Text className="text-white text-xl mr-2">+569</Text>
+                <TextInput
+                  placeholder="12345678"
+                  placeholderTextColor="#ccc"
+                  keyboardType="number-pad"
+                  className="text-white text-xl border-b border-white pb-2 flex-1"
+                  maxLength={8}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Botones */}
+          <View className="items-center mt-2">
+            <TouchableOpacity
+              className="bg-[#537CF2] items-center justify-center w-48 py-5 rounded-[32px] shadow active:opacity-80 mb-4"
+              onPress={handleRegister}
+            >
+              <Text className="text-white text-lg font-bold">Registrarse</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.replace('/(auth)/sign-in')}
+              className="bg-gray-400 items-center justify-center w-48 py-5 rounded-[32px] shadow border-2 border-white active:opacity-80"
+            >
+              <Text className="text-white text-lg font-bold">Ya tengo cuenta</Text>
+            </TouchableOpacity>
           </View>
         </View>
-        {/* Botones */}
-        <View className="gap-4 items-center mb-10">
-          <TouchableOpacity
-            className="bg-blue-600 py-3 rounded-xl w-48 h-12 shadow active:opacity-80"
-            onPress={handleRegister}
-          >
-            <Text className="text-white text-center text-base font-medium">Registrarse</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="bg-gray-400 py-3 rounded-xl w-48 h-12 shadow border-2 border-white active:opacity-80"
-            onPress={() => router.replace('/(auth)/sign-in')}
-          >
-            <Text className="text-white text-center text-base font-medium">Ya tengo cuenta</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
-    </View>
-  )
-}
+    </SafeAreaView>
+  );
+};
 
-export default RegisterScreen
+export default RegisterScreen;
