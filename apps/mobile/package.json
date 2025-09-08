@@ -34,19 +34,8 @@
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-svg": "^15.12.1",
-<<<<<<< HEAD
     "react-native-web": "^0.20.0",
-    "expo-linear-gradient": "~14.1.5",
     "expo-location": "~18.1.6"
-=======
-<<<<<<< HEAD
-    "react-native-web": "^0.20.0",
-    "expo-linear-gradient": "~14.1.5",
-    "expo-location": "~18.1.6"
-=======
-    "react-native-web": "^0.20.0"
->>>>>>> e80693d8263c3f7b1e8d687819799f4fb20f135b
->>>>>>> origin/development
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
