@@ -9,9 +9,25 @@ Frente a este escenario, se propone el desarrollo de una plataforma digital ciud
 
 La plataforma incluirá un sistema de seguimiento, historial de tiempo sin resolución, votación ciudadana para priorizar problemas, notificaciones automáticas a los departamentos municipales y un dashboard de transparencia con métricas por zona, tipo de problema y tasa de resolución. El objetivo es fortalecer la democracia local, promoviendo una cultura de corresponsabilidad entre habitantes y autoridades, y modernizar los canales de participación ciudadana en Temuco.
 
+
+### Diagrama de Arquitectura de Software
+![Diagrama de Arquitectura](images/Integracion 4, Grupo 3 - Arq. Software.jpg)
+
+### Diagrama de Casos de Uso
+![Diagrama de Casos de Uso](images/Integracion 4, Grupo 3 - Caso de Uso.jpg)
+
+### Diagrama de Componentes
+![Diagrama de Componentes](images/Integracion 4, Grupo 3 - Componentes.jpg)
+
+### Modelo Entidad-Relación (MER)
+![Diagrama MER](images/Integracion 4, Grupo 3 - MER.jpg)
+
+
 ## Arquitectura del Sistema
 
-- **Arquitectura Frontend:** 
+
+## Diagramas de Referencia del Proyecto
+
   - **React Native:** `0.79.5` - Aplicación móvil multiplataforma para iOS y Android
   - **Expo:** `^53.0.22` - Plataforma de desarrollo y build
   - **Expo Router:** `~5.1.5` - Sistema de navegación basado en archivos
