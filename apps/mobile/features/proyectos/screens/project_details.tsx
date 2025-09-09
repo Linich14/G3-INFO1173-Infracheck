@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import ReportsView from './AssociatedReports.tsx';
 
 interface ProjectDetailsProps {
     project: {
@@ -9,11 +10,32 @@ interface ProjectDetailsProps {
         estado: string;
         color: string;
         prioridad?: string;
+        reportesAsociados?: number;
+        votosAFavor?: number;
     };
     onBack: () => void;
 }
 
 export default function ProjectDetails({ project, onBack }: ProjectDetailsProps) {
+    const [showReports, setShowReports] = useState(false);
+
+    const handleShowReports = () => {
+        setShowReports(true);
+    };
+
+    const handleBackFromReports = () => {
+        setShowReports(false);
+    };
+
+    if (showReports) {
+        return (
+            <ReportsView
+                projectId={project.id}
+                projectName={project.lugar}
+                onBack={handleBackFromReports}
+            />
+        );
+    }
     return (
         <View className="flex-1 bg-black px-4 pt-10">
             {/* Header */}
@@ -64,6 +86,22 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
                         <Text className="text-white">6 meses</Text>
                     </View>
 
+                    <View className="mb-3 flex-row items-center justify-between">
+                        <View className="flex-row items-center">
+                            <Ionicons name="document-text" size={16} color="#9CA3AF" />
+                            <Text className="ml-2 text-gray-400">Reportes asociados:</Text>
+                        </View>
+                        <Text className="text-white">{project.reportesAsociados || 0}</Text>
+                    </View>
+
+                    <View className="mb-3 flex-row items-center justify-between">
+                        <View className="flex-row items-center">
+                            <Ionicons name="arrow-up" size={16} color="#9CA3AF" />
+                            <Text className="ml-2 text-gray-400">Votos a favor:</Text>
+                        </View>
+                        <Text className="text-white">{project.votosAFavor || 0}</Text>
+                    </View>
+
                     {/* Descripción */}
                     <View className="mb-6 rounded-xl bg-neutral-900 p-6">
                         <Text className="mb-3 text-lg font-bold text-blue-400">Descripción</Text>
@@ -80,7 +118,9 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
                 <View className="mb-6 rounded-xl bg-neutral-900 p-6">
                     <Text className="mb-4 text-lg font-bold text-blue-400">Acciones</Text>
 
-                    <TouchableOpacity className="mb-3 flex-row items-center rounded-lg bg-blue-600 p-4">
+                    <TouchableOpacity
+                        className="mb-3 flex-row items-center rounded-lg bg-blue-600 p-4"
+                        onPress={handleShowReports}>
                         <Ionicons name="document-text" size={20} color="white" />
                         <Text className="ml-3 font-semibold text-white">Reportes asociados</Text>
                     </TouchableOpacity>

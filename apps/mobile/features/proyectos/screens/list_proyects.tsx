@@ -16,6 +16,8 @@ interface ProjectItem {
     estado: string;
     color: string;
     prioridad?: string;
+    reportesAsociados?: number;
+    votosAFavor?: number;
 }
 
 const dataPrioridad: PriorityItem[] = [
@@ -25,11 +27,46 @@ const dataPrioridad: PriorityItem[] = [
 ];
 
 const dataProyectos: ProjectItem[] = [
-    { id: 1, lugar: 'Centro Temuco', estado: 'En Progreso', color: 'bg-purple-700' },
-    { id: 2, lugar: 'Centro Temuco', estado: 'Completado', color: 'bg-green-800' },
-    { id: 3, lugar: 'Centro Temuco', estado: 'Pendiente', color: 'bg-blue-700' },
-    { id: 4, lugar: 'Centro Temuco', estado: 'Aprobado', color: 'bg-yellow-700' },
-    { id: 5, lugar: 'Centro Temuco', estado: 'Rechazado', color: 'bg-gray-700' },
+    {
+        id: 1,
+        lugar: 'Calle esquina Alemania con Prat',
+        estado: 'En Progreso',
+        color: 'bg-purple-700',
+        reportesAsociados: 3,
+        votosAFavor: 46,
+    },
+    {
+        id: 2,
+        lugar: 'Calle 2',
+        estado: 'Completado',
+        color: 'bg-green-800',
+        reportesAsociados: 5,
+        votosAFavor: 82,
+    },
+    {
+        id: 3,
+        lugar: 'Plaza central',
+        estado: 'Pendiente',
+        color: 'bg-blue-700',
+        reportesAsociados: 2,
+        votosAFavor: 15,
+    },
+    {
+        id: 4,
+        lugar: 'Avenida Siempre Viva',
+        estado: 'Aprobado',
+        color: 'bg-yellow-700',
+        reportesAsociados: 1,
+        votosAFavor: 7,
+    },
+    {
+        id: 5,
+        lugar: 'Calle Falsa X',
+        estado: 'Rechazado',
+        color: 'bg-gray-700',
+        reportesAsociados: 4,
+        votosAFavor: 23,
+    },
 ];
 
 export default function App() {
