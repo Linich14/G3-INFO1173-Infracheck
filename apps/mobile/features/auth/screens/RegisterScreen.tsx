@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import EmailInput from '../components/EmailInput';
 import RutInput from '../components/RutInput';
@@ -7,14 +7,70 @@ import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const RegisterScreen: React.FC = () => {
+  const handleConfirm = () => {
+    const data = getRegisterData();
+    setShowModal(false);
+    // Reemplazar la URL por endpoint Django REST
+    fetch('http://127.0.0.1:8000/api/v1/register/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+      .then(async (response) => {
+        if (response.ok) {
+          // Registro exitoso
+          // mostrar un mensaje o navegar
+          router.replace('/(tabs)/home');
+        } else {
+          // Error en el registro
+          const errorData = await response.json();
+          alert('Error en el registro: ' + (errorData.detail || 'Verifica los datos.'));
+        }
+      })
+      .catch((error) => {
+        alert('Error de red: ' + error.message);
+      });
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+  };
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [rut, setRut] = useState('');
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [showModal, setShowModal] = useState(false);
+
+  // Función para recoger los datos
+  const getRegisterData = () => ({
+    rut,
+    email,
+    username,
+    password,
+    confirmPassword,
+    phone: `+569${phone}`,
+  });
+
 
   const handleRegister = () => {
-    router.replace('/(tabs)/home');
+  setShowModal(true);
+  const handleConfirm = () => {
+    const data = getRegisterData();
+    // enviar 'data' a la API REST
+    setShowModal(false);
+    //router.replace('/(tabs)/home');
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+  };
   };
 
   return (
@@ -87,27 +143,6 @@ const RegisterScreen: React.FC = () => {
               <RutInput value={rut} onChangeText={setRut} keyboardType="numeric" />
             </View>
 
-            {/* Campo Nombre */}
-            <View className="space-y-2 w-72 mb-8">
-              <Text className="text-white text-2xl font-bold">Nombre</Text>
-              <TextInput
-                placeholder="Juan"
-                placeholderTextColor="#ccc"
-                className="text-white text-xl border-b border-white pb-2"
-                keyboardType="default"
-              />
-            </View>
-
-            {/* Campo Apellido */}
-            <View className="space-y-2 w-72 mb-8">
-              <Text className="text-white text-2xl font-bold">Apellido</Text>
-              <TextInput
-                placeholder="Pérez Parada"
-                placeholderTextColor="#ccc"
-                className="text-white text-xl border-b border-white pb-2"
-                keyboardType="default"
-              />
-            </View>
 
             {/* Campo Nombre de Usuario */}
             <View className="space-y-2 w-72 mb-8">
@@ -117,6 +152,8 @@ const RegisterScreen: React.FC = () => {
                 placeholderTextColor="#ccc"
                 className="text-white text-xl border-b border-white pb-2"
                 keyboardType="default"
+                value={username}
+                onChangeText={setUsername}
               />
             </View>
 
@@ -135,11 +172,9 @@ const RegisterScreen: React.FC = () => {
                 secureTextEntry
                 className="text-white text-xl border-b border-white pb-2"
                 keyboardType="default"
+                value={password}
+                onChangeText={setPassword}
               />
-            </View>
-
-            {/* Campo Repetir Contraseña */}
-            <View className="space-y-2 w-72 mb-8">
               <Text className="text-white text-2xl font-bold">Repetir Contraseña</Text>
               <TextInput
                 placeholder="************"
@@ -147,6 +182,8 @@ const RegisterScreen: React.FC = () => {
                 secureTextEntry
                 className="text-white text-xl border-b border-white pb-2"
                 keyboardType="default"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
               />
             </View>
 
@@ -161,6 +198,8 @@ const RegisterScreen: React.FC = () => {
                   keyboardType="number-pad"
                   className="text-white text-xl border-b border-white pb-2 flex-1"
                   maxLength={8}
+                  value={phone}
+                  onChangeText={setPhone}
                 />
               </View>
             </View>
@@ -184,6 +223,33 @@ const RegisterScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+      {/* Modal de confirmación temporal */}
+      <Modal
+        visible={showModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancel}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.6)' }}>
+          <View style={{ backgroundColor: '#fff', padding: 24, borderRadius: 16, minWidth: 300 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 20, marginBottom: 12 }}>Confirma tus datos</Text>
+            <Text>RUT: {rut}</Text>
+            <Text>Correo: {email}</Text>
+            <Text>Usuario: {username}</Text>
+            <Text>Contraseña: {password}</Text>
+            <Text>Repetir Contraseña: {confirmPassword}</Text>
+            <Text>Teléfono: +569{phone}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 24 }}>
+              <TouchableOpacity onPress={handleCancel} style={{ padding: 10 }}>
+                <Text style={{ color: '#537CF2', fontWeight: 'bold' }}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleConfirm} style={{ padding: 10 }}>
+                <Text style={{ color: '#537CF2', fontWeight: 'bold' }}>Confirmar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
