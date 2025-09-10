@@ -1,4 +1,4 @@
-# G3-INFO1173-TuVozTemuco
+# G3-INFO1173-Infracheck
 # Descripción del Proyecto
 
 En Temuco, la gestión de los espacios públicos enfrenta una limitación estructural: la Municipalidad no cuenta con equipos suficientes, personal ni sistemas eficientes para inspeccionar de manera constante el estado de calles, veredas, accesos peatonales y otros elementos clave de la infraestructura urbana. Esta carencia genera una brecha crítica entre el deterioro real del entorno urbano y la capacidad institucional para detectarlo y actuar oportunamente. Como resultado, problemas visibles —como baches, veredas rotas o accesos inaccesibles para personas con discapacidad— permanecen sin solución durante meses, afectando la seguridad, la movilidad y la calidad de vida de los habitantes.
@@ -9,21 +9,60 @@ Frente a este escenario, se propone el desarrollo de una plataforma digital ciud
 
 La plataforma incluirá un sistema de seguimiento, historial de tiempo sin resolución, votación ciudadana para priorizar problemas, notificaciones automáticas a los departamentos municipales y un dashboard de transparencia con métricas por zona, tipo de problema y tasa de resolución. El objetivo es fortalecer la democracia local, promoviendo una cultura de corresponsabilidad entre habitantes y autoridades, y modernizar los canales de participación ciudadana en Temuco.
 
+
+### Diagrama de Arquitectura de Software
+![Diagrama de Arquitectura](images/Integracion%204,%20Grupo%203%20-%20Arq.%20Software.jpg)
+
+### Diagrama de Casos de Uso
+![Diagrama de Casos de Uso](images/Integracion%204,%20Grupo%203%20-%20Caso%20de%20Uso.jpg)
+
+### Diagrama de Componentes
+![Diagrama de Componentes](images/Integracion%204,%20Grupo%203%20-%20Componentes.jpg)
+
+### Modelo Entidad-Relación (MER)
+![Diagrama MER](images/Integracion%204,%20Grupo%203%20-%20MER.jpg)
+
+
 ## Arquitectura del Sistema
 
-- **Arquitectura Frontend:** 
+
+## Diagramas de Referencia del Proyecto
+
+  - **React Native:** `0.79.5` - Aplicación móvil multiplataforma para iOS y Android
+  - **Expo:** `^53.0.22` - Plataforma de desarrollo y build
+  - **Expo Router:** `~5.1.5` - Sistema de navegación basado en archivos
+  - **NativeWind:** Framework de estilos usando clases de Tailwind CSS
+  - **TypeScript:** `~5.8.3` - Tipado estático para mayor robustez del código
+  - **React:** `19.0.0` - Biblioteca de componentes UI
+  - **SafeAreaView:** Manejo seguro de áreas de visualización en dispositivos
+  - **Componentes modulares:** Arquitectura basada en componentes reutilizables
 
 - **Arquitectura Backend:** 
+  - **Django:** Framework web de Python para API REST
 
 - **Diseño de Base de Datos:** 
+  - **PostgreSQL:** Base de datos relacional principal
 
 - **Autenticación y Autorización:** 
 
 - **Subida de archivos imagenes:** 
 
 - **Geolocalización y Mapas:** 
+  - **MapLibre React Native:** `^10.2.1` - Librería de mapas open-source
+  - **MapTiler API:** Servicio de tiles de mapas para visualización
+  - **React Native Maps:** Componentes de mapas nativos
+  - **Geolocalización GPS:** Implementado en componentes de mapa
 
 - **Desarrollo y Despliegue:** 
+  - **TypeScript:** `~5.8.3` - Desarrollo tipado en toda la aplicación
+  - **NativeWind:** `latest` + **Tailwind CSS:** `^3.4.0` - Sistema de estilos
+  - **Expo:** `^53.0.22` - Plataforma de desarrollo y build
+  - **ESLint:** `^9.34.0` + **Prettier:** `^3.2.5` - Calidad y formato de código
+  - **Babel:** `^7.20.0` - Transpilación de código
+  - **Metro:** Bundler de React Native configurado
+  - **Git:** Control de versiones en GitHub
+  - **Docker:** Containerización con Ubuntu 24.04, Node.js 20, Android SDK
+  - **VS Code DevContainer:** Entorno de desarrollo containerizado
 
 
 
@@ -34,9 +73,9 @@ Para mantener un historial de cambios claro y estructurado, todos los integrante
 ### Estructura básica del mensaje de commit
 
 ```
-<tipo>[ámbito opcional][Sprint_]: <descripción>
+<tipo>[ámbito opcional][S_]: <descripción> (0 a 10 palabras)
 [cuerpo opcional]
-[nota(s) al pie opcional(es)]
+[nota(s) al pie opcional(es)] (agregar lista archivos editados)
 ```
 
 #### Tipos principales:
