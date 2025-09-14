@@ -9,7 +9,7 @@ const MENU_BG = '#0f172a';
 const HEADER_BG = '#13161E';
 const ACCENT = '#537CF2';
 
-export default function HomeScreen() {
+export default function ClientHomeScreen() {
   const insets = useSafeAreaInsets();
 
   const [open, setOpen] = useState(false);
@@ -55,7 +55,6 @@ export default function HomeScreen() {
   };
 
   const handleLogout = () => {
-    // cierra el menú y navega al login
     closeMenu();
     router.replace('/(auth)/sign-in');
   };
@@ -75,7 +74,7 @@ export default function HomeScreen() {
             <AlignJustify size={26} color="white" />
           </TouchableOpacity>
 
-          <Text className="text-[#537CF2] font-bold text-2xl">Reportes</Text>
+          <Text className="text-[#537CF2] font-bold text-2xl">Cliente - Reportes</Text>
         </View>
 
         <View className="flex-row items-center gap-6">
@@ -171,15 +170,13 @@ export default function HomeScreen() {
               paddingHorizontal: 16,
               transform: [{ translateX: drawerX }],
               borderRightWidth: 1,
-              borderRightColor: '#1f2937', // separador sutil
+              borderRightColor: '#1f2937',
             }}
           >
-            {/* Encabezado del panel */}
             <View style={{ marginBottom: 16 }}>
-              <Text style={{ color: ACCENT, fontSize: 20, fontWeight: '700' }}>Menú</Text>
+              <Text style={{ color: ACCENT, fontSize: 20, fontWeight: '700' }}>Menú Cliente</Text>
             </View>
 
-            {/* Ítems del menú (ejemplos de navegación) */}
             <TouchableOpacity
               onPress={() => {
                 closeMenu();
@@ -216,10 +213,8 @@ export default function HomeScreen() {
               <Text style={{ color: '#fff', fontSize: 16 }}>Ajustes</Text>
             </TouchableOpacity>
 
-            {/* Separador */}
             <View style={{ height: 1, backgroundColor: '#1f2937', marginVertical: 12 }} />
 
-            {/* Navegación de Homes (temporal para desarrollo) */}
             <TouchableOpacity
               onPress={() => {
                 closeMenu();
@@ -256,10 +251,8 @@ export default function HomeScreen() {
               <Text style={{ color: '#fff', fontSize: 16 }}>Home Admin</Text>
             </TouchableOpacity>
 
-            {/* Separador */}
             <View style={{ height: 1, backgroundColor: '#1f2937', marginVertical: 12 }} />
 
-            {/* Cerrar sesión */}
             <TouchableOpacity
               onPress={handleLogout}
               style={{

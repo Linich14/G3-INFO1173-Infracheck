@@ -2,14 +2,13 @@ import React, { useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Animated, Easing, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import ReportCard from '~/components/ReportCard';
-import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map, Shield, Users } from 'lucide-react-native';
+import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map, Shield, Users, BarChart3, FileText, AlertTriangle, FolderOpen, Plus } from 'lucide-react-native';
 
 const MENU_BG = '#0f172a';
 const HEADER_BG = '#13161E';
 const ACCENT = '#537CF2';
 
-export default function HomeScreen() {
+export default function AuthorityHomeScreen() {
   const insets = useSafeAreaInsets();
 
   const [open, setOpen] = useState(false);
@@ -55,7 +54,6 @@ export default function HomeScreen() {
   };
 
   const handleLogout = () => {
-    // cierra el menú y navega al login
     closeMenu();
     router.replace('/(auth)/sign-in');
   };
@@ -75,7 +73,7 @@ export default function HomeScreen() {
             <AlignJustify size={26} color="white" />
           </TouchableOpacity>
 
-          <Text className="text-[#537CF2] font-bold text-2xl">Reportes</Text>
+          <Text className="text-[#537CF2] font-bold text-2xl">Panel Autoridad</Text>
         </View>
 
         <View className="flex-row items-center gap-6">
@@ -101,7 +99,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Lista de reportes */}
+      {/* Contenido de Autoridad */}
       <ScrollView
         className="px-4 mt-4"
         contentContainerStyle={{
@@ -109,34 +107,100 @@ export default function HomeScreen() {
           paddingBottom: insets.bottom + 12,
         }}
       >
-        <ReportCard
-          title="Calle en mal estado"
-          author="ChristianV"
-          timeAgo="3d"
-          image={require('@assets/Publicaciones/1.png')}
-          upvotes={254}
-          onFollow={() => console.log('Seguir')}
-          onMore={() => console.log('Más opciones')}
-          onLocation={() => console.log('Ubicación')}
-          onUpvote={() => console.log('Upvote')}
-          onComment={() => console.log('Comentar')}
-          onShare={() => console.log('Compartir')}
-        />
+        {/* Estadísticas Rápidas */}
+        <View className="bg-[#13161E] rounded-[12px] p-4">
+          <Text className="text-white text-xl font-bold mb-4">Reportes del Día</Text>
+          
+          <View className="flex-row justify-between mb-4">
+            <View className="items-center">
+              <AlertTriangle size={32} color="#FF6B6B" />
+              <Text className="text-white text-lg font-bold mt-2">12</Text>
+              <Text className="text-gray-400">Urgentes</Text>
+            </View>
+            
+            <View className="items-center">
+              <FileText size={32} color="#4ECDC4" />
+              <Text className="text-white text-lg font-bold mt-2">45</Text>
+              <Text className="text-gray-400">Pendientes</Text>
+            </View>
+            
+            <View className="items-center">
+              <BarChart3 size={32} color="#45B7D1" />
+              <Text className="text-white text-lg font-bold mt-2">23</Text>
+              <Text className="text-gray-400">Resueltos</Text>
+            </View>
+          </View>
+        </View>
 
-        <ReportCard
-          title="Semáforo apagado"
-          author="María"
-          timeAgo="5h"
-          image={{ uri: 'https://picsum.photos/seed/semaforo/800/500' }}
-          upvotes={91}
-          onFollow={() => {}}
-          onMore={() => {}}
-          onLocation={() => {}}
-          onUpvote={() => {}}
-          onComment={() => {}}
-          onShare={() => {}}
-          aspectRatio={4 / 3}
-        />
+        {/* Reportes Críticos */}
+        <View className="bg-[#13161E] rounded-[12px] p-4">
+          <Text className="text-white text-xl font-bold mb-4">Reportes Críticos</Text>
+          
+          <View className="bg-[#1e293b] rounded-lg p-3 mb-3">
+            <View className="flex-row justify-between items-center">
+              <View>
+                <Text className="text-white font-bold">Semáforo Principal Caído</Text>
+                <Text className="text-gray-400">Av. Alemania con Prat</Text>
+                <Text className="text-red-400 text-sm">Hace 15 min</Text>
+              </View>
+              <View className="bg-red-500 w-3 h-3 rounded-full" />
+            </View>
+          </View>
+
+          <View className="bg-[#1e293b] rounded-lg p-3 mb-3">
+            <View className="flex-row justify-between items-center">
+              <View>
+                <Text className="text-white font-bold">Fuga de Agua Mayor</Text>
+                <Text className="text-gray-400">Calle Bulnes 123</Text>
+                <Text className="text-orange-400 text-sm">Hace 1 hora</Text>
+              </View>
+              <View className="bg-orange-500 w-3 h-3 rounded-full" />
+            </View>
+          </View>
+        </View>
+
+        {/* Acciones Rápidas */}
+        <View className="bg-[#13161E] rounded-[12px] p-4">
+          <Text className="text-white text-xl font-bold mb-4">Acciones Rápidas</Text>
+          
+          <View className="flex-row flex-wrap gap-3">
+            <TouchableOpacity 
+              onPress={() => console.log('Lista proyectos')}
+              className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
+              style={{ width: '47%', height: 80 }}
+            >
+              <FolderOpen size={24} color="white" />
+              <Text className="text-white text-sm mt-2 text-center">Lista Proyectos</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => console.log('Crear proyecto')}
+              className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
+              style={{ width: '47%', height: 80 }}
+            >
+              <Plus size={24} color="white" />
+              <Text className="text-white text-sm mt-2 text-center">Crear Proyecto</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => console.log('Lista reportes')}
+              className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
+              style={{ width: '47%', height: 80 }}
+            >
+              <FileText size={24} color="white" />
+              <Text className="text-white text-sm mt-2 text-center">Lista Reportes</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => console.log('Ver estadísticas')}
+              className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
+              style={{ width: '47%', height: 80 }}
+            >
+              <BarChart3 size={24} color="white" />
+              <Text className="text-white text-sm mt-2 text-center">Ver Estadísticas</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
 
       {/* ===== Drawer / Canvas ===== */}
@@ -171,15 +235,13 @@ export default function HomeScreen() {
               paddingHorizontal: 16,
               transform: [{ translateX: drawerX }],
               borderRightWidth: 1,
-              borderRightColor: '#1f2937', // separador sutil
+              borderRightColor: '#1f2937',
             }}
           >
-            {/* Encabezado del panel */}
             <View style={{ marginBottom: 16 }}>
-              <Text style={{ color: ACCENT, fontSize: 20, fontWeight: '700' }}>Menú</Text>
+              <Text style={{ color: ACCENT, fontSize: 20, fontWeight: '700' }}>Menú Autoridad</Text>
             </View>
 
-            {/* Ítems del menú (ejemplos de navegación) */}
             <TouchableOpacity
               onPress={() => {
                 closeMenu();
@@ -216,10 +278,8 @@ export default function HomeScreen() {
               <Text style={{ color: '#fff', fontSize: 16 }}>Ajustes</Text>
             </TouchableOpacity>
 
-            {/* Separador */}
             <View style={{ height: 1, backgroundColor: '#1f2937', marginVertical: 12 }} />
 
-            {/* Navegación de Homes (temporal para desarrollo) */}
             <TouchableOpacity
               onPress={() => {
                 closeMenu();
@@ -256,10 +316,8 @@ export default function HomeScreen() {
               <Text style={{ color: '#fff', fontSize: 16 }}>Home Admin</Text>
             </TouchableOpacity>
 
-            {/* Separador */}
             <View style={{ height: 1, backgroundColor: '#1f2937', marginVertical: 12 }} />
 
-            {/* Cerrar sesión */}
             <TouchableOpacity
               onPress={handleLogout}
               style={{
