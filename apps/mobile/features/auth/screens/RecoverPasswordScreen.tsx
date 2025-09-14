@@ -38,9 +38,9 @@ const RecoverPasswordScreen: React.FC = () => {
         />
       </View>
       {/* Formulario de recuperación */}
-      <ScrollView contentContainerStyle={{ paddingTop: 64, paddingBottom: 32, alignItems: 'center', justifyContent: 'flex-start' }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView  className='-my-10 pt-24 flex-1 align-items-center justify-content-start bg-[#14161E]'  keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <View className="w-full px-6 ">
-          <View className="flex-row items-center justify-between mb-10">
+          <View className="flex-row items-center justify-between mb-10 ">
             {/* Botón atrás */}
             <TouchableOpacity
               onPress={() => router.replace('/(auth)/sign-in')}
