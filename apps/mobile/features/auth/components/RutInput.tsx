@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, Text, KeyboardTypeOptions } from 'react-native';
-import { formatRut } from '../utils/formatRut';
+import { formatRut } from '../../../utils/formatRut';
+import { isValidRut } from '../../../utils/validation';
 
 interface RutInputProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
   keyboardType?: KeyboardTypeOptions;
+  error?: string;
 }
 
-function isValidRut(rut: string) {
-  // Valida formato 99.999.999-k o similar (sin validar dígito verificador real)
-  return /^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/.test(rut);
-}
 
-const RutInput: React.FC<RutInputProps> = ({ value, onChangeText, placeholder, keyboardType }) => {
+
+const RutInput: React.FC<RutInputProps> = ({ value, onChangeText, placeholder, keyboardType, error }) => {
   const [touched, setTouched] = useState(false);
   const valid = isValidRut(value);
 
@@ -40,9 +39,9 @@ const RutInput: React.FC<RutInputProps> = ({ value, onChangeText, placeholder, k
         style={{ color: 'white', borderBottomWidth: 1, borderColor: valid || !touched ? 'white' : 'red', paddingBottom: 8, fontSize: 18 }}
         maxLength={12}
       />
-      {touched && value.length > 0 && !valid && (
+          {(error || (touched && value.length > 0 && !valid)) && (
         <Text style={{ color: 'red', fontSize: 14, marginTop: 4}}>
-          Ingresa un RUT válido (ej: 12.345.678-9)
+            {error ? error : 'Ingresa un RUT válido (ej: 12.345.678-9)'}
         </Text>
       )}
     </View>

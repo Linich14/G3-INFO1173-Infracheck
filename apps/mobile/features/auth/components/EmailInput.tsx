@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text } from 'react-native';
+import { isValidEmail } from '../../../utils/validation';
 
 interface EmailInputProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  error?: string;
 }
 
-function isValidEmail(email: string) {
-  // Valida que tenga formato usuario@dominio.ext
-  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
-}
 
-const EmailInput: React.FC<EmailInputProps> = ({ value, onChangeText, placeholder }) => {
+
+const EmailInput: React.FC<EmailInputProps> = ({ value, onChangeText, placeholder, error }) => {
   const [touched, setTouched] = useState(false);
   const valid = isValidEmail(value);
 
@@ -35,9 +34,9 @@ const EmailInput: React.FC<EmailInputProps> = ({ value, onChangeText, placeholde
         autoCapitalize="none"
         style={{ color: 'white', borderBottomWidth: 1, borderColor: valid || !touched ? 'white' : 'red', paddingBottom: 8, fontSize: 18 }}
       />
-      {touched && value.length > 0 && !valid && (
+      {(error || (touched && value.length > 0 && !valid)) && (
         <Text style={{ color: 'red', fontSize: 14, marginTop: 4}}>
-          Ingresa un correo válido (ej: usuario@dominio.com)
+          {error ? error : 'Ingresa un correo válido (ej: usuario@dominio.com)'}
         </Text>
       )}
     </View>
