@@ -136,7 +136,7 @@ export default function AuthorityHomeScreen() {
         <View className="bg-[#13161E] rounded-[12px] p-4">
           <Text className="text-white text-xl font-bold mb-4">Reportes Críticos</Text>
           
-          <View className="bg-[#1e293b] rounded-lg p-3 mb-3">
+          <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
             <View className="flex-row justify-between items-center">
               <View>
                 <Text className="text-white font-bold">Semáforo Principal Caído</Text>
@@ -147,7 +147,7 @@ export default function AuthorityHomeScreen() {
             </View>
           </View>
 
-          <View className="bg-[#1e293b] rounded-lg p-3 mb-3">
+          <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
             <View className="flex-row justify-between items-center">
               <View>
                 <Text className="text-white font-bold">Fuga de Agua Mayor</Text>
@@ -163,11 +163,11 @@ export default function AuthorityHomeScreen() {
         <View className="bg-[#13161E] rounded-[12px] p-4">
           <Text className="text-white text-xl font-bold mb-4">Acciones Rápidas</Text>
           
-          <View className="flex-row flex-wrap gap-3">
+          <View className="flex-row flex-wrap gap-3 justify-center">
             <TouchableOpacity 
               onPress={() => console.log('Lista proyectos')}
               className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-              style={{ width: '47%', height: 80 }}
+              style={{ width: '47%', height: 120 }}
             >
               <FolderOpen size={24} color="white" />
               <Text className="text-white text-sm mt-2 text-center">Lista Proyectos</Text>
@@ -176,7 +176,7 @@ export default function AuthorityHomeScreen() {
             <TouchableOpacity 
               onPress={() => console.log('Crear proyecto')}
               className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-              style={{ width: '47%', height: 80 }}
+              style={{ width: '47%', height: 120 }}
             >
               <Plus size={24} color="white" />
               <Text className="text-white text-sm mt-2 text-center">Crear Proyecto</Text>
@@ -185,7 +185,7 @@ export default function AuthorityHomeScreen() {
             <TouchableOpacity 
               onPress={() => console.log('Lista reportes')}
               className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-              style={{ width: '47%', height: 80 }}
+              style={{ width: '47%', height: 120 }}
             >
               <FileText size={24} color="white" />
               <Text className="text-white text-sm mt-2 text-center">Lista Reportes</Text>
@@ -194,7 +194,7 @@ export default function AuthorityHomeScreen() {
             <TouchableOpacity 
               onPress={() => console.log('Ver estadísticas')}
               className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-              style={{ width: '47%', height: 80 }}
+              style={{ width: '47%', height: 120 }}
             >
               <BarChart3 size={24} color="white" />
               <Text className="text-white text-sm mt-2 text-center">Ver Estadísticas</Text>

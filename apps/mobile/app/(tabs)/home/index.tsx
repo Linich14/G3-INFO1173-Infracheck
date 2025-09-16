@@ -4,6 +4,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router';
 import ReportCard from '~/components/ReportCard';
 import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map, Shield, Users } from 'lucide-react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+
 
 const MENU_BG = '#0f172a';
 const HEADER_BG = '#13161E';
@@ -138,6 +140,13 @@ export default function HomeScreen() {
           aspectRatio={4 / 3}
         />
       </ScrollView>
+        <View className="absolute bottom-0 right-0 flex-col items-center gap-3 px-4 py-7">
+          <TouchableOpacity
+              onPress={() => router.push('/(tabs)/(map)/create_report')}
+              className="rounded-full bg-primary p-4 ">
+              <MaterialCommunityIcons name="plus" size={40} color="#FFFFFF" />
+          </TouchableOpacity>
+      </View>
 
       {/* ===== Drawer / Canvas ===== */}
       {open && (

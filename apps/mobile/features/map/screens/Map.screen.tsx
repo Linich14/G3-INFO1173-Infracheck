@@ -5,7 +5,6 @@ import {
     Camera,
     UserLocation,
     PointAnnotation,
-    Callout,
 } from '@maplibre/maplibre-react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
@@ -77,7 +76,7 @@ export default function MapScreen() {
                 <MapView style={{ flex: 1 }} mapStyle={MAP_CONFIG.STYLE_URL}>
                     <Camera zoomLevel={13} centerCoordinate={[location.longitud, location.latitud]} />
                     <UserLocation />
-                    
+
                     <PointAnnotation
                         onSelected={handlePinSelected}
                         id="poi-car"
@@ -97,7 +96,7 @@ export default function MapScreen() {
                 </Pressable>
                 <Pressable
                     onPress={() => router.push('/(tabs)/(map)/create_report')}
-                    className="aspect-square rounded-xl bg-primary p-2 ">
+                    className="rounded-full bg-primary p-4 ">
                     <MaterialCommunityIcons name="plus" size={40} color="#FFFFFF" />
                 </Pressable>
             </View>

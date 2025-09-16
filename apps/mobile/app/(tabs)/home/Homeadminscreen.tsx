@@ -136,7 +136,7 @@ export default function AdminHomeScreen() {
         <View className="bg-[#13161E] rounded-[12px] p-4">
           <Text className="text-white text-xl font-bold mb-4">Gestión de Usuarios</Text>
           
-          <View className="bg-[#1e293b] rounded-lg p-3 mb-3">
+          <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
             <View className="flex-row justify-between items-center">
               <View>
                 <Text className="text-white font-bold">Nuevos Registros Hoy</Text>
@@ -148,7 +148,7 @@ export default function AdminHomeScreen() {
             </View>
           </View>
 
-          <View className="bg-[#1e293b] rounded-lg p-3 mb-3">
+          <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
             <View className="flex-row justify-between items-center">
               <View>
                 <Text className="text-white font-bold">Usuarios Activos</Text>
@@ -165,41 +165,41 @@ export default function AdminHomeScreen() {
         <View className="bg-[#13161E] rounded-[12px] p-4">
           <Text className="text-white text-xl font-bold mb-4">Panel de Control</Text>
           
-          <View className="flex-row flex-wrap gap-3">
+          <View className="flex-row flex-wrap gap-3 justify-center">
             <TouchableOpacity 
               onPress={() => console.log('Gestionar usuarios')}
               className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-              style={{ width: '47%', height: 80 }}
+              style={{ width: '47%', height: 120 }}
             >
               <Users2 size={24} color="white" />
-              <Text className="text-white text-sm mt-2 text-center">Gestionar Usuarios</Text>
+              <Text className="text-white mt-2 text-center">Gestionar Usuarios</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
               onPress={() => console.log('Base de datos')}
               className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-              style={{ width: '47%', height: 80 }}
+              style={{ width: '47%', height: 120 }}
             >
               <Database size={24} color="white" />
-              <Text className="text-white text-sm mt-2 text-center">Base de Datos</Text>
+              <Text className="text-white mt-2 text-center">Base de Datos</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
               onPress={() => console.log('Analytics')}
               className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-              style={{ width: '47%', height: 80 }}
+              style={{ width: '47%', height: 120 }}
             >
               <BarChart3 size={24} color="white" />
-              <Text className="text-white text-sm mt-2 text-center">Analytics</Text>
+              <Text className="text-white mt-2 text-center">Analytics</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
               onPress={() => console.log('Configuración')}
               className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-              style={{ width: '47%', height: 80 }}
+              style={{ width: '47%', height: 120 }}
             >
               <Settings size={24} color="white" />
-              <Text className="text-white text-sm mt-2 text-center">Configuración</Text>
+              <Text className="text-white mt-2 text-center">Configuración</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -1,8 +1,44 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { UserCircle2, Bell, Globe, Sun, Check, ChevronDown } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+/** ---------- Traducciones simples (i18n local) ---------- */
+type Locale = 'es' | 'en';
+
+const TRANSLATIONS: Record<Locale, {
+  settings: string;
+  account: string;
+  notifications: string;
+  language: string;
+  appearance: string;
+  spanish: string;
+  english: string;
+}> = {
+  es: {
+    settings: 'Ajustes',
+    account: 'Cuenta',
+    notifications: 'Notificaciones',
+    language: 'Idioma',
+    appearance: 'Apariencia',
+    spanish: 'Español',
+    english: 'Inglés',
+  },
+  en: {
+    settings: 'Settings',
+    account: 'Account',
+    notifications: 'Notifications',
+    language: 'Language',
+    appearance: 'Appearance',
+    spanish: 'Spanish',
+    english: 'English',
+  },
+};
+
+const STORAGE_KEY = 'app_locale';
+
+/** ---------- UI Row Reutilizable ---------- */
 type RowProps = {
   icon: React.ReactNode;
   label: string;
@@ -12,7 +48,7 @@ type RowProps = {
 };
 
 function SettingRow({ icon, label, right, onPress, disabled }: RowProps) {
-  const Comp = onPress ? TouchableOpacity : View;
+  const Comp: any = onPress ? TouchableOpacity : View;
   return (
     <Comp
       disabled={disabled}
@@ -28,18 +64,48 @@ function SettingRow({ icon, label, right, onPress, disabled }: RowProps) {
   );
 }
 
+/** ---------- Pantalla de Ajustes ---------- */
 export default function SettingsPag() {
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [appearanceEnabled, setAppearanceEnabled] = useState(true);
 
-  // Idioma
-  const LANGS = ['Español', 'English'] as const;
-  type Lang = typeof LANGS[number];
-  const [language, setLanguage] = useState<Lang>('Español');
+  // Locale
+  const [locale, setLocale] = useState<Locale>('es');
   const [langOpen, setLangOpen] = useState(false);
 
-  const pickLang = (lang: Lang) => {
-    setLanguage(lang);
+  // Cargar/Persistir idioma
+  useEffect(() => {
+    (async () => {
+      try {
+        const saved = await AsyncStorage.getItem(STORAGE_KEY);
+        if (saved === 'es' || saved === 'en') setLocale(saved);
+      } catch {}
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, locale);
+      } catch {}
+    })();
+  }, [locale]);
+
+  const t = useMemo(() => TRANSLATIONS[locale], [locale]);
+
+  const LANGS: { code: Locale; label: string }[] = useMemo(
+    () => [
+      { code: 'es', label: locale === 'es' ? t.spanish : TRANSLATIONS[locale].spanish }, // muestra "Español"/"Spanish"
+      { code: 'en', label: locale === 'en' ? t.english : TRANSLATIONS[locale].english }, // muestra "Inglés"/"English"
+    ],
+    [locale, t]
+  );
+
+  const currentLangLabel =
+    locale === 'es' ? t.spanish : t.english;
+
+  const pickLang = (code: Locale) => {
+    setLocale(code);
     setLangOpen(false);
   };
 
@@ -47,20 +113,20 @@ export default function SettingsPag() {
     <SafeAreaView className="flex-1 bg-[#090A0D]">
       {/* Header “píldora” */}
       <View className="bg-[#13161E] p-3 mx-4 mt-2 mb-3 rounded-[12px]">
-        <Text className="text-[#537CF2] font-bold text-center text-2xl">Ajustes</Text>
+        <Text className="text-[#537CF2] font-bold text-center text-2xl">{t.settings}</Text>
       </View>
 
-      {/* Cuenta */}
+      {/* Cuenta / Account */}
       <SettingRow
         icon={<UserCircle2 size={28} color="#FF8C2A" />}
-        label="Cuenta"
+        label={t.account}
         onPress={() => {}}
       />
 
-      {/* Notificaciones */}
+      {/* Notificaciones / Notifications */}
       <SettingRow
         icon={<Bell size={28} color="#F9504F" />}
-        label="Notificaciones"
+        label={t.notifications}
         right={
           <Switch
             value={notifEnabled}
@@ -71,31 +137,33 @@ export default function SettingsPag() {
         }
       />
 
+      {/* Idioma / Language */}
       <SettingRow
         icon={<Globe size={28} color="#22c55e" />}
-        label="Idioma"
-        onPress={() => setLangOpen((v) => !v)}
+        label={t.language}
+        onPress={() => setLangOpen(v => !v)}
         right={
           <View className="flex-row items-center gap-2">
-            <Text className="text-gray-400 text-xl">{language}</Text>
+            <Text className="text-gray-400 text-xl">{currentLangLabel}</Text>
             <ChevronDown size={18} color="#9CA3AF" />
           </View>
         }
       />
+
       {langOpen && (
         <View className="mx-4 -mt-2 mb-2 bg-[#10131A] rounded-[12px] overflow-hidden border border-[#1f2937]">
-          {LANGS.map((l, idx) => {
-            const selected = l === language;
+          {LANGS.map((opt, idx) => {
+            const selected = opt.code === locale;
             return (
               <TouchableOpacity
-                key={l}
-                onPress={() => pickLang(l)}
+                key={opt.code}
+                onPress={() => pickLang(opt.code)}
                 className={`flex-row items-center justify-between px-4 py-3 ${
                   idx !== LANGS.length - 1 ? 'border-b border-[#1f2937]' : ''
                 } ${selected ? 'bg-[#151a23]' : ''}`}
                 activeOpacity={0.8}
               >
-                <Text className="text-white text-base">{l}</Text>
+                <Text className="text-white text-base">{opt.label}</Text>
                 {selected ? <Check size={18} color="#22c55e" /> : null}
               </TouchableOpacity>
             );
@@ -103,10 +171,10 @@ export default function SettingsPag() {
         </View>
       )}
 
-      {/* Apariencia */}
+      {/* Apariencia / Appearance */}
       <SettingRow
         icon={<Sun size={28} color="#FFD85A" />}
-        label="Apariencia"
+        label={t.appearance}
         right={
           <Switch
             value={appearanceEnabled}
