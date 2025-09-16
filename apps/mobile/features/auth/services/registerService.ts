@@ -9,11 +9,12 @@ export async function registerUser(data: RegisterData): Promise<{ success: boole
       },
       body: JSON.stringify(data),
     });
-    if (response.ok) {
-      return { success: true, message: 'Registro exitoso' };
+    const result = await response.json();
+    // El backend siempre responde con { success, message }
+    if (response.ok && result.success) {
+      return { success: true, message: result.message || 'Registro exitoso' };
     } else {
-      const errorData = await response.json();
-      return { success: false, message: errorData.detail || 'Verifica los datos.' };
+      return { success: false, message: result.message || 'Verifica los datos.' };
     }
   } catch (error: any) {
     return { success: false, message: error.message };

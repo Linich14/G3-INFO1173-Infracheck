@@ -1,12 +1,15 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
 load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-replace-this-key'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-replace-this-key')
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'domain.entities',
 ]
 
 MIDDLEWARE = [
@@ -53,11 +57,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': '',  # Nombre de la base de datos
-        'USER': '',  # Usuario
-        'PASSWORD': '',  # Contraseña
-        'HOST': '',  # Host (ejemplo: 'localhost' o IP)
-        'PORT': '',  # Puerto (ejemplo: '5432')
+        'NAME': os.environ.get('POSTGRES_DB', ''),
+        'USER': os.environ.get('POSTGRES_USER', ''),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
 
@@ -83,6 +87,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-## CORS config
+
+# CORS config
 CORS_ALLOW_ALL_ORIGINS = True
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')

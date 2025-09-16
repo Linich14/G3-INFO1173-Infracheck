@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Modal, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import EmailInput from '../components/EmailInput';
 import RutInput from '../components/RutInput';
@@ -9,21 +9,8 @@ import { registerUser } from '../services/registerService';
 import { RegisterData } from '../types/RegisterData';
 import { validateRegisterData, getPasswordValidationState } from '../../../utils/validation';
 
-const RegisterScreen: React.FC = () => {
-  const handleConfirm = async () => {
-    const data: RegisterData = getRegisterData();
-    setShowModal(false);
-    const result = await registerUser(data);
-    if (result.success) {
-      router.replace('/(tabs)/home');
-    } else {
-      alert('Error en el registro: ' + result.message);
-    }
-  };
 
-  const handleCancel = () => {
-    setShowModal(false);
-  };
+const RegisterScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -36,6 +23,39 @@ const RegisterScreen: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    const data: RegisterData = getRegisterData();
+    setShowModal(false);
+    setFeedbackModalVisible(true);
+    setLoading(true);
+    // Espera artificial para mostrar el modal de carga antes de enviar los datos
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const result = await registerUser(data);
+      if (result.success) {
+        setFeedbackMessage('¡Registro exitoso! Serás redirigido al inicio de sesión.');
+        setLoading(false);
+        setTimeout(() => {
+          setFeedbackModalVisible(false);
+          router.replace('/(auth)/sign-in');
+        }, 1800);
+      } else {
+        setFeedbackMessage('Error en el registro: ' + (result.message || 'Intenta nuevamente.'));
+        setLoading(false);
+      }
+    } catch (error: any) {
+      setFeedbackMessage('Error en el registro: ' + (error.message || 'Intenta nuevamente.'));
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+  };
 
 
   // Limpiar error de campo al cambiar el valor
@@ -73,7 +93,9 @@ const RegisterScreen: React.FC = () => {
       return;
     }
     setFieldErrors({});
-    setShowModal(true);
+    setFeedbackModalVisible(true); // Mostrar modal de feedback inmediatamente
+    setLoading(true); // Mostrar spinner inmediatamente
+    handleConfirm(); // Llamar a la lógica de registro (con delay artificial)
   };
 
   return (
@@ -266,7 +288,8 @@ const RegisterScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-      {/* Modal de confirmación temporal */}
+      {/*
+      // Modal de confirmación temporal (comentado para debug)
       <Modal
         visible={showModal}
         transparent
@@ -286,10 +309,43 @@ const RegisterScreen: React.FC = () => {
               <TouchableOpacity onPress={handleCancel} style={{ padding: 10 }}>
                 <Text style={{ color: '#537CF2', fontWeight: 'bold' }}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleConfirm} style={{ padding: 10 }}>
-                <Text style={{ color: '#537CF2', fontWeight: 'bold' }}>Confirmar</Text>
+              <TouchableOpacity onPress={handleConfirm} style={{ padding: 10 }} disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color="#537CF2" />
+                ) : (
+                  <Text style={{ color: '#537CF2', fontWeight: 'bold' }}>Confirmar</Text>
+                )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+      */}
+
+      {/* Modal de feedback de registro */}
+      <Modal
+        visible={feedbackModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFeedbackModalVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, minWidth: 220, alignItems: 'center' }}>
+            {loading ? (
+              <>
+                <ActivityIndicator size="large" color="#2563eb" style={{ marginBottom: 16 }} />
+                <Text style={{ fontSize: 16, marginBottom: 8 }}>Registrando usuario...</Text>
+              </>
+            ) : (
+              <>
+                <Text style={{ fontSize: 16, marginBottom: 16 }}>{feedbackMessage}</Text>
+                {!feedbackMessage.includes('exitoso') && (
+                  <TouchableOpacity onPress={() => setFeedbackModalVisible(false)} style={{ backgroundColor: '#2563eb', paddingVertical: 8, paddingHorizontal: 24, borderRadius: 8 }}>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Cerrar</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
           </View>
         </View>
       </Modal>
