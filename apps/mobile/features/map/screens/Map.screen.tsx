@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, Text } from 'react-native';
 import {
     MapView,
     Camera,
@@ -72,29 +72,22 @@ export default function MapScreen() {
     };
 
     return (
-        <View className="relative flex-1">
-            <MapView style={{ flex: 1 }} mapStyle={MAP_CONFIG.STYLE_URL}>
-                <Camera zoomLevel={13} centerCoordinate={[location.longitud, location.latitud]} />
-                <UserLocation />
+        <View className="flex-1">
+            <View className='h-full w-full'>
+                <MapView style={{ flex: 1 }} mapStyle={MAP_CONFIG.STYLE_URL}>
+                    <Camera zoomLevel={13} centerCoordinate={[location.longitud, location.latitud]} />
+                    <UserLocation />
+                    
+                    <PointAnnotation
+                        onSelected={handlePinSelected}
+                        id="poi-car"
+                        coordinate={[-72.591, -38.74]}>
+                            <Text>Hola</Text>
+                    </PointAnnotation>
+                </MapView>
 
-                <PointAnnotation
-                    onSelected={handlePinSelected}
-                    id="poi-car"
-                    coordinate={[-72.591, -38.74]}>
-                    <View
-                        style={{
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 40,
-                            height: 40,
-                            borderRadius: 20,
-                            backgroundColor: 'rgba(255,255,255,0.8)',
-                        }}>
-                        <MaterialCommunityIcons name="car" size={30} color="#007AFF" />
-                    </View>
-                    <Callout title="Vehículo" />
-                </PointAnnotation>
-            </MapView>
+            </View>
+            
 
             <View className="absolute bottom-0 right-0 flex-col items-center gap-3 px-4 py-7">
                 <Pressable
