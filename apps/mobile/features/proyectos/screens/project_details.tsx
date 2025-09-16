@@ -12,6 +12,7 @@ interface ProjectDetailsProps {
         prioridad?: string;
         reportesAsociados?: number;
         votosAFavor?: number;
+        tipoDenuncia?: string;
     };
     onBack: () => void;
 }
@@ -101,6 +102,16 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
                         </View>
                         <Text className="text-white">{project.votosAFavor || 0}</Text>
                     </View>
+
+                    {project.tipoDenuncia && (
+                        <View className="mb-3 flex-row items-center justify-between">
+                            <View className="flex-row items-center">
+                                <Ionicons name="flag" size={16} color="#9CA3AF" />
+                                <Text className="ml-2 text-gray-400">Tipo de denuncia:</Text>
+                            </View>
+                            <Text className="text-white">{project.tipoDenuncia}</Text>
+                        </View>
+                    )}
 
                     {/* Descripción */}
                     <View className="mb-6 rounded-xl bg-neutral-900 p-6">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ProjectDetails from './project_details';
+import CreateProject from './create_project';
 
 interface PriorityItem {
     id: number;
@@ -18,6 +19,7 @@ interface ProjectItem {
     prioridad?: string;
     reportesAsociados?: number;
     votosAFavor?: number;
+    tipoDenuncia?: string;
 }
 
 const dataPrioridad: PriorityItem[] = [
@@ -34,6 +36,7 @@ const dataProyectos: ProjectItem[] = [
         color: 'bg-purple-700',
         reportesAsociados: 3,
         votosAFavor: 46,
+        tipoDenuncia: 'Infraestructura Vial',
     },
     {
         id: 2,
@@ -42,6 +45,7 @@ const dataProyectos: ProjectItem[] = [
         color: 'bg-green-800',
         reportesAsociados: 5,
         votosAFavor: 82,
+        tipoDenuncia: 'Mantenimiento',
     },
     {
         id: 3,
@@ -50,6 +54,7 @@ const dataProyectos: ProjectItem[] = [
         color: 'bg-blue-700',
         reportesAsociados: 2,
         votosAFavor: 15,
+        tipoDenuncia: 'Espacios Públicos',
     },
     {
         id: 4,
@@ -58,6 +63,7 @@ const dataProyectos: ProjectItem[] = [
         color: 'bg-yellow-700',
         reportesAsociados: 1,
         votosAFavor: 7,
+        tipoDenuncia: 'Iluminación Pública',
     },
     {
         id: 5,
@@ -66,12 +72,14 @@ const dataProyectos: ProjectItem[] = [
         color: 'bg-gray-700',
         reportesAsociados: 4,
         votosAFavor: 23,
+        tipoDenuncia: 'Servicios Básicos',
     },
 ];
 
 export default function App() {
     const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
     const [showDetails, setShowDetails] = useState<boolean>(false);
+    const [showCreateProject, setShowCreateProject] = useState<boolean>(false);
 
     const handleProjectSelect = (project: ProjectItem) => {
         setSelectedProject(project);
@@ -83,6 +91,20 @@ export default function App() {
         setSelectedProject(null);
     };
 
+    const handleShowCreateProject = () => {
+        setShowCreateProject(true);
+    };
+
+    const handleBackFromCreateProject = () => {
+        setShowCreateProject(false);
+    };
+
+    const handleProjectCreated = (newProject: any) => {
+        // Aquí podrías agregar el nuevo proyecto a la lista
+        console.log('Nuevo proyecto creado:', newProject);
+        setShowCreateProject(false);
+    };
+
     const handlePrioritySelect = (item: PriorityItem) => {
         const projectFromPriority: ProjectItem = {
             ...item,
@@ -91,6 +113,15 @@ export default function App() {
         handleProjectSelect(projectFromPriority);
     };
 
+    if (showCreateProject) {
+        return (
+            <CreateProject
+                onBack={handleBackFromCreateProject}
+                onProjectCreated={handleProjectCreated}
+            />
+        );
+    }
+
     if (showDetails && selectedProject) {
         return <ProjectDetails project={selectedProject} onBack={handleBackToList} />;
     }
@@ -98,11 +129,19 @@ export default function App() {
     return (
         <View className="flex-1 bg-black px-4 pt-10">
             {/* Header */}
-            <View className="mb-4 flex-row items-center">
-                <TouchableOpacity className="rounded-xl bg-blue-500 p-2">
-                    <Ionicons name="arrow-back" size={24} color="white" />
+            <View className="mb-4 flex-row items-center justify-between">
+                <View className="flex-row items-center">
+                    <TouchableOpacity className="rounded-xl bg-blue-500 p-2">
+                        <Ionicons name="arrow-back" size={24} color="white" />
+                    </TouchableOpacity>
+                    <Text className="ml-4 text-xl font-bold text-white">Proyectos</Text>
+                </View>
+
+                <TouchableOpacity
+                    className="rounded-xl bg-green-600 p-2"
+                    onPress={handleShowCreateProject}>
+                    <Ionicons name="add" size={24} color="white" />
                 </TouchableOpacity>
-                <Text className="ml-4 text-xl font-bold text-white">Proyectos</Text>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
