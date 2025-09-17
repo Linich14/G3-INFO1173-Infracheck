@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import ReportsStatistics from './ReportsStatistics';
 
 interface Report {
     id: number;
@@ -52,6 +53,18 @@ const reportesEjemplo: Report[] = [
 
 export default function ReportsView({ projectId, projectName, onBack }: ReportsViewProps) {
     const totalVotos = reportesEjemplo.reduce((sum, report) => sum + report.votos, 0);
+    const [showStatistics, setShowStatistics] = useState(false);
+
+    // Si está mostrando estadísticas, renderizar la vista de estadísticas
+    if (showStatistics) {
+        return (
+            <ReportsStatistics
+                projectId={projectId}
+                projectName={projectName}
+                onBack={() => setShowStatistics(false)}
+            />
+        );
+    }
 
     return (
         <View className="flex-1 bg-black px-4 pt-10">
@@ -142,7 +155,9 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
                 <View className="mb-6 rounded-xl bg-neutral-900 p-6">
                     <Text className="mb-4 text-lg font-bold text-blue-400">Acciones</Text>
 
-                    <TouchableOpacity className="mb-3 flex-row items-center rounded-lg bg-purple-600 p-4">
+                    <TouchableOpacity
+                        className="mb-3 flex-row items-center rounded-lg bg-purple-600 p-4"
+                        onPress={() => setShowStatistics(true)}>
                         <Ionicons name="analytics" size={20} color="white" />
                         <Text className="ml-3 font-semibold text-white">Ver Estadísticas</Text>
                     </TouchableOpacity>

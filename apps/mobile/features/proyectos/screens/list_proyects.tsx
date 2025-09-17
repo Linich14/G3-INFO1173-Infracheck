@@ -137,11 +137,13 @@ export default function App() {
                     <Text className="ml-4 text-xl font-bold text-white">Proyectos</Text>
                 </View>
 
-                <TouchableOpacity
-                    className="rounded-xl bg-green-600 p-2"
-                    onPress={handleShowCreateProject}>
-                    <Ionicons name="add" size={24} color="white" />
-                </TouchableOpacity>
+                <View className="flex-row gap-2">
+                    <TouchableOpacity
+                        className="rounded-xl bg-green-600 p-2"
+                        onPress={handleShowCreateProject}>
+                        <Ionicons name="add" size={24} color="white" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
