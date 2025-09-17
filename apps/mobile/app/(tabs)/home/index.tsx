@@ -13,7 +13,17 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router';
 import { ReportCard } from '~/features/posts';
 import { CommentsModal, Comment, Report } from '~/features/comments';
-import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map, Shield, Users } from 'lucide-react-native';
+import {
+    AlignJustify,
+    UserCircle2,
+    Search,
+    LogOut,
+    Home,
+    Settings,
+    Map,
+    Shield,
+    Users,
+} from 'lucide-react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const MENU_BG = '#0f172a';
@@ -22,48 +32,49 @@ const ACCENT = '#537CF2';
 export default function HomeScreen() {
     const insets = useSafeAreaInsets();
 
-  const [open, setOpen] = useState(false);
-  const [commentsModalVisible, setCommentsModalVisible] = useState(false);
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  
-  // Estado para simular los datos de los reportes con comentarios
-  const [reports, setReports] = useState<Report[]>([
-    {
-      id: '1',
-      title: 'Calle en mal estado',
-      author: 'ChristianV',
-      timeAgo: '3d',
-      image: require('@assets/Publicaciones/1.png'),
-      upvotes: 254,
-      comments: [
+    const [open, setOpen] = useState(false);
+    const [commentsModalVisible, setCommentsModalVisible] = useState(false);
+    const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+
+    // Estado para simular los datos de los reportes con comentarios
+    const [reports, setReports] = useState<Report[]>([
         {
-          id: '1',
-          author: 'María123',
-          content: 'Sí, he visto que está muy deteriorada esa calle. Deberían arreglarla pronto.',
-          timeAgo: '2d'
+            id: '1',
+            title: 'Calle en mal estado',
+            author: 'ChristianV',
+            timeAgo: '3d',
+            image: require('@assets/Publicaciones/1.png'),
+            upvotes: 254,
+            comments: [
+                {
+                    id: '1',
+                    author: 'María123',
+                    content:
+                        'Sí, he visto que está muy deteriorada esa calle. Deberían arreglarla pronto.',
+                    timeAgo: '2d',
+                },
+                {
+                    id: '2',
+                    author: 'Carlos',
+                    content: 'Completamente de acuerdo, es un peligro para los conductores.',
+                    timeAgo: '1d',
+                },
+            ],
         },
         {
-          id: '2',
-          author: 'Carlos',
-          content: 'Completamente de acuerdo, es un peligro para los conductores.',
-          timeAgo: '1d'
-        }
-      ]
-    },
-    {
-      id: '2',
-      title: 'Semáforo apagado',
-      author: 'María',
-      timeAgo: '5h',
-      image: { uri: 'https://picsum.photos/seed/semaforo/800/500' },
-      upvotes: 91,
-      comments: []
-    }
-  ]);
+            id: '2',
+            title: 'Semáforo apagado',
+            author: 'María',
+            timeAgo: '5h',
+            image: { uri: 'https://picsum.photos/seed/semaforo/800/500' },
+            upvotes: 91,
+            comments: [],
+        },
+    ]);
 
-  const drawerX = useRef(new Animated.Value(-Dimensions.get('window').width * 0.75)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const DRAWER_W = Math.min(320, Dimensions.get('window').width * 0.75);
+    const drawerX = useRef(new Animated.Value(-Dimensions.get('window').width * 0.75)).current;
+    const backdropOpacity = useRef(new Animated.Value(0)).current;
+    const DRAWER_W = Math.min(320, Dimensions.get('window').width * 0.75);
 
     const openMenu = () => {
         setOpen(true);
@@ -108,54 +119,53 @@ export default function HomeScreen() {
         router.replace('/(auth)/sign-in');
     };
 
-  const openCommentsModal = (report: Report) => {
-    setSelectedReport(report);
-    setCommentsModalVisible(true);
-  };
-
-  const closeCommentsModal = () => {
-    setCommentsModalVisible(false);
-    setSelectedReport(null);
-  };
-
-  const addComment = (content: string) => {
-    if (!selectedReport) return;
-
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      author: 'Usuario Actual', // En una app real, esto vendría del usuario logueado
-      content,
-      timeAgo: 'Ahora'
+    const openCommentsModal = (report: Report) => {
+        setSelectedReport(report);
+        setCommentsModalVisible(true);
     };
 
-    setReports(prevReports =>
-      prevReports.map(report =>
-        report.id === selectedReport.id
-          ? { ...report, comments: [...report.comments, newComment] }
-          : report
-      )
-    );
+    const closeCommentsModal = () => {
+        setCommentsModalVisible(false);
+        setSelectedReport(null);
+    };
 
-    // Actualizar el reporte seleccionado para el modal
-    setSelectedReport(prev => 
-      prev ? { ...prev, comments: [...prev.comments, newComment] } : null
-    );
-  };
+    const addComment = (content: string) => {
+        if (!selectedReport) return;
 
-  return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
-      {/* Header */}
-      <View className="bg-[#13161E] flex-row justify-between p-4">
-        <View className="flex-row items-center gap-4">
-          <TouchableOpacity
-            onPress={openMenu}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityRole="button"
-            accessibilityLabel="Abrir menú"
-            activeOpacity={0.6}
-          >
-            <AlignJustify size={26} color="white" />
-          </TouchableOpacity>
+        const newComment: Comment = {
+            id: Date.now().toString(),
+            author: 'Usuario Actual', // En una app real, esto vendría del usuario logueado
+            content,
+            timeAgo: 'Ahora',
+        };
+
+        setReports((prevReports) =>
+            prevReports.map((report) =>
+                report.id === selectedReport.id
+                    ? { ...report, comments: [...report.comments, newComment] }
+                    : report
+            )
+        );
+
+        // Actualizar el reporte seleccionado para el modal
+        setSelectedReport((prev) =>
+            prev ? { ...prev, comments: [...prev.comments, newComment] } : null
+        );
+    };
+
+    return (
+        <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
+            {/* Header */}
+            <View className="flex-row justify-between bg-[#13161E] p-4">
+                <View className="flex-row items-center gap-4">
+                    <TouchableOpacity
+                        onPress={openMenu}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Abrir menú"
+                        activeOpacity={0.6}>
+                        <AlignJustify size={26} color="white" />
+                    </TouchableOpacity>
 
                     <Text className="text-2xl font-bold text-[#537CF2]">Reportes</Text>
                 </View>
@@ -181,38 +191,38 @@ export default function HomeScreen() {
                 </View>
             </View>
 
-      {/* Lista de reportes */}
-      <ScrollView
-        className="px-4 mt-4"
-        contentContainerStyle={{
-          gap: 16,
-          paddingBottom: insets.bottom + 12,
-        }}
-      >
-        {reports.map((report) => (
-          <ReportCard
-            key={report.id}
-            title={report.title}
-            author={report.author}
-            timeAgo={report.timeAgo}
-            image={report.image}
-            upvotes={report.upvotes}
-            onFollow={() => console.log('Seguir')}
-            onMore={() => console.log('Más opciones')}
-            onLocation={() => console.log('Ubicación')}
-            onUpvote={() => console.log('Upvote')}
-            onComment={() => openCommentsModal(report)}
-            onShare={() => console.log('Compartir')}
-          />
-        ))}
-      </ScrollView>
-        <View className="absolute bottom-0 right-0 flex-col items-center gap-3 px-4 py-7">
-          <TouchableOpacity
-              onPress={() => router.push('/(tabs)/(map)/create_report')}
-              className="rounded-full bg-primary p-4 ">
-              <MaterialCommunityIcons name="plus" size={40} color="#FFFFFF" />
-          </TouchableOpacity>
-      </View>
+            {/* Lista de reportes */}
+            <ScrollView
+                className="mt-4 px-4"
+                contentContainerStyle={{
+                    gap: 16,
+                    paddingBottom: insets.bottom + 12,
+                }}>
+                {reports.map((report) => (
+                    <ReportCard
+                        id={report.id}
+                        key={report.id}
+                        title={report.title}
+                        author={report.author}
+                        timeAgo={report.timeAgo}
+                        image={report.image}
+                        upvotes={report.upvotes}
+                        onFollow={() => console.log('Seguir')}
+                        onMore={() => console.log('Más opciones')}
+                        onLocation={() => console.log('Ubicación')}
+                        onUpvote={() => console.log('Upvote')}
+                        onComment={() => openCommentsModal(report)}
+                        onShare={() => console.log('Compartir')}
+                    />
+                ))}
+            </ScrollView>
+            <View className="absolute bottom-0 right-0 flex-col items-center gap-3 px-4 py-7">
+                <TouchableOpacity
+                    onPress={() => router.push('/(tabs)/(map)/create_report')}
+                    className="rounded-full bg-primary p-4 ">
+                    <MaterialCommunityIcons name="plus" size={40} color="#FFFFFF" />
+                </TouchableOpacity>
+            </View>
 
             {/* ===== Drawer / Canvas ===== */}
             {open && (
@@ -363,34 +373,33 @@ export default function HomeScreen() {
                             style={{ height: 1, backgroundColor: '#1f2937', marginVertical: 12 }}
                         />
 
-            {/* Cerrar sesión */}
-            <TouchableOpacity
-              onPress={handleLogout}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingVertical: 12,
-                gap: 10,
-              }}
-              activeOpacity={0.7}
-            >
-              <LogOut size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 16 }}>Cerrar sesión</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </>
-      )}
+                        {/* Cerrar sesión */}
+                        <TouchableOpacity
+                            onPress={handleLogout}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingVertical: 12,
+                                gap: 10,
+                            }}
+                            activeOpacity={0.7}>
+                            <LogOut size={20} color="#fff" />
+                            <Text style={{ color: '#fff', fontSize: 16 }}>Cerrar sesión</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </>
+            )}
 
-      {/* Modal de Comentarios */}
-      {selectedReport && (
-        <CommentsModal
-          visible={commentsModalVisible}
-          onClose={closeCommentsModal}
-          postTitle={selectedReport.title}
-          comments={selectedReport.comments}
-          onAddComment={addComment}
-        />
-      )}
-    </SafeAreaView>
-  );
+            {/* Modal de Comentarios */}
+            {selectedReport && (
+                <CommentsModal
+                    visible={commentsModalVisible}
+                    onClose={closeCommentsModal}
+                    postTitle={selectedReport.title}
+                    comments={selectedReport.comments}
+                    onAddComment={addComment}
+                />
+            )}
+        </SafeAreaView>
+    );
 }

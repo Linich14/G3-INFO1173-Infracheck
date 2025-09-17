@@ -12,19 +12,20 @@ import { ReportCardProps } from '../types';
 
 import { useRouter } from 'expo-router';
 const ReportCard: React.FC<ReportCardProps> = ({
-  title,
-  author,
-  timeAgo,
-  image,
-  upvotes = 0,
-  onFollow,
-  onMore,
-  onLocation,
-  onUpvote,
-  onComment,
-  onShare,
-  followLabel = 'Seguir',
-  aspectRatio = 16 / 9,
+    id,
+    title,
+    author,
+    timeAgo,
+    image,
+    upvotes = 0,
+    onFollow,
+    onMore,
+    onLocation,
+    onUpvote,
+    onComment,
+    onShare,
+    followLabel = 'Seguir',
+    aspectRatio = 16 / 9,
 }) => {
     const router = useRouter();
     const hasImage = !!image;
