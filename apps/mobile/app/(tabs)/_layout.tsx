@@ -119,16 +119,22 @@ export default function Layout() {
                     href: null, // Oculta de la barra de navegación
                 }}
             />
-            
+
             <Tabs.Screen
                 name="home/Homeauthoscreen"
                 options={{
                     href: null, // Oculta de la barra de navegación
                 }}
             />
-            
+
             <Tabs.Screen
                 name="home/Homeadminscreen"
+                options={{
+                    href: null, // Oculta de la barra de navegación
+                }}
+            />
+            <Tabs.Screen
+                name="report/[id]"
                 options={{
                     href: null, // Oculta de la barra de navegación
                 }}
