@@ -2,19 +2,57 @@ import React, { useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Animated, Easing, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import ReportCard from '~/components/ReportCard';
+import { ReportCard } from '~/features/posts';
+import { CommentsModal, Comment, Report } from '~/features/comments';
 import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map, Shield, Users } from 'lucide-react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 
 const MENU_BG = '#0f172a';
-const HEADER_BG = '#13161E';
 const ACCENT = '#537CF2';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
 
   const [open, setOpen] = useState(false);
+  const [commentsModalVisible, setCommentsModalVisible] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  
+  // Estado para simular los datos de los reportes con comentarios
+  const [reports, setReports] = useState<Report[]>([
+    {
+      id: '1',
+      title: 'Calle en mal estado',
+      author: 'ChristianV',
+      timeAgo: '3d',
+      image: require('@assets/Publicaciones/1.png'),
+      upvotes: 254,
+      comments: [
+        {
+          id: '1',
+          author: 'María123',
+          content: 'Sí, he visto que está muy deteriorada esa calle. Deberían arreglarla pronto.',
+          timeAgo: '2d'
+        },
+        {
+          id: '2',
+          author: 'Carlos',
+          content: 'Completamente de acuerdo, es un peligro para los conductores.',
+          timeAgo: '1d'
+        }
+      ]
+    },
+    {
+      id: '2',
+      title: 'Semáforo apagado',
+      author: 'María',
+      timeAgo: '5h',
+      image: { uri: 'https://picsum.photos/seed/semaforo/800/500' },
+      upvotes: 91,
+      comments: []
+    }
+  ]);
+
   const drawerX = useRef(new Animated.Value(-Dimensions.get('window').width * 0.75)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const DRAWER_W = Math.min(320, Dimensions.get('window').width * 0.75);
@@ -60,6 +98,40 @@ export default function HomeScreen() {
     // cierra el menú y navega al login
     closeMenu();
     router.replace('/(auth)/sign-in');
+  };
+
+  const openCommentsModal = (report: Report) => {
+    setSelectedReport(report);
+    setCommentsModalVisible(true);
+  };
+
+  const closeCommentsModal = () => {
+    setCommentsModalVisible(false);
+    setSelectedReport(null);
+  };
+
+  const addComment = (content: string) => {
+    if (!selectedReport) return;
+
+    const newComment: Comment = {
+      id: Date.now().toString(),
+      author: 'Usuario Actual', // En una app real, esto vendría del usuario logueado
+      content,
+      timeAgo: 'Ahora'
+    };
+
+    setReports(prevReports =>
+      prevReports.map(report =>
+        report.id === selectedReport.id
+          ? { ...report, comments: [...report.comments, newComment] }
+          : report
+      )
+    );
+
+    // Actualizar el reporte seleccionado para el modal
+    setSelectedReport(prev => 
+      prev ? { ...prev, comments: [...prev.comments, newComment] } : null
+    );
   };
 
   return (
@@ -111,34 +183,22 @@ export default function HomeScreen() {
           paddingBottom: insets.bottom + 12,
         }}
       >
-        <ReportCard
-          title="Calle en mal estado"
-          author="ChristianV"
-          timeAgo="3d"
-          image={require('@assets/Publicaciones/1.png')}
-          upvotes={254}
-          onFollow={() => console.log('Seguir')}
-          onMore={() => console.log('Más opciones')}
-          onLocation={() => console.log('Ubicación')}
-          onUpvote={() => console.log('Upvote')}
-          onComment={() => console.log('Comentar')}
-          onShare={() => console.log('Compartir')}
-        />
-
-        <ReportCard
-          title="Semáforo apagado"
-          author="María"
-          timeAgo="5h"
-          image={{ uri: 'https://picsum.photos/seed/semaforo/800/500' }}
-          upvotes={91}
-          onFollow={() => {}}
-          onMore={() => {}}
-          onLocation={() => {}}
-          onUpvote={() => {}}
-          onComment={() => {}}
-          onShare={() => {}}
-          aspectRatio={4 / 3}
-        />
+        {reports.map((report) => (
+          <ReportCard
+            key={report.id}
+            title={report.title}
+            author={report.author}
+            timeAgo={report.timeAgo}
+            image={report.image}
+            upvotes={report.upvotes}
+            onFollow={() => console.log('Seguir')}
+            onMore={() => console.log('Más opciones')}
+            onLocation={() => console.log('Ubicación')}
+            onUpvote={() => console.log('Upvote')}
+            onComment={() => openCommentsModal(report)}
+            onShare={() => console.log('Compartir')}
+          />
+        ))}
       </ScrollView>
         <View className="absolute bottom-0 right-0 flex-col items-center gap-3 px-4 py-7">
           <TouchableOpacity
@@ -284,6 +344,17 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </Animated.View>
         </>
+      )}
+
+      {/* Modal de Comentarios */}
+      {selectedReport && (
+        <CommentsModal
+          visible={commentsModalVisible}
+          onClose={closeCommentsModal}
+          postTitle={selectedReport.title}
+          comments={selectedReport.comments}
+          onAddComment={addComment}
+        />
       )}
     </SafeAreaView>
   );

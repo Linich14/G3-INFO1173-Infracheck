@@ -8,24 +8,9 @@ import {
   MessageCircle,
   Share2,
 } from 'lucide-react-native';
+import { ReportCardProps } from '../types';
 
-type Props = {
-  title: string;
-  author: string;
-  timeAgo: string;                 // ej: "3d"
-  image?: ImageSourcePropType | null; // opcional
-  upvotes?: number;
-  onFollow?: () => void;
-  onMore?: () => void;
-  onLocation?: () => void;
-  onUpvote?: () => void;
-  onComment?: () => void;
-  onShare?: () => void;
-  followLabel?: string;            // ej: "Seguir"
-  aspectRatio?: number;            // ej: 16/9 (default)
-};
-
-const ReportCard: React.FC<Props> = ({
+const ReportCard: React.FC<ReportCardProps> = ({
   title,
   author,
   timeAgo,

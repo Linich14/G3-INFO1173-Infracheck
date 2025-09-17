@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Animated, Easing, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import ReportCard from '~/components/ReportCard';
+import { ReportCard } from '~/features/posts';
 import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map, Shield, Users } from 'lucide-react-native';
 
 const MENU_BG = '#0f172a';
