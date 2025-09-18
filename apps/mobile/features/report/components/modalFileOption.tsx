@@ -21,13 +21,21 @@ const ModalFileOption = ({
                     onPress={(e) => e.stopPropagation()}>
                     <Text className="mb-4 text-lg font-bold text-white">Seleccionar archivo</Text>
 
-                    <Pressable className="mb-3 rounded-lg bg-background p-4" onPress={onTakePhoto}>
+                    <Pressable
+                        className="mb-3 rounded-lg bg-background p-4"
+                        onPress={() => {
+                            onTakePhoto();
+                            onClose();
+                        }}>
                         <Text className="text-center text-white">Tomar foto</Text>
                     </Pressable>
 
                     <Pressable
                         className="rounded-lg bg-background p-4"
-                        onPress={onSelectFromGallery}>
+                        onPress={() => {
+                            onSelectFromGallery();
+                            onClose();
+                        }}>
                         <Text className="text-center text-white">Seleccionar de la galería</Text>
                     </Pressable>
                 </Pressable>

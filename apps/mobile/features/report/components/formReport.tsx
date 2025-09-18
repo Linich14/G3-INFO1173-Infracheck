@@ -1,8 +1,9 @@
-import { useState } from 'react';
 import { View, Text, TextInput, Pressable } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import ModalMap from './modalMap'; // Importar el modal
+import ModalMap from './modalMap';
+import MediaSection from './mediaSelected';
+import { ReportFormData, ReportFormErrors } from '../types';
 
 interface Location {
     latitude: number;
@@ -11,29 +12,53 @@ interface Location {
 }
 
 interface FormReportProps {
+    formData: ReportFormData;
+    errors: ReportFormErrors;
+    onUpdateField: (field: keyof ReportFormData, value: any) => void;
     onOpenImageModal: () => void;
+    onOpenVideoModal: () => void;
+    onRemoveImage: (index: number) => void;
+    onRemoveVideo: () => void;
+    onSelectLocation: (location: Location) => void;
+    showMapModal: boolean;
+    onSetShowMapModal: (show: boolean) => void;
+    mediaStats?: {
+        imageCount: number;
+        hasVideo: boolean;
+        canAddImages: boolean;
+        canAddVideo: boolean;
+        remainingImageSlots: number;
+    };
 }
 
-const FormReport = ({ onOpenImageModal }: FormReportProps) => {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [showMapModal, setShowMapModal] = useState(false); // Estado para el modal del mapa
-    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null); // Ubicación seleccionada
-
+const FormReport = ({
+    formData,
+    errors,
+    onUpdateField,
+    onOpenImageModal,
+    onOpenVideoModal,
+    onRemoveImage,
+    onRemoveVideo,
+    onSelectLocation,
+    showMapModal,
+    onSetShowMapModal,
+    mediaStats,
+}: FormReportProps) => {
     const TITLE_MAX_LENGTH = 50;
     const DESCRIPTION_MAX_LENGTH = 3000;
 
+    const convertToLocation = (): Location | null => {
+        if (formData.ubicacion.latitud === 0) return null;
+        return {
+            latitude: formData.ubicacion.latitud,
+            longitude: formData.ubicacion.longitud,
+            address: formData.ubicacion.direccion,
+        };
+    };
+
     const handleLocationSelect = (location: Location) => {
-        setSelectedLocation(location);
-        console.log('Ubicación seleccionada:', location);
-    };
-
-    const handleOpenMapModal = () => {
-        setShowMapModal(true);
-    };
-
-    const handleCloseMapModal = () => {
-        setShowMapModal(false);
+        onSelectLocation(location);
+        onSetShowMapModal(false);
     };
 
     return (
@@ -42,102 +67,137 @@ const FormReport = ({ onOpenImageModal }: FormReportProps) => {
                 <View>
                     <TextInput
                         placeholderTextColor={'#FFFFFF'}
-                        className="w-min-[20px] border-b-2 border-b-slate-600 pb-1 text-2xl text-white"
+                        className={`w-min-[20px] border-b-2 pb-1 text-2xl text-white ${
+                            errors.titulo ? 'border-b-red-500' : 'border-b-slate-600'
+                        }`}
                         placeholder="Título"
-                        value={title}
-                        onChangeText={setTitle}
+                        value={formData.titulo}
+                        onChangeText={(text) => onUpdateField('titulo', text)}
                         multiline={true}
                         maxLength={TITLE_MAX_LENGTH}
                     />
-                    <Text className="mt-1 text-right text-xs text-gray-400">
-                        {title.length}/{TITLE_MAX_LENGTH}
-                    </Text>
+                    <View className="mt-1 flex-row justify-between">
+                        {errors.titulo && (
+                            <Text className="text-sm text-red-500">{errors.titulo}</Text>
+                        )}
+                        <Text className="ml-auto text-xs text-gray-400">
+                            {formData.titulo.length}/{TITLE_MAX_LENGTH}
+                        </Text>
+                    </View>
                 </View>
+
                 <View>
                     <TextInput
                         placeholderTextColor={'#FFFFFF'}
-                        className="w-min-[20px] border-b-2 border-b-slate-600 pb-1 text-white"
+                        className={`w-min-[20px] border-b-2 pb-1 text-white ${
+                            errors.descripcion ? 'border-b-red-500' : 'border-b-slate-600'
+                        }`}
                         placeholder="Descripción del problema"
-                        value={description}
-                        onChangeText={setDescription}
+                        value={formData.descripcion}
+                        onChangeText={(text) => onUpdateField('descripcion', text)}
                         multiline={true}
                         maxLength={DESCRIPTION_MAX_LENGTH}
                     />
-                    <Text className="mt-1 text-right text-xs text-gray-400">
-                        {description.length}/{DESCRIPTION_MAX_LENGTH}
-                    </Text>
+                    <View className="mt-1 flex-row justify-between">
+                        {errors.descripcion && (
+                            <Text className="text-sm text-red-500">{errors.descripcion}</Text>
+                        )}
+                        <Text className="ml-auto text-xs text-gray-400">
+                            {formData.descripcion.length}/{DESCRIPTION_MAX_LENGTH}
+                        </Text>
+                    </View>
                 </View>
 
-                <Pressable
-                    className="group h-[100px] w-full items-center justify-center rounded-lg bg-secondary p-3 active:bg-slate-500"
-                    onPress={onOpenImageModal}>
-                    <MaterialCommunityIcons name="file-image" size={40} color="white" />
-                    <Text className="mt-2 text-sm text-white">Agregar imagen</Text>
-                </Pressable>
-
-                <View className="rounded-lg bg-secondary">
-                    <Picker
-                        mode="dropdown"
-                        style={nativeStyles.picker}
-                        dropdownIconColor={'#FFFFFF'}
-                        dropdownIconRippleColor={'#FFFFFF'}>
-                        <Picker.Item
-                            label="Selecciona una categoría"
-                            value=""
-                            style={nativeStyles.pickerItem}
-                        />
-                        <Picker.Item
-                            label="Medio ambiente"
-                            value="ambiente"
-                            style={nativeStyles.pickerItem}
-                        />
-                        <Picker.Item
-                            label="Infraestructura vial"
-                            value="vial"
-                            style={nativeStyles.pickerItem}
-                        />
-                    </Picker>
+                <View>
+                    <View
+                        className={`rounded-lg ${errors.tipoDenuncia ? 'border border-red-500' : ''} bg-secondary`}>
+                        <Picker
+                            mode="dropdown"
+                            style={nativeStyles.picker}
+                            dropdownIconColor={'#FFFFFF'}
+                            selectedValue={formData.tipoDenuncia}
+                            onValueChange={(value) => onUpdateField('tipoDenuncia', value)}>
+                            <Picker.Item
+                                label="Selecciona una categoría"
+                                value=""
+                                style={nativeStyles.pickerItem}
+                            />
+                            <Picker.Item
+                                label="Medio ambiente"
+                                value="ambiente"
+                                style={nativeStyles.pickerItem}
+                            />
+                            <Picker.Item
+                                label="Infraestructura vial"
+                                value="vial"
+                                style={nativeStyles.pickerItem}
+                            />
+                        </Picker>
+                    </View>
+                    {errors.tipoDenuncia && (
+                        <Text className="mt-1 text-sm text-red-500">{errors.tipoDenuncia}</Text>
+                    )}
                 </View>
             </View>
 
             <View className={style.container + 'mt-4'}>
-                <Text className="text-xl text-white">Ubicacion</Text>
+                <Text className="text-xl text-white">Medios</Text>
+                <MediaSection
+                    selectedImages={formData.imagenes}
+                    selectedVideo={formData.video}
+                    onOpenImageModal={onOpenImageModal}
+                    onOpenVideoModal={onOpenVideoModal}
+                    onRemoveImage={onRemoveImage}
+                    onRemoveVideo={onRemoveVideo}
+                    mediaStats={mediaStats}
+                />
+            </View>
 
+            <View className={style.container + 'mt-4'}>
+                <Text className="text-xl text-white">Ubicación</Text>
                 <Pressable
-                    onPress={handleOpenMapModal}
-                    className="group w-full items-center justify-center rounded-lg bg-secondary p-3 active:bg-slate-500">
+                    onPress={() => onSetShowMapModal(true)}
+                    className={`group w-full items-center justify-center rounded-lg p-3 active:bg-slate-500 ${
+                        errors.ubicacion ? 'border border-red-500 bg-red-900/20' : 'bg-secondary'
+                    }`}>
                     <MaterialCommunityIcons name="map-marker" size={30} color="white" />
                     <Text className="mt-2 text-sm text-white">
-                        {selectedLocation
-                            ? `Lat: ${selectedLocation.latitude.toFixed(4)}, Lng: ${selectedLocation.longitude.toFixed(4)}`
+                        {convertToLocation()
+                            ? `Lat: ${formData.ubicacion.latitud.toFixed(4)}, Lng: ${formData.ubicacion.longitud.toFixed(4)}`
                             : 'Seleccionar en el mapa'}
                     </Text>
                 </Pressable>
+                {errors.ubicacion && (
+                    <Text className="mt-1 text-sm text-red-500">{errors.ubicacion}</Text>
+                )}
             </View>
 
-            <View className={style.container + 'mt-4'}>
+            <View className={style.container + 'mb-4 mt-4'}>
                 <Text className="text-xl text-white">Nivel de Urgencia</Text>
-                <View className="rounded-lg bg-secondary">
+                <View
+                    className={`rounded-lg ${errors.nivelUrgencia ? 'border border-red-500' : ''} bg-secondary`}>
                     <Picker
                         mode="dropdown"
                         style={nativeStyles.picker}
                         dropdownIconColor={'#FFFFFF'}
-                        selectionColor={'#090A0D'}
-                        itemStyle={{ backgroundColor: '#090A0D', color: '#000000' }}>
+                        selectedValue={formData.nivelUrgencia}
+                        onValueChange={(value) => onUpdateField('nivelUrgencia', value)}>
                         <Picker.Item label="Selecciona una gravedad" value="" />
                         <Picker.Item label="Bajo" value="bajo" style={nativeStyles.pickerItem} />
                         <Picker.Item label="Grave" value="grave" style={nativeStyles.pickerItem} />
                         <Picker.Item label="Alto" value="alto" style={nativeStyles.pickerItem} />
                     </Picker>
                 </View>
+                {errors.nivelUrgencia && (
+                    <Text className="mt-1 text-sm text-red-500">{errors.nivelUrgencia}</Text>
+                )}
             </View>
 
-            {/* Modal del Mapa */}
             <ModalMap
                 visible={showMapModal}
-                onClose={handleCloseMapModal}
+                onClose={() => onSetShowMapModal(false)}
                 onSelectLocation={handleLocationSelect}
-                initialLocation={selectedLocation}
+                initialLocation={convertToLocation()}
                 title="Seleccionar Ubicación del Problema"
             />
         </>

@@ -1,14 +1,39 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, Alert, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormReport from '../components/formReport';
 import ModalFileOption from '../components/modalFileOption';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useReportForm } from '../hooks/useReportForm';
 
 const CreateReportScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
+    const [modalType, setModalType] = useState<'image' | 'video'>('image');
+    const [showMapModal, setShowMapModal] = useState(false);
+
+    const {
+        formData,
+        errors,
+        loading,
+        mediaStats,
+        updateField,
+        takePhoto,
+        takeVideo,
+        pickFromGallery,
+        pickVideoFromGallery,
+        removeImage,
+        removeVideo,
+        selectLocation,
+        submitForm,
+    } = useReportForm();
 
     const handleOpenImageModal = () => {
+        setModalType('image');
+        setModalVisible(true);
+    };
+
+    const handleOpenVideoModal = () => {
+        setModalType('video');
         setModalVisible(true);
     };
 
@@ -17,13 +42,25 @@ const CreateReportScreen = () => {
     };
 
     const handleTakePhoto = () => {
-        setModalVisible(false);
-        Alert.alert('Funcionalidad', 'Tomar foto - Por implementar');
+        if (modalType === 'image') {
+            takePhoto();
+        } else {
+            takeVideo();
+        }
+        handleCloseModal();
     };
 
     const handleSelectFromGallery = () => {
-        setModalVisible(false);
-        Alert.alert('Funcionalidad', 'Seleccionar de galería - Por implementar');
+        if (modalType === 'image') {
+            pickFromGallery();
+        } else {
+            pickVideoFromGallery();
+        }
+        handleCloseModal();
+    };
+
+    const handleSubmit = async () => {
+        await submitForm();
     };
 
     return (
@@ -35,7 +72,19 @@ const CreateReportScreen = () => {
                     </View>
                 </View>
 
-                <FormReport onOpenImageModal={handleOpenImageModal} />
+                <FormReport
+                    formData={formData}
+                    errors={errors}
+                    onUpdateField={updateField}
+                    onOpenImageModal={handleOpenImageModal}
+                    onOpenVideoModal={handleOpenVideoModal}
+                    onRemoveImage={removeImage}
+                    onRemoveVideo={removeVideo}
+                    onSelectLocation={selectLocation}
+                    showMapModal={showMapModal}
+                    onSetShowMapModal={setShowMapModal}
+                    mediaStats={mediaStats}
+                />
 
                 <ModalFileOption
                     visible={modalVisible}
@@ -45,9 +94,17 @@ const CreateReportScreen = () => {
                 />
             </ScrollView>
             <Pressable
-                onPress={() => Alert.alert('Funcionalidad', 'Enviar reporte - Por implementar')}
-                className="absolute bottom-0 right-0 m-6 aspect-square rounded-full bg-primary p-4">
-                <MaterialIcons className="m-auto" name="send" size={30} color="white" />
+                onPress={handleSubmit}
+                disabled={loading}
+                className={`absolute bottom-0 right-0 m-6 aspect-square rounded-full p-4 ${
+                    loading ? 'bg-gray-500' : 'bg-primary'
+                }`}>
+                <MaterialIcons
+                    className="m-auto"
+                    name={loading ? 'hourglass-empty' : 'send'}
+                    size={30}
+                    color="white"
+                />
             </Pressable>
         </SafeAreaView>
     );
