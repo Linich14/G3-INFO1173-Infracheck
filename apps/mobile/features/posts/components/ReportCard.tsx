@@ -30,26 +30,41 @@ const ReportCard: React.FC<ReportCardProps> = ({
     const router = useRouter();
     const hasImage = !!image;
 
-    const goToDetail = () => {
-        router.push({ pathname: '/report/[id]', params: { id } });
-    };
+  return (
+    <View className="bg-[#13161E] rounded-[12px] overflow-hidden">
+      {/* Header */}
+      <View className="px-4 py-2 flex-row items-center gap-2">
+        {/* Avatar / Perfil */}
+        <View className="flex-shrink-0">
+          <UserCircle2 size={28} color="#537CF2" />
+        </View>
 
-    return (
-        <View className="overflow-hidden rounded-[12px] bg-[#13161E]">
-            {/* Header - No clickeable */}
-            <View className="flex-row items-center justify-between px-4 py-2">
-                {/* Avatar / Perfil */}
-                <View className="flex-row items-center">
-                    <UserCircle2 size={28} color="#537CF2" />
-                </View>
+        {/* Nombre del autor - flexible con truncado */}
+        <View className="flex-1 min-w-0">
+          <Text 
+            className="text-white text-2xl" 
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {author}
+          </Text>
+        </View>
 
-                <View>
-                    <Text className="mr-4 text-2xl text-white">{author}</Text>
-                </View>
+        {/* Tiempo - fijo */}
+        <View className="flex-shrink-0">
+          <Text className="text-white text-xl">{timeAgo}</Text>
+        </View>
 
-                <View>
-                    <Text className="text-2xl text-white">{timeAgo}</Text>
-                </View>
+        {/* Botón seguir - fijo */}
+        <View className="flex-shrink-0">
+          <TouchableOpacity
+            className="bg-[#537CF2] rounded-[32px] shadow border border-white px-4 py-1 active:opacity-80"
+            onPress={onFollow}
+          >
+            <Text className="text-white font-medium text-lg text-center">{followLabel}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
                 <View className="flex justify-center">
                     <TouchableOpacity

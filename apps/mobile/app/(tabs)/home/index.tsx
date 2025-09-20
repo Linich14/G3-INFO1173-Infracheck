@@ -1,14 +1,5 @@
 import React, { useRef, useState } from 'react';
-import {
-    View,
-    Text,
-    ScrollView,
-    TouchableOpacity,
-    Animated,
-    Easing,
-    Dimensions,
-    TouchableWithoutFeedback,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Animated, Easing, Dimensions, TouchableWithoutFeedback, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ReportCard } from '~/features/posts';
@@ -32,12 +23,21 @@ const ACCENT = '#537CF2';
 export default function HomeScreen() {
     const insets = useSafeAreaInsets();
 
-    const [open, setOpen] = useState(false);
-    const [commentsModalVisible, setCommentsModalVisible] = useState(false);
-    const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-
-    // Estado para simular los datos de los reportes con comentarios
-    const [reports, setReports] = useState<Report[]>([
+  const [open, setOpen] = useState(false);
+  const [commentsModalVisible, setCommentsModalVisible] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Estado para simular los datos de los reportes con comentarios
+  const [reports, setReports] = useState<Report[]>([
+    {
+      id: '1',
+      title: 'Calle en mal estado',
+      author: 'ChristianV',
+      timeAgo: '3d',
+      image: require('@assets/Publicaciones/1.png'),
+      upvotes: 254,
+      comments: [
         {
             id: '1',
             title: 'Calle en mal estado',
@@ -62,15 +62,41 @@ export default function HomeScreen() {
             ],
         },
         {
-            id: '2',
-            title: 'Semáforo apagado',
-            author: 'María',
-            timeAgo: '5h',
-            image: { uri: 'https://picsum.photos/seed/semaforo/800/500' },
-            upvotes: 91,
-            comments: [],
-        },
-    ]);
+          id: '2',
+          author: 'Carlos',
+          content: 'Completamente de acuerdo, es un peligro para los conductores.',
+          timeAgo: '1d'
+        }
+      ]
+    },
+    {
+      id: '2',
+      title: 'Semáforo apagado',
+      author: 'María',
+      timeAgo: '5h',
+      image: { uri: 'https://picsum.photos/seed/semaforo/800/500' },
+      upvotes: 91,
+      comments: []
+    },
+    {
+      id: '3',
+      title: 'Bache muy peligroso en intersección',
+      author: 'UsuarioConNombreMuyLargoQueNoDeberíaRomperElLayout',
+      timeAgo: '2h',
+      image: { uri: 'https://picsum.photos/seed/bache/800/600' },
+      upvotes: 67,
+      comments: []
+    },
+    {
+      id: '4',
+      title: 'Problema con alumbrado público',
+      author: 'VecinoConcernedoPorSuComunidadYQueReportaProblemas',
+      timeAgo: '1d',
+      image: { uri: 'https://picsum.photos/seed/luz/800/600' },
+      upvotes: 23,
+      comments: []
+    }
+  ]);
 
     const drawerX = useRef(new Animated.Value(-Dimensions.get('window').width * 0.75)).current;
     const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -139,13 +165,70 @@ export default function HomeScreen() {
             timeAgo: 'Ahora',
         };
 
-        setReports((prevReports) =>
-            prevReports.map((report) =>
-                report.id === selectedReport.id
-                    ? { ...report, comments: [...report.comments, newComment] }
-                    : report
-            )
-        );
+  const onRefresh = async () => {
+    setRefreshing(true);
+    
+    // Simular la actualización de publicaciones con delay
+    setTimeout(() => {
+      // Simular diferentes tipos de nuevas publicaciones
+      const publicationTypes = [
+        {
+          title: 'Bache peligroso reportado',
+          author: 'LalitoCubano',
+          image: { uri: 'https://picsum.photos/seed/bache/800/600' }
+        },
+        {
+          title: 'Semáforo reparado exitosamente',
+          author: 'GeorgeS',
+          image: { uri: 'https://picsum.photos/seed/semaforo/800/600' }
+        },
+        {
+          title: 'Nueva área verde inaugurada',
+          author: 'ElliotM',
+          image: { uri: 'https://picsum.photos/seed/parque/800/600' }
+        },
+        {
+          title: 'Fuga de agua en la calle principal',
+          author: 'IgnacioL',
+          image: { uri: 'https://picsum.photos/seed/agua/800/600' }
+        }
+      ];
+
+      // Seleccionar aleatoriamente un tipo de publicación
+      const randomPublication = publicationTypes[Math.floor(Math.random() * publicationTypes.length)];
+      
+      const newReport: Report = {
+        id: Date.now().toString(),
+        title: randomPublication.title,
+        author: randomPublication.author,
+        timeAgo: 'Ahora',
+        image: randomPublication.image,
+        upvotes: Math.floor(Math.random() * 100) + 5, // Entre 5 y 104 upvotes
+        comments: []
+      };
+
+      // Agregar la nueva publicación al inicio de la lista
+      setReports(prevReports => [newReport, ...prevReports]);
+      
+      console.log('✅ Publicaciones actualizadas - Nueva publicación agregada:', randomPublication.title);
+      setRefreshing(false);
+    }, 1500); // 1.5 segundos de delay para simular carga de red
+  };
+
+  return (
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
+      {/* Header */}
+      <View className="bg-[#13161E] flex-row justify-between p-4">
+        <View className="flex-row items-center gap-4">
+          <TouchableOpacity
+            onPress={openMenu}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir menú"
+            activeOpacity={0.6}
+          >
+            <AlignJustify size={26} color="white" />
+          </TouchableOpacity>
 
         // Actualizar el reporte seleccionado para el modal
         setSelectedReport((prev) =>
@@ -170,15 +253,47 @@ export default function HomeScreen() {
                     <Text className="text-2xl font-bold text-[#537CF2]">Reportes</Text>
                 </View>
 
-                <View className="flex-row items-center gap-6">
-                    <TouchableOpacity
-                        onPress={() => console.log('Buscar')}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                        accessibilityRole="button"
-                        accessibilityLabel="Buscar"
-                        activeOpacity={0.6}>
-                        <Search size={26} color="white" />
-                    </TouchableOpacity>
+      {/* Lista de reportes */}
+      <ScrollView
+        className="px-4 mt-4"
+        contentContainerStyle={{
+          gap: 16,
+          paddingBottom: insets.bottom + 12,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#537CF2"
+            colors={["#537CF2"]}
+            progressBackgroundColor="#13161E"
+          />
+        }
+      >
+        {reports.map((report) => (
+          <ReportCard
+            key={report.id}
+            title={report.title}
+            author={report.author}
+            timeAgo={report.timeAgo}
+            image={report.image}
+            upvotes={report.upvotes}
+            onFollow={() => console.log('Seguir')}
+            onMore={() => console.log('Más opciones')}
+            onLocation={() => console.log('Ubicación')}
+            onUpvote={() => console.log('Upvote')}
+            onComment={() => openCommentsModal(report)}
+            onShare={() => console.log('Compartir')}
+          />
+        ))}
+      </ScrollView>
+        <View className="absolute bottom-0 right-0 flex-col items-center gap-3 px-4 py-7">
+          <TouchableOpacity
+              onPress={() => router.push('/(tabs)/(map)/create_report')}
+              className="rounded-full bg-primary p-4 ">
+              <MaterialCommunityIcons name="plus" size={40} color="#FFFFFF" />
+          </TouchableOpacity>
+      </View>
 
                     <TouchableOpacity
                         onPress={() => router.push('/profile')}
