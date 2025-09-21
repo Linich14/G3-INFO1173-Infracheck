@@ -171,7 +171,7 @@ const FormReport = ({
                 <View className={style.container + 'mb-4 mt-4'}>
                 <Text className="text-xl text-white">Nivel de Urgencia</Text>
                 <View
-                    className={`bg-secondary rounded-lg overflow-hidden py-2 h-56 ${errors.nivelUrgencia ? 'border border-red-500' : ''}`}>
+                    className={`bg-secondary rounded-lg overflow-hidden py-2 h-44 ${errors.nivelUrgencia ? 'border border-red-500' : ''}`}>
                     <Picker
                         style={{ color: '#FFFFFF', backgroundColor: 'transparent' }}
                         itemStyle={{ color: '#FFFFFF', fontSize: 18 }}

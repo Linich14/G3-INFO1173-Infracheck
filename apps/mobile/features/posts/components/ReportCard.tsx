@@ -55,7 +55,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
         {/* Tiempo - fijo */}
         <View className="flex-shrink-0">
-          <Text className="text-white text-xl">{timeAgo}</Text>
+          <Text className="text-white font-light">{timeAgo}</Text>
         </View>
 
         {/* Botón seguir - fijo */}

@@ -77,15 +77,6 @@ export default function AuthorityHomeScreen() {
         </View>
 
         <View className="flex-row items-center gap-6">
-          <TouchableOpacity
-            onPress={() => console.log('Buscar')}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityRole="button"
-            accessibilityLabel="Buscar"
-            activeOpacity={0.6}
-          >
-            <Search size={26} color="white" />
-          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => router.push('/profile')}

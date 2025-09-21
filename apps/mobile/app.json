@@ -17,7 +17,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
+          "photosPermission": "InfraCheck necesita acceso a tu galería de fotos para permitirte seleccionar imágenes de los problemas de infraestructura que quieres reportar.",
+          "cameraPermission": "InfraCheck necesita acceso a la cámara para permitirte tomar fotos de los problemas de infraestructura que quieres reportar."
         }
       ]
     ],
@@ -40,7 +41,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.InfraCheck",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show your current position."
+        "NSLocationWhenInUseUsageDescription": "InfraCheck necesita acceso a tu ubicación para mostrar tu posición actual y geolocalizar los reportes.",
+        "NSPhotoLibraryUsageDescription": "InfraCheck necesita acceso a tu galería de fotos para permitirte seleccionar imágenes de los problemas de infraestructura que quieres reportar.",
+        "NSCameraUsageDescription": "InfraCheck necesita acceso a la cámara para permitirte tomar fotos de los problemas de infraestructura que quieres reportar."
       }
     },
     "android": {

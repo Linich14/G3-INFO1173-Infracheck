@@ -4,6 +4,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router';
 import { ReportCard } from '~/features/posts';
 import { CommentsModal, Comment, Report } from '~/features/comments';
+import { SearchModal } from '~/features/search';
 import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map, Shield, Users } from 'lucide-react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
@@ -17,6 +18,7 @@ export default function HomeScreen() {
   const [commentsModalVisible, setCommentsModalVisible] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
   
   // Estado para simular los datos de los reportes con comentarios
   const [reports, setReports] = useState<Report[]>([
@@ -54,7 +56,7 @@ export default function HomeScreen() {
     {
       id: '3',
       title: 'Bache muy peligroso en intersección',
-      author: 'UsuarioConNombreMuyLargoQueNoDeberíaRomperElLayout',
+      author: 'Carlos',
       timeAgo: '2h',
       image: { uri: 'https://picsum.photos/seed/bache/800/600' },
       upvotes: 67,
@@ -190,7 +192,7 @@ export default function HomeScreen() {
       };
 
       setReports(prevReports => [newReport, ...prevReports]);
-      console.log('✅ Publicaciones actualizadas - Nueva publicación agregada:', randomPublication.title);
+      console.log('Publicaciones actualizadas - Nueva publicación agregada:', randomPublication.title);
       setRefreshing(false);
     }, 1500);
   };
@@ -215,7 +217,7 @@ export default function HomeScreen() {
 
         <View className="flex-row items-center gap-6">
           <TouchableOpacity
-            onPress={() => console.log('Buscar')}
+            onPress={() => setSearchModalVisible(true)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityRole="button"
             accessibilityLabel="Buscar"
@@ -420,6 +422,17 @@ export default function HomeScreen() {
           onAddComment={addComment}
         />
       )}
+
+      {/* Modal de Búsqueda */}
+      <SearchModal
+        visible={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
+        reports={reports}
+        onSelectReport={(report) => {
+          setSelectedReport(report);
+          setCommentsModalVisible(true);
+        }}
+      />
     </SafeAreaView>
   );
 }
