@@ -1,13 +1,59 @@
 import '../global.css';
 
-import { Slot } from 'expo-router';
+import { Slot, useRouter, useSegments } from 'expo-router';
+import { useEffect } from 'react';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { View, ActivityIndicator } from 'react-native';
+
+function RootLayoutNav() {
+  const { isLoggedIn, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    console.log('Layout navigation check:', { isLoading, isLoggedIn, segments }); // Debug log
+    
+    if (isLoading) return; // Esperar a que termine de verificar la autenticación
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isLoggedIn && !inAuthGroup) {
+      // Usuario no autenticado y no está en páginas de auth -> redirigir al login
+      console.log('Redirecting to login'); // Debug log
+      router.replace('/(auth)/sign-in');
+    } else if (isLoggedIn && inAuthGroup) {
+      // Usuario autenticado pero está en páginas de auth -> redirigir al home del cliente
+      console.log('Redirecting to home from auth'); // Debug log
+      router.replace('/(tabs)/home');
+    } else if (isLoggedIn && segments[0] === undefined) {
+      // Usuario autenticado en la raíz -> redirigir al home del cliente
+      console.log('Redirecting to home from root'); // Debug log
+      router.replace('/(tabs)/home');
+    }
+  }, [isLoggedIn, isLoading, segments, router]);
+
+  if (isLoading) {
+    // Mostrar loading mientras verifica la autenticación
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0f172a' }}>
+        <ActivityIndicator size="large" color="#537CF2" />
+      </View>
+    );
+  }
+
+  return (
+    <Slot
+      screenOptions={{
+        headerShown: false,
+      }}
+    />
+  );
+}
 
 export default function Layout() {
-    return (
-        <Slot
-            screenOptions={{
-                headerShown: false,
-            }}
-        />
-    );
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
+  );
 }

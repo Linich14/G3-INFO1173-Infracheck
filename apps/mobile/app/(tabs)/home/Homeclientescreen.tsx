@@ -4,6 +4,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router';
 import { ReportCard } from '~/features/posts';
 import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map, Shield, Users } from 'lucide-react-native';
+import { useAuth } from '~/contexts/AuthContext';
 
 const MENU_BG = '#0f172a';
 const HEADER_BG = '#13161E';
@@ -11,6 +12,7 @@ const ACCENT = '#537CF2';
 
 export default function ClientHomeScreen() {
   const insets = useSafeAreaInsets();
+  const { logout } = useAuth();
 
   const [open, setOpen] = useState(false);
   const drawerX = useRef(new Animated.Value(-Dimensions.get('window').width * 0.75)).current;
@@ -54,8 +56,9 @@ export default function ClientHomeScreen() {
     });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     closeMenu();
+    await logout();
     router.replace('/(auth)/sign-in');
   };
 
