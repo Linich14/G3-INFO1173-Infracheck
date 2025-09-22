@@ -139,9 +139,9 @@ const RegisterScreen: React.FC = () => {
           rowGap: 0,
         }}
       >
-        <View className="w-full px-6">
+        <View className="w-full px-6 mb-20">
           {/* Header del form: back + Hola! centrado + spacer */}
-          <View className="flex-row items-center justify-between mb-10">
+          <View className="flex-row items-center justify-between mb-4">
             {/* Botón atrás (icon-only, sin fondo) */}
             <TouchableOpacity
               onPress={() => router.replace('/')}
@@ -224,7 +224,7 @@ const RegisterScreen: React.FC = () => {
               {fieldErrors.password && (
                 <Text style={{ color: 'red', fontSize: 14, marginTop: 4 }}>{fieldErrors.password}</Text>
               )}
-              <Text className="text-white text-2xl font-bold">Repetir Contraseña</Text>
+              <Text className="text-white text-2xl font-bold pt-4">Repetir Contraseña</Text>
               <TextInput
                 placeholder="************"
                 placeholderTextColor="#ccc"
