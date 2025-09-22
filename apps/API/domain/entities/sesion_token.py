@@ -13,7 +13,7 @@ class SesionToken(models.Model):
     token_activo = models.BooleanField(default=True)
     
     class Meta:
-        db_table = 'Sesion_Token'
+        db_table = 'sesion_token'
         verbose_name = 'Token de Sesión'
         verbose_name_plural = 'Tokens de Sesión'
     
@@ -22,7 +22,19 @@ class SesionToken(models.Model):
     
     def is_valid(self):
         """Verifica si el token está activo y no ha expirado"""
-        return self.token_activo and self.token_expira_en > timezone.now()
+        if not self.token_activo:
+            return False
+        
+        now = timezone.now()
+        
+        # Manejar el caso donde token_expira_en puede ser naive o aware
+        if timezone.is_naive(self.token_expira_en):
+            # Si el datetime es naive, convertirlo a aware usando la zona horaria por defecto
+            expira_en_aware = timezone.make_aware(self.token_expira_en)
+        else:
+            expira_en_aware = self.token_expira_en
+        
+        return expira_en_aware > now
     
     def deactivate(self):
         """Desactiva el token"""
@@ -35,8 +47,9 @@ class SesionToken(models.Model):
         # Generar token aleatorio seguro
         token_valor = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(64))
         
-        # Calcular fecha de expiración
-        expira_en = timezone.now() + timezone.timedelta(hours=hours)
+        # Calcular fecha de expiración usando timezone-aware datetime
+        now = timezone.now()
+        expira_en = now + timezone.timedelta(hours=hours)
         
         # Crear el token
         token = cls.objects.create(
