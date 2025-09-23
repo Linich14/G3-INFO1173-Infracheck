@@ -3,11 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 
 interface ReportFormData {
-    titulo: string;
     descripcion: string;
-    ubicacion: string;
-    tipoProblem: string;
-    prioridad: 'Alta' | 'Media' | 'Baja';
 }
 
 interface ReportProblemProps {
@@ -17,57 +13,53 @@ interface ReportProblemProps {
 
 export default function ReportProblem({ onBack, onProblemReported }: ReportProblemProps) {
     const [formData, setFormData] = useState<ReportFormData>({
-        titulo: '',
         descripcion: '',
-        ubicacion: '',
-        tipoProblem: '',
-        prioridad: 'Media',
     });
 
-    const tiposProblema = [
-        'Infraestructura Vial',
-        'Iluminación Pública',
-        'Servicios Básicos',
-        'Limpieza y Ornato',
-        'Seguridad Ciudadana',
-        'Espacios Públicos',
-        'Medio Ambiente',
-        'Otros',
-    ];
+    // Contador de caracteres
+    const maxLength = 1000;
+    const remainingChars = maxLength - formData.descripcion.length;
 
     const handleSubmitReport = () => {
-        // Validaciones
-        if (!formData.titulo.trim()) {
-            Alert.alert('Error', 'El título es obligatorio');
-            return;
-        }
+        // Validación simple
         if (!formData.descripcion.trim()) {
-            Alert.alert('Error', 'La descripción es obligatoria');
+            Alert.alert('Error', 'Por favor describe el problema antes de enviarlo');
             return;
         }
-        if (!formData.ubicacion.trim()) {
-            Alert.alert('Error', 'La ubicación es obligatoria');
-            return;
-        }
-        if (!formData.tipoProblem) {
-            Alert.alert('Error', 'Debe seleccionar un tipo de problema');
+
+        if (formData.descripcion.trim().length < 10) {
+            Alert.alert('Error', 'La descripción debe tener al menos 10 caracteres');
             return;
         }
 
         const reportData = {
             id: Date.now(),
-            ...formData,
+            titulo: 'Reporte de Problema', // Título genérico
+            descripcion: formData.descripcion.trim(),
             fecha: new Date().toISOString(),
             estado: 'Reportado',
             usuario: 'Usuario Autoridad',
+            ubicacion: 'Sin especificar', // Datos por defecto
+            tipoProblem: 'General',
+            prioridad: 'Media',
         };
 
-        Alert.alert('Problema Reportado', 'El problema ha sido reportado exitosamente', [
-            {
-                text: 'OK',
-                onPress: () => onProblemReported(reportData),
-            },
-        ]);
+        Alert.alert(
+            'Problema Reportado', 
+            'Tu reporte ha sido enviado exitosamente. Gracias por contribuir a mejorar la infraestructura.', 
+            [
+                {
+                    text: 'OK',
+                    onPress: () => onProblemReported(reportData),
+                },
+            ]
+        );
+    };
+
+    const handleTextChange = (text: string) => {
+        if (text.length <= maxLength) {
+            setFormData({ descripcion: text });
+        }
     };
 
     return (
@@ -80,126 +72,109 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
                 <Text className="ml-4 text-xl font-bold text-white">Reportar Problema</Text>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <View className="mb-6 rounded-xl bg-neutral-900 p-4">
+            <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+                {/* Instrucciones */}
+                <View className="mb-6 rounded-xl bg-blue-900/20 border border-blue-600/30 p-4">
+                    <View className="flex-row items-center mb-2">
+                        <Ionicons name="information-circle" size={20} color="#60A5FA" />
+                        <Text className="ml-2 text-blue-400 font-semibold">¿Cómo reportar?</Text>
+                    </View>
+                    <Text className="text-gray-300 text-sm leading-5">
+                        Describe el problema que observaste de manera clara y detallada. 
+                        Incluye la ubicación, qué está pasando y cualquier información que consideres importante.
+                    </Text>
+                </View>
+
+                {/* Formulario Principal */}
+                <View className="mb-6 rounded-xl bg-neutral-900 p-6">
                     <Text className="mb-4 text-lg font-bold text-blue-400">
-                        Información del Problema
+                        Describe el Problema
                     </Text>
 
-                    {/* Título */}
+                    {/* Caja de texto grande */}
                     <View className="mb-4">
-                        <Text className="mb-2 text-gray-400">Título del Problema *</Text>
                         <TextInput
-                            className="rounded-lg bg-neutral-800 p-3 text-white"
-                            placeholder="Ej: Semáforo no funciona"
-                            placeholderTextColor="#9CA3AF"
-                            value={formData.titulo}
-                            onChangeText={(text) =>
-                                setFormData((prev) => ({ ...prev, titulo: text }))
-                            }
-                        />
-                    </View>
-
-                    {/* Descripción */}
-                    <View className="mb-4">
-                        <Text className="mb-2 text-gray-400">Descripción *</Text>
-                        <TextInput
-                            className="rounded-lg bg-neutral-800 p-3 text-white"
-                            placeholder="Describe el problema en detalle..."
+                            className="rounded-lg bg-neutral-800 p-4 text-white text-base leading-6 min-h-[200px]"
+                            placeholder="Describe el problema que encontraste...&#10;&#10;Por ejemplo:&#10;• ¿Dónde está ubicado?&#10;• ¿Qué tipo de problema es?&#10;• ¿Qué tan grave consideras que es?&#10;• ¿Cualquier detalle adicional?"
                             placeholderTextColor="#9CA3AF"
                             value={formData.descripcion}
-                            onChangeText={(text) =>
-                                setFormData((prev) => ({ ...prev, descripcion: text }))
-                            }
+                            onChangeText={handleTextChange}
                             multiline
-                            numberOfLines={4}
                             textAlignVertical="top"
+                            maxLength={maxLength}
+                            style={{ fontSize: 16, lineHeight: 24 }}
                         />
+                        
+                        {/* Contador de caracteres */}
+                        <View className="flex-row justify-between items-center mt-2">
+                            <Text className="text-gray-500 text-xs">
+                                Mínimo 10 caracteres
+                            </Text>
+                            <Text className={`text-xs ${
+                                remainingChars < 100 ? 'text-yellow-400' : 
+                                remainingChars < 50 ? 'text-red-400' : 'text-gray-400'
+                            }`}>
+                                {remainingChars} caracteres restantes
+                            </Text>
+                        </View>
                     </View>
 
-                    {/* Ubicación */}
+                    {/* Indicador de progreso visual */}
                     <View className="mb-4">
-                        <Text className="mb-2 text-gray-400">Ubicación *</Text>
-                        <TextInput
-                            className="rounded-lg bg-neutral-800 p-3 text-white"
-                            placeholder="Ej: Av. Alemania con Prat"
-                            placeholderTextColor="#9CA3AF"
-                            value={formData.ubicacion}
-                            onChangeText={(text) =>
-                                setFormData((prev) => ({ ...prev, ubicacion: text }))
-                            }
-                        />
-                    </View>
-
-                    {/* Tipo de Problema */}
-                    <View className="mb-4">
-                        <Text className="mb-2 text-gray-400">Tipo de Problema *</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            <View className="flex-row">
-                                {tiposProblema.map((tipo) => (
-                                    <TouchableOpacity
-                                        key={tipo}
-                                        className={`mr-2 rounded-lg px-3 py-2 ${
-                                            formData.tipoProblem === tipo
-                                                ? 'bg-blue-600'
-                                                : 'bg-neutral-800'
-                                        }`}
-                                        onPress={() =>
-                                            setFormData((prev) => ({ ...prev, tipoProblem: tipo }))
-                                        }>
-                                        <Text className="text-sm text-white">{tipo}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </ScrollView>
-                    </View>
-
-                    {/* Prioridad */}
-                    <View className="mb-4">
-                        <Text className="mb-2 text-gray-400">Prioridad</Text>
-                        <View className="flex-row">
-                            {['Alta', 'Media', 'Baja'].map((prioridad) => (
-                                <TouchableOpacity
-                                    key={prioridad}
-                                    className={`mr-2 rounded-lg px-4 py-2 ${
-                                        formData.prioridad === prioridad
-                                            ? prioridad === 'Alta'
-                                                ? 'bg-red-600'
-                                                : prioridad === 'Media'
-                                                  ? 'bg-yellow-600'
-                                                  : 'bg-blue-600'
-                                            : 'bg-neutral-800'
-                                    }`}
-                                    onPress={() =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            prioridad: prioridad as any,
-                                        }))
-                                    }>
-                                    <Text className="text-sm text-white">{prioridad}</Text>
-                                </TouchableOpacity>
-                            ))}
+                        <View className="h-2 bg-neutral-700 rounded-full overflow-hidden">
+                            <View 
+                                className={`h-full transition-all duration-300 ${
+                                    formData.descripcion.length < 10 ? 'bg-red-500' :
+                                    formData.descripcion.length < 50 ? 'bg-yellow-500' :
+                                    'bg-green-500'
+                                }`}
+                                style={{ width: `${Math.min((formData.descripcion.length / maxLength) * 100, 100)}%` }}
+                            />
                         </View>
                     </View>
                 </View>
 
-                {/* Botones de Acción */}
-                <View className="mb-6 flex-row">
+                {/* Consejos */}
+                <View className="mb-6 rounded-xl bg-neutral-900 p-4">
+                    <Text className="mb-3 text-md font-semibold text-green-400">
+                        💡 Consejos para un buen reporte:
+                    </Text>
+                    <View className="space-y-2">
+                        <Text className="text-gray-300 text-sm">• Sé específico con la ubicación</Text>
+                        <Text className="text-gray-300 text-sm">• Explica qué está funcionando mal</Text>
+                        <Text className="text-gray-300 text-sm">• Menciona si es urgente o peligroso</Text>
+                        <Text className="text-gray-300 text-sm">• Añade cualquier detalle útil</Text>
+                    </View>
+                </View>
+            </ScrollView>
+
+            {/* Botones de Acción */}
+            <View className="pb-6 pt-4 border-t border-neutral-800">
+                <View className="flex-row space-x-3">
                     <TouchableOpacity
-                        className="mr-3 flex-1 rounded-lg bg-gray-600 p-4"
+                        className="flex-1 rounded-lg bg-gray-600 p-4"
                         onPress={onBack}>
                         <Text className="text-center font-semibold text-white">Cancelar</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        className="flex-1 rounded-lg bg-red-600 p-4"
-                        onPress={handleSubmitReport}>
-                        <Text className="text-center font-semibold text-white">
-                            Reportar Problema
+                        className={`flex-1 rounded-lg p-4 ${
+                            formData.descripcion.trim().length >= 10 
+                                ? 'bg-red-600' 
+                                : 'bg-gray-700'
+                        }`}
+                        onPress={handleSubmitReport}
+                        disabled={formData.descripcion.trim().length < 10}>
+                        <Text className={`text-center font-semibold ${
+                            formData.descripcion.trim().length >= 10 
+                                ? 'text-white' 
+                                : 'text-gray-400'
+                        }`}>
+                            Enviar Reporte
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
+            </View>
         </View>
     );
 }
