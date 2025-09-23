@@ -52,23 +52,6 @@ export default function AuthDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onL
 
       <View style={styles.separator} />
 
-      <TouchableOpacity onPress={() => { onClose(); router.push("/(tabs)/home/Homeclientescreen"); }} style={styles.item}>
-        <UserCircle2 size={20} color="#fff" />
-        <Text style={styles.text}>Home Cliente</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => { onClose(); router.push("/(tabs)/home/Homeauthoscreen"); }} style={styles.item}>
-        <Shield size={20} color="#fff" />
-        <Text style={styles.text}>Home Autoridad</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => { onClose(); router.push("/(tabs)/home/Homeadminscreen"); }} style={styles.item}>
-        <Users size={20} color="#fff" />
-        <Text style={styles.text}>Home Admin</Text>
-      </TouchableOpacity>
-
-      <View style={styles.separator} />
-
       <TouchableOpacity onPress={onLogout} style={styles.item}>
         <LogOut size={20} color="#fff" />
         <Text style={styles.text}>Cerrar sesión</Text>

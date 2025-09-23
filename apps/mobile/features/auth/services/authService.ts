@@ -1,24 +1,31 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_CONFIG } from '~/constants/config';
 
 const TOKEN_KEY = 'auth_token';
 const TOKEN_EXPIRY_KEY = 'auth_token_expiry';
+const USER_ROLE_ID_KEY = 'user_role_id';
+const USER_ROLE_NAME_KEY = 'user_role_name';
 
 export interface LoginData {
   rut: string;
   password: string;
 }
 
+export interface User {
+  id: string;
+  rut: string;
+  email: string;
+  username: string;
+  rous_id: number;
+  rous_nombre: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   message: string;
   token?: string;
-  expires_at?: string; // Fecha de expiración del token
-  user?: {
-    id: string;
-    rut: string;
-    email: string;
-    username: string;
-  };
+  expires_at?: string;
+  user?: User;
 }
 
 // Guardar token y fecha de expiración en almacenamiento local
@@ -63,9 +70,39 @@ export const getToken = async (): Promise<string | null> => {
 // Eliminar token y fecha de expiración (logout)
 export const removeToken = async (): Promise<void> => {
   try {
-    await AsyncStorage.multiRemove([TOKEN_KEY, TOKEN_EXPIRY_KEY]);
+    await AsyncStorage.multiRemove([TOKEN_KEY, TOKEN_EXPIRY_KEY, USER_ROLE_ID_KEY, USER_ROLE_NAME_KEY]);
   } catch (error) {
-    console.error('Error removing token:', error);
+    console.error('Error removing token and role:', error);
+  }
+};
+
+// Guardar datos del rol del usuario
+export const saveUserRole = async (rous_id: number, rous_nombre: string): Promise<void> => {
+  try {
+    await AsyncStorage.multiSet([
+      [USER_ROLE_ID_KEY, rous_id.toString()],
+      [USER_ROLE_NAME_KEY, rous_nombre]
+    ]);
+  } catch (error) {
+    console.error('Error saving user role:', error);
+  }
+};
+
+// Obtener datos del rol del usuario
+export const getUserRole = async (): Promise<{rous_id: number, rous_nombre: string} | null> => {
+  try {
+    const roleId = await AsyncStorage.getItem(USER_ROLE_ID_KEY);
+    const roleName = await AsyncStorage.getItem(USER_ROLE_NAME_KEY);
+
+    if (!roleId || !roleName) return null;
+
+    return {
+      rous_id: parseInt(roleId),
+      rous_nombre: roleName
+    };
+  } catch (error) {
+    console.error('Error getting user role:', error);
+    return null;
   }
 };
 
@@ -78,7 +115,7 @@ export const isAuthenticated = async (): Promise<boolean> => {
 
   // Verificar con el backend si el token es válido y no ha expirado
   try {
-    const response = await fetch('http://192.168.1.12:8000/api/v1/verify-token/', {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/verify-token/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -116,7 +153,7 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
     // Debug: Log what we're sending to the backend
     console.log('Sending login data:', data);
     
-    const response = await fetch('http://192.168.1.12:8000/api/v1/login/', {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/login/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -136,6 +173,12 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
       if (result.expires_at) {
         await saveToken(result.token, result.expires_at);
       }
+
+      // Guardar datos del rol del usuario
+      if (result.rous_id && result.rous_nombre) {
+        await saveUserRole(result.rous_id, result.rous_nombre);
+      }
+
       return {
         success: true,
         message: result.message || 'Inicio de sesión exitoso',
@@ -146,6 +189,8 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
           rut: result.rut || '',
           email: result.email || '',
           username: result.username || '',
+          rous_id: result.rous_id || 0,
+          rous_nombre: result.rous_nombre || '',
         },
       };
     } else {
@@ -173,7 +218,7 @@ export const logout = async (): Promise<void> => {
     const token = await getToken();
     if (token) {
       // Llamar al backend para invalidar el token en la tabla Sesion_Token
-      await fetch('http://192.168.1.12:8000/api/v1/logout/', {
+      await fetch(`${API_CONFIG.BASE_URL}/api/v1/logout/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

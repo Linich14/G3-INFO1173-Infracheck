@@ -1,8 +1,9 @@
 import { RegisterData } from '../types/RegisterData';
+import { API_CONFIG } from '~/constants/config';
 
 export async function registerUser(data: RegisterData): Promise<{ success: boolean; message: string }> {
   try {
-    const response = await fetch('http://192.168.56.1:8000/api/v1/register/', {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/register/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

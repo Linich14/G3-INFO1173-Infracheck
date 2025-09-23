@@ -71,7 +71,9 @@ def verify_token_view(request):
                     'valid': True,
                     'user_id': sesion_token.usua_id.usua_id,
                     'username': sesion_token.usua_id.usua_nickname,
-                    'expires_at': sesion_token.token_expira_en.isoformat()
+                    'expires_at': sesion_token.token_expira_en.isoformat(),
+                    'rous_id': sesion_token.usua_id.rous_id.rous_id,
+                    'rous_nombre': sesion_token.usua_id.rous_id.rous_nombre
                 }
                 
                 return Response(response_data, status=status.HTTP_200_OK)

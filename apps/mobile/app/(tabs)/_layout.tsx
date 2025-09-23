@@ -114,26 +114,6 @@ export default function Layout() {
 
             {/* Páginas ocultas - no aparecen en la barra de navegación */}
             <Tabs.Screen
-                name="home/Homeclientescreen"
-                options={{
-                    href: null, // Oculta de la barra de navegación
-                }}
-            />
-
-            <Tabs.Screen
-                name="home/Homeauthoscreen"
-                options={{
-                    href: null, // Oculta de la barra de navegación
-                }}
-            />
-
-            <Tabs.Screen
-                name="home/Homeadminscreen"
-                options={{
-                    href: null, // Oculta de la barra de navegación
-                }}
-            />
-            <Tabs.Screen
                 name="report/[id]"
                 options={{
                     href: null, // Oculta de la barra de navegación

@@ -51,7 +51,9 @@ def login_view(request):
                 'expires_at': validated_data['expires_at'].isoformat(),
                 'user_id': usuario.usua_id,
                 'username': usuario.usua_nickname,
-                'rut': usuario.usua_rut
+                'rut': usuario.usua_rut,
+                'rous_id': usuario.rous_id.rous_id,
+                'rous_nombre': usuario.rous_id.rous_nombre
             }
             
             return Response(response_data, status=status.HTTP_200_OK)
