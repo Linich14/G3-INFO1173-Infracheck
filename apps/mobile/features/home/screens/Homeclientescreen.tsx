@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Animated, Dimensions, TouchableWithoutFeedback, Easing } from "react-native";
 import { router } from "expo-router";
+import { useAuth } from '~/contexts/AuthContext';
 import { Comment, Report } from "~/features/comments";
 import ClientHeader from "~/features/home/components/ClientHeader";
 import ClientContent from "~/features/home/components/ClientContent";
@@ -13,6 +14,7 @@ const ACCENT = "#537CF2";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { logout } = useAuth();
 
   const [open, setOpen] = useState(false);
   const [commentsModalVisible, setCommentsModalVisible] = useState(false);
@@ -115,8 +117,9 @@ export default function HomeScreen() {
     });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     closeMenu();
+    await logout();
     router.replace("/(auth)/sign-in");
   };
 

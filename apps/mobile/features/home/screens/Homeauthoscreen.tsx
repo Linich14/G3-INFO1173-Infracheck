@@ -2,12 +2,14 @@ import React, { useRef, useState } from 'react';
 import { TouchableWithoutFeedback, Animated, Easing, Dimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useAuth } from '~/contexts/AuthContext';
 import AuthHeader from '~/features/home/components/AuthHeader';
 import AuthContent from '~/features/home/components/AuthContent';
 import AuthDrawerMenu from '~/features/home/components/AuthDrawerMenu';
 
 export default function AuthorityHomeScreen() {
   const insets = useSafeAreaInsets();
+  const { logout } = useAuth();
 
   const [open, setOpen] = useState(false);
   const drawerX = useRef(new Animated.Value(-Dimensions.get('window').width * 0.75)).current;
@@ -51,8 +53,9 @@ export default function AuthorityHomeScreen() {
     });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     closeMenu();
+    await logout();
     router.replace('/(auth)/sign-in');
   };
 
