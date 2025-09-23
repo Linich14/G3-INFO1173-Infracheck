@@ -86,7 +86,7 @@ export default function HomeScreen() {
         {
             id: '4',
             title: 'Problema con alumbrado público',
-            author: 'VecinoConcernedoPorSuComunidadYQueReportaProblemas',
+            author: 'DBurgos',
             timeAgo: '1d',
             image: { uri: 'https://picsum.photos/seed/luz/800/600' },
             upvotes: 23,

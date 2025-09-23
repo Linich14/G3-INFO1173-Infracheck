@@ -78,7 +78,7 @@ export const isAuthenticated = async (): Promise<boolean> => {
 
   // Verificar con el backend si el token es válido y no ha expirado
   try {
-    const response = await fetch('http://192.168.1.5:8000/api/v1/verify-token/', {
+    const response = await fetch('http://127.0.0.1:8000/api/v1/verify-token/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
     // Debug: Log what we're sending to the backend
     console.log('Sending login data:', data);
     
-    const response = await fetch('http://192.168.1.5:8000/api/v1/login/', {
+    const response = await fetch('http://127.0.0.1:8000/api/v1/login/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -173,7 +173,7 @@ export const logout = async (): Promise<void> => {
     const token = await getToken();
     if (token) {
       // Llamar al backend para invalidar el token en la tabla Sesion_Token
-      await fetch('http://192.168.1.5:8000/api/v1/logout/', {
+      await fetch('http://127.0.0.1:8000/api/v1/logout/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

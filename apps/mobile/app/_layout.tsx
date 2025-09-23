@@ -16,16 +16,17 @@ function RootLayoutNav() {
     if (isLoading) return; // Esperar a que termine de verificar la autenticación
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inWelcomeScreen = segments[0] === undefined || segments.join('/') === ''; // Usuario en la raíz (welcome screen)
 
-    if (!isLoggedIn && !inAuthGroup) {
-      // Usuario no autenticado y no está en páginas de auth -> redirigir al login
+    if (!isLoggedIn && !inAuthGroup && !inWelcomeScreen) {
+      // Usuario no autenticado, no está en auth ni en welcome -> redirigir al login
       console.log('Redirecting to login'); // Debug log
       router.replace('/(auth)/sign-in');
     } else if (isLoggedIn && inAuthGroup) {
       // Usuario autenticado pero está en páginas de auth -> redirigir al home del cliente
       console.log('Redirecting to home from auth'); // Debug log
       router.replace('/(tabs)/home');
-    } else if (isLoggedIn && segments[0] === undefined) {
+    } else if (isLoggedIn && inWelcomeScreen) {
       // Usuario autenticado en la raíz -> redirigir al home del cliente
       console.log('Redirecting to home from root'); // Debug log
       router.replace('/(tabs)/home');
