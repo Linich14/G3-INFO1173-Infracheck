@@ -110,23 +110,39 @@ const FormReport = ({
 
                 <View>
                     <View
-                        className={`bg-secondary rounded-lg overflow-visible ${errors.tipoDenuncia ? 'border border-red-500' : ''}`}>
+                        className={`overflow-visible rounded-lg bg-secondary ${errors.tipoDenuncia ? 'border border-red-500' : ''}`}>
                         <Picker
                             style={{ color: '#FFFFFF', backgroundColor: 'transparent' }}
                             itemStyle={{ color: '#FFFFFF', fontSize: 18 }}
                             selectedValue={formData.tipoDenuncia}
                             onValueChange={(value) => onUpdateField('tipoDenuncia', value)}>
+                            <Picker.Item label="Selecciona una categoría" value="" />
+                            <Picker.Item label="Vialidad y veredas" value="vialidad_veredas" />
+                            <Picker.Item label="Alumbrado público" value="alumbrado_publico" />
+                            <Picker.Item label="Drenaje y aguas lluvias" value="drenaje_aguas" />
+                            <Picker.Item label="Áreas verdes y arbolado" value="areas_verdes" />
                             <Picker.Item
-                                label="Selecciona una categoría"
-                                value=""
+                                label="Mobiliario urbano y plazas"
+                                value="mobiliario_urbano"
+                            />
+                            <Picker.Item label="Señalización y demarcación" value="senalizacion" />
+                            <Picker.Item label="Ciclovías y movilidad activa" value="ciclovias" />
+                            <Picker.Item
+                                label="Paraderos y equipamiento de transporte"
+                                value="paraderos_transporte"
                             />
                             <Picker.Item
-                                label="Medio ambiente"
-                                value="ambiente"
+                                label="Infraestructura municipal (edificios y recintos)"
+                                value="infraestructura_municipal"
                             />
                             <Picker.Item
-                                label="Infraestructura vial"
-                                value="vial"
+                                label="Limpieza y recuperación de espacio público"
+                                value="limpieza_espacio_publico"
+                            />
+                            <Picker.Item label="Accesibilidad" value="accesibilidad" />
+                            <Picker.Item
+                                label="Riesgos y emergencias"
+                                value="riesgos_emergencias"
                             />
                         </Picker>
                     </View>
@@ -168,31 +184,19 @@ const FormReport = ({
                 )}
             </View>
 
-                <View className={style.container + 'mb-4 mt-4'}>
+            <View className={style.container + 'mb-4 mt-4'}>
                 <Text className="text-xl text-white">Nivel de Urgencia</Text>
                 <View
-                    className={`bg-secondary rounded-lg overflow-hidden py-2 h-56 ${errors.nivelUrgencia ? 'border border-red-500' : ''}`}>
+                    className={`h-56 overflow-hidden rounded-lg bg-secondary py-2 ${errors.nivelUrgencia ? 'border border-red-500' : ''}`}>
                     <Picker
                         style={{ color: '#FFFFFF', backgroundColor: 'transparent' }}
                         itemStyle={{ color: '#FFFFFF', fontSize: 18 }}
                         selectedValue={formData.nivelUrgencia}
                         onValueChange={(value) => onUpdateField('nivelUrgencia', value)}>
-                        <Picker.Item 
-                            label="Selecciona una gravedad" 
-                            value="" 
-                        />
-                        <Picker.Item 
-                            label="Bajo" 
-                            value="bajo" 
-                        />
-                        <Picker.Item 
-                            label="Grave" 
-                            value="grave" 
-                        />
-                        <Picker.Item 
-                            label="Alto" 
-                            value="alto" 
-                        />
+                        <Picker.Item label="Selecciona una gravedad" value="" />
+                        <Picker.Item label="Bajo" value="bajo" />
+                        <Picker.Item label="Grave" value="grave" />
+                        <Picker.Item label="Alto" value="alto" />
                     </Picker>
                 </View>
                 {errors.nivelUrgencia && (
@@ -275,8 +279,8 @@ const nativeStyles = {
         fontSize: 16,
         height: 35,
     },
-    pickerItem: { 
-        color: '#FFFFFF', 
+    pickerItem: {
+        color: '#FFFFFF',
         backgroundColor: '#13161E',
         fontSize: 16,
     },

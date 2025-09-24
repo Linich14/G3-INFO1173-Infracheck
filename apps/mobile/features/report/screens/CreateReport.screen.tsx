@@ -65,27 +65,26 @@ const CreateReportScreen = () => {
     };
 
     const handleClose = () => {
-        router.back();
+        router.replace('/(map)/');
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-[#090A0D]">
+        <SafeAreaView className="flex-1 bg-[#090A0D]" edges={['top', 'left', 'right']}>
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 {/* Título "Crear Reporte" arriba */}
-                <View className="flex-row items-center rounded-lg bg-secondary p-3 mx-4 mt-2 mb-3">
+                <View className="mx-4 mb-3 mt-2 flex-row items-center rounded-lg bg-secondary p-3">
                     <View className="flex-1 items-center">
                         <Text className="text-2xl font-bold text-primary">Crear Reporte</Text>
                     </View>
                 </View>
 
                 {/* Header con botones donde estaba "Crear Reporte" */}
-                <View className="bg-[#13161E] flex-row items-center justify-between px-4 py-3 border-b border-gray-700 mx-4 rounded-t-lg">
+                <View className="mx-4 flex-row items-center justify-between rounded-t-lg border-b border-gray-700 bg-[#13161E] px-4 py-3">
                     {/* Botón Cerrar */}
                     <TouchableOpacity
                         onPress={handleClose}
-                        className="w-10 h-10 rounded-full bg-white items-center justify-center"
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
+                        className="h-10 w-10 items-center justify-center rounded-full bg-white"
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <X size={20} color="#000" />
                     </TouchableOpacity>
 
@@ -96,15 +95,14 @@ const CreateReportScreen = () => {
                     <TouchableOpacity
                         onPress={handleSubmit}
                         disabled={loading}
-                        className={`px-6 py-2 rounded-[12px] ${loading ? 'bg-gray-500' : 'bg-[#537CF2]'}`}
-                    >
-                        <Text className="text-white font-medium">
+                        className={`rounded-[12px] px-6 py-2 ${loading ? 'bg-gray-500' : 'bg-[#537CF2]'}`}>
+                        <Text className="font-medium text-white">
                             {loading ? 'Publicando...' : 'Publicar'}
                         </Text>
                     </TouchableOpacity>
                 </View>
 
-                <View className='px-4'>
+                <View className="px-4">
                     <FormReport
                         formData={formData}
                         errors={errors}
