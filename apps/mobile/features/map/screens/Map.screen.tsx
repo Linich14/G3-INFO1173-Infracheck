@@ -215,7 +215,7 @@ export default function MapScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1">
+        <SafeAreaView edges={['top', 'left', 'right']} className="flex-1">
             <View className="flex-1">
                 <View className="h-full w-full">
                     <MapView
