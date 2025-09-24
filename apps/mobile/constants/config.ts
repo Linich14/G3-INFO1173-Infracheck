@@ -1,4 +1,6 @@
-export const API_CONFIG = {};
+export const API_CONFIG = {
+    BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000',
+};
 
 export const MAP_CONFIG = {
     MAPTILER_API_KEY: process.env.EXPO_PUBLIC_MAPTILER_API_KEY || '',

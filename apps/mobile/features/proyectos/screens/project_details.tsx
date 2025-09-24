@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ReportsView from './AssociatedReports.tsx';
+import ReportProblem from './report_problem';
 
 interface ProjectDetailsProps {
     project: {
@@ -12,12 +13,14 @@ interface ProjectDetailsProps {
         prioridad?: string;
         reportesAsociados?: number;
         votosAFavor?: number;
+        tipoDenuncia?: string;
     };
     onBack: () => void;
 }
 
 export default function ProjectDetails({ project, onBack }: ProjectDetailsProps) {
     const [showReports, setShowReports] = useState(false);
+    const [showReportProblem, setShowReportProblem] = useState(false);
 
     const handleShowReports = () => {
         setShowReports(true);
@@ -27,12 +30,35 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
         setShowReports(false);
     };
 
+    const handleShowReportProblem = () => {
+        setShowReportProblem(true);
+    };
+
+    const handleBackFromReportProblem = () => {
+        setShowReportProblem(false);
+    };
+
+    const handleProblemReported = (reportData: any) => {
+        // Aquí podrías enviar el reporte al backend relacionado al proyecto
+        console.log('Problema reportado para proyecto:', project.id, reportData);
+        setShowReportProblem(false);
+    };
+
     if (showReports) {
         return (
             <ReportsView
                 projectId={project.id}
                 projectName={project.lugar}
                 onBack={handleBackFromReports}
+            />
+        );
+    }
+
+    if (showReportProblem) {
+        return (
+            <ReportProblem
+                onBack={handleBackFromReportProblem}
+                onProblemReported={handleProblemReported}
             />
         );
     }
@@ -102,6 +128,16 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
                         <Text className="text-white">{project.votosAFavor || 0}</Text>
                     </View>
 
+                    {project.tipoDenuncia && (
+                        <View className="mb-3 flex-row items-center justify-between">
+                            <View className="flex-row items-center">
+                                <Ionicons name="flag" size={16} color="#9CA3AF" />
+                                <Text className="ml-2 text-gray-400">Tipo de denuncia:</Text>
+                            </View>
+                            <Text className="text-white">{project.tipoDenuncia}</Text>
+                        </View>
+                    )}
+
                     {/* Descripción */}
                     <View className="mb-6 rounded-xl bg-neutral-900 p-6">
                         <Text className="mb-3 text-lg font-bold text-blue-400">Descripción</Text>
@@ -125,7 +161,9 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
                         <Text className="ml-3 font-semibold text-white">Reportes asociados</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity className="flex-row items-center rounded-lg bg-red-600 p-4">
+                    <TouchableOpacity
+                        className="flex-row items-center rounded-lg bg-red-600 p-4"
+                        onPress={handleShowReportProblem}>
                         <Ionicons name="alert-circle" size={20} color="white" />
                         <Text className="ml-3 font-semibold text-white">Reportar Problema</Text>
                     </TouchableOpacity>

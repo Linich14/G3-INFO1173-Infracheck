@@ -13,7 +13,20 @@
       "expo-router",
       "expo-web-browser",
       "@maplibre/maplibre-react-native",
-      "expo-location"
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Necesitamos tu ubicación para mostrar lugares cercanos y centrar el mapa.",
+          "locationAlwaysAndWhenInUsePermission": "Permite ubicación en segundo plano para registrar rutas incluso con la app minimizada."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "InfraCheck necesita acceso a tu galería de fotos para permitirte seleccionar imágenes de los problemas de infraestructura que quieres reportar.",
+          "cameraPermission": "InfraCheck necesita acceso a la cámara para permitirte tomar fotos de los problemas de infraestructura que quieres reportar."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -34,7 +47,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.InfraCheck",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show your current position."
+        "NSLocationTemporaryUsageDescriptionDictionary": {
+          "precision": "Se requiere precisión temporal para mejorar la calibración del mapa."
+        },
+        "NSLocationWhenInUseUsageDescription": "InfraCheck necesita acceso a tu ubicación para mostrar tu posición actual y geolocalizar los reportes.",
+        "NSPhotoLibraryUsageDescription": "InfraCheck necesita acceso a tu galería de fotos para permitirte seleccionar imágenes de los problemas de infraestructura que quieres reportar.",
+        "NSCameraUsageDescription": "InfraCheck necesita acceso a la cámara para permitirte tomar fotos de los problemas de infraestructura que quieres reportar."
       }
     },
     "android": {

@@ -1,18 +1,65 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Modal, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import  RutInput  from '../components/RutInput'
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { loginUser } from '../services/authService'
+import { useAuth } from '~/contexts/AuthContext'
 
 
 const LoginScreen: React.FC = () => {
   const router = useRouter()
+  const { checkAuthStatus } = useAuth()
   const [rut, setRut] = useState('')
   const [password, setPassword] = useState('')
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false)
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleLogin = () => {
-    router.replace('/(tabs)/home')
+  const handleLogin = async () => {
+    // Validar que los campos no estén vacíos
+    if (!rut.trim() || !password.trim()) {
+      setFeedbackMessage('Por favor, completa todos los campos.')
+      setFeedbackModalVisible(true)
+      setLoading(false)
+      return
+    }
+
+    // Mostrar modal de carga inmediatamente
+    setFeedbackModalVisible(true)
+    setLoading(true)
+    
+    // Espera artificial para mostrar el modal de carga
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    try {
+      // Llamada real al backend de login
+      const result = await loginUser({ rut, password })
+      
+      // Debug: Log the result to understand what we're getting
+      console.log('Login result:', result);
+      
+      if (result.success) {
+        setFeedbackMessage('¡Inicio de sesión exitoso!')
+        setLoading(false)
+        
+        // Actualizar inmediatamente el estado de autenticación
+        await checkAuthStatus()
+        
+        setTimeout(() => {
+          setFeedbackModalVisible(false)
+          // Forzar redirección si el contexto no la maneja automáticamente
+          router.replace('/(tabs)/home')
+        }, 1500)
+      } else {
+        setFeedbackMessage(result.message)
+        setLoading(false)
+      }
+    } catch (error: any) {
+      setFeedbackMessage('Error al iniciar sesión: ' + (error.message || 'Verifica tus credenciales.'))
+      setLoading(false)
+    }
   }
 
   return (
@@ -105,6 +152,34 @@ const LoginScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Modal de feedback de login */}
+      <Modal
+        visible={feedbackModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFeedbackModalVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, minWidth: 220, alignItems: 'center' }}>
+            {loading ? (
+              <>
+                <ActivityIndicator size="large" color="#2563eb" style={{ marginBottom: 16 }} />
+                <Text style={{ fontSize: 16, marginBottom: 8 }}>Iniciando sesión...</Text>
+              </>
+            ) : (
+              <>
+                <Text style={{ fontSize: 16, marginBottom: 16 }}>{feedbackMessage}</Text>
+                {!feedbackMessage.includes('exitoso') && (
+                  <TouchableOpacity onPress={() => setFeedbackModalVisible(false)} style={{ backgroundColor: '#2563eb', paddingVertical: 8, paddingHorizontal: 24, borderRadius: 8 }}>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Cerrar</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }

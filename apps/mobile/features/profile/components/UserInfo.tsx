@@ -10,7 +10,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
     <View className="flex-1 px-3.5 w-full">
       {/* User Avatar */}
       <View className="self-center mt-8 w-[108px] h-[108px] bg-[#537CF2] rounded-full justify-center items-center shadow-lg">
-        <Text className="text-white text-4xl font-bold">
+        <Text className="text-white text-4xl font-bold text-center">
           {user.name.charAt(0).toUpperCase()}
         </Text>
       </View>

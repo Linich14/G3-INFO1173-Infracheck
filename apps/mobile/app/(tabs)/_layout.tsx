@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Keyboard, View, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Home, Map, Settings } from 'lucide-react-native';
+import { Home, Map, Settings, Users2 } from 'lucide-react-native';
 
 function TabItem({
     label,
@@ -100,6 +100,7 @@ export default function Layout() {
                 }}
             />
 
+
             <Tabs.Screen
                 name="settings/index"
                 options={{
@@ -109,6 +110,20 @@ export default function Layout() {
                             <Settings size={24} color="#fff" />
                         </TabItem>
                     ),
+                }}
+            />
+
+            {/* Páginas ocultas - no aparecen en la barra de navegación */}
+            <Tabs.Screen
+                name="report/[id]"
+                options={{
+                    href: null, // Oculta de la barra de navegación
+                }}
+            />
+            <Tabs.Screen
+                name="users/index"
+                options={{
+                    href: null, // Oculta de la barra de navegación
                 }}
             />
         </Tabs>

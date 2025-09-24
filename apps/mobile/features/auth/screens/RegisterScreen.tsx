@@ -1,42 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Modal, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import EmailInput from '../components/EmailInput';
 import RutInput from '../components/RutInput';
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { registerUser } from '../services/registerService';
+import { RegisterData } from '../types/RegisterData';
+import { validateRegisterData, getPasswordValidationState } from '../../../utils/validation';
+
 
 const RegisterScreen: React.FC = () => {
-  const handleConfirm = () => {
-    const data = getRegisterData();
-    setShowModal(false);
-    // Reemplazar la URL por endpoint Django REST
-    fetch('http://127.0.0.1:8000/api/v1/register/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-      .then(async (response) => {
-        if (response.ok) {
-          // Registro exitoso
-          // mostrar un mensaje o navegar
-          router.replace('/(tabs)/home');
-        } else {
-          // Error en el registro
-          const errorData = await response.json();
-          alert('Error en el registro: ' + (errorData.detail || 'Verifica los datos.'));
-        }
-      })
-      .catch((error) => {
-        alert('Error de red: ' + error.message);
-      });
-  };
-
-  const handleCancel = () => {
-    setShowModal(false);
-  };
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -44,9 +18,56 @@ const RegisterScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const passwordState = getPasswordValidationState(password);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    const data: RegisterData = getRegisterData();
+    setShowModal(false);
+    setFeedbackModalVisible(true);
+    setLoading(true);
+    // Espera artificial para mostrar el modal de carga antes de enviar los datos
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const result = await registerUser(data);
+      if (result.success) {
+        setFeedbackMessage('¡Registro exitoso! Serás redirigido al inicio de sesión.');
+        setLoading(false);
+        setTimeout(() => {
+          setFeedbackModalVisible(false);
+          router.replace('/(auth)/sign-in');
+        }, 1800);
+      } else {
+        setFeedbackMessage('Error en el registro: ' + (result.message || 'Intenta nuevamente.'));
+        setLoading(false);
+      }
+    } catch (error: any) {
+      setFeedbackMessage('Error en el registro: ' + (error.message || 'Intenta nuevamente.'));
+      setLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+  };
+
+
+  // Limpiar error de campo al cambiar el valor
+  const handleFieldChange = (field: string, value: string, setter: (v: string) => void) => {
+    setter(value);
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => {
+        const { [field]: _, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
 
   // Función para recoger los datos
   const getRegisterData = () => ({
@@ -60,17 +81,21 @@ const RegisterScreen: React.FC = () => {
 
 
   const handleRegister = () => {
-  setShowModal(true);
-  const handleConfirm = () => {
-    const data = getRegisterData();
-    // enviar 'data' a la API REST
-    setShowModal(false);
-    //router.replace('/(tabs)/home');
-  };
-
-  const handleCancel = () => {
-    setShowModal(false);
-  };
+    const data: RegisterData = getRegisterData();
+    const validation = validateRegisterData(data);
+    if (!validation.isValid) {
+      // Mapear errores a cada campo
+      const errors: { [key: string]: string } = {};
+      validation.errors.forEach(err => {
+        errors[err.field] = err.message;
+      });
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+    setFeedbackModalVisible(true); // Mostrar modal de feedback inmediatamente
+    setLoading(true); // Mostrar spinner inmediatamente
+    handleConfirm(); // Llamar a la lógica de registro (con delay artificial)
   };
 
   return (
@@ -114,9 +139,9 @@ const RegisterScreen: React.FC = () => {
           rowGap: 0,
         }}
       >
-        <View className="w-full px-6">
+        <View className="w-full px-6 mb-20">
           {/* Header del form: back + Hola! centrado + spacer */}
-          <View className="flex-row items-center justify-between mb-10">
+          <View className="flex-row items-center justify-between mb-4">
             {/* Botón atrás (icon-only, sin fondo) */}
             <TouchableOpacity
               onPress={() => router.replace('/')}
@@ -140,7 +165,7 @@ const RegisterScreen: React.FC = () => {
             {/* Campo RUT */}
             <View className="space-y-2 w-72 mb-8">
               <Text className="text-white text-2xl font-bold">RUT</Text>
-              <RutInput value={rut} onChangeText={setRut} keyboardType="numeric" />
+              <RutInput value={rut} onChangeText={v => handleFieldChange('rut', v, setRut)} keyboardType="numeric" error={fieldErrors.rut} />
             </View>
 
 
@@ -153,14 +178,18 @@ const RegisterScreen: React.FC = () => {
                 className="text-white text-xl border-b border-white pb-2"
                 keyboardType="default"
                 value={username}
-                onChangeText={setUsername}
+                onChangeText={v => handleFieldChange('username', v, setUsername)}
+                style={{ borderColor: fieldErrors.username ? 'red' : 'white', borderBottomWidth: 1, color: 'white', paddingBottom: 8, fontSize: 18 }}
               />
+              {fieldErrors.username && (
+                <Text style={{ color: 'red', fontSize: 14, marginTop: 4 }}>{fieldErrors.username}</Text>
+              )}
             </View>
 
             {/* Campo Correo */}
             <View className="space-y-2 w-72 mb-8">
               <Text className="text-white text-2xl font-bold">Correo Electrónico</Text>
-              <EmailInput value={email} onChangeText={setEmail} />
+              <EmailInput value={email} onChangeText={v => handleFieldChange('email', v, setEmail)} error={fieldErrors.email} />
             </View>
 
             {/* Campo Contraseña */}
@@ -173,9 +202,29 @@ const RegisterScreen: React.FC = () => {
                 className="text-white text-xl border-b border-white pb-2"
                 keyboardType="default"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={v => handleFieldChange('password', v, setPassword)}
+                style={{ borderColor: fieldErrors.password ? 'red' : 'white', borderBottomWidth: 1, color: 'white', paddingBottom: 8, fontSize: 18 }}
               />
-              <Text className="text-white text-2xl font-bold">Repetir Contraseña</Text>
+              {password.length > 0 && (
+                <View style={{ marginTop: 4, marginBottom: 4 }}>
+                  <Text style={{ color: passwordState.length ? 'green' : 'red', fontSize: 13 }}>
+                    • Entre 8 y 16 caracteres
+                  </Text>
+                  <Text style={{ color: passwordState.uppercase ? 'green' : 'red', fontSize: 13 }}>
+                    • Al menos una mayúscula
+                  </Text>
+                  <Text style={{ color: passwordState.number ? 'green' : 'red', fontSize: 13 }}>
+                    • Al menos un número
+                  </Text>
+                  <Text style={{ color: passwordState.noSpecial ? 'green' : 'red', fontSize: 13 }}>
+                    • Sin caracteres especiales
+                  </Text>
+                </View>
+              )}
+              {fieldErrors.password && (
+                <Text style={{ color: 'red', fontSize: 14, marginTop: 4 }}>{fieldErrors.password}</Text>
+              )}
+              <Text className="text-white text-2xl font-bold pt-4">Repetir Contraseña</Text>
               <TextInput
                 placeholder="************"
                 placeholderTextColor="#ccc"
@@ -183,8 +232,17 @@ const RegisterScreen: React.FC = () => {
                 className="text-white text-xl border-b border-white pb-2"
                 keyboardType="default"
                 value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                onChangeText={v => handleFieldChange('confirmPassword', v, setConfirmPassword)}
+                style={{ borderColor: fieldErrors.confirmPassword ? 'red' : 'white', borderBottomWidth: 1, color: 'white', paddingBottom: 8, fontSize: 18 }}
               />
+              {confirmPassword.length > 0 && (
+                <Text style={{ color: confirmPassword === password ? 'green' : 'red', fontSize: 13 }}>
+                  {confirmPassword === password ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden'}
+                </Text>
+              )}
+              {fieldErrors.confirmPassword && (
+                <Text style={{ color: 'red', fontSize: 14, marginTop: 4 }}>{fieldErrors.confirmPassword}</Text>
+              )}
             </View>
 
             {/* Campo Teléfono */}
@@ -199,8 +257,15 @@ const RegisterScreen: React.FC = () => {
                   className="text-white text-xl border-b border-white pb-2 flex-1"
                   maxLength={8}
                   value={phone}
-                  onChangeText={setPhone}
+                  onChangeText={v => {
+                    const onlyNumbers = v.replace(/[^0-9]/g, '');
+                    handleFieldChange('phone', onlyNumbers, setPhone);
+                  }}
+                  style={{ borderColor: fieldErrors.phone ? 'red' : 'white', borderBottomWidth: 1, color: 'white', paddingBottom: 8, fontSize: 18 }}
                 />
+                {fieldErrors.phone && (
+                  <Text style={{ color: 'red', fontSize: 14, marginTop: 4 }}>{fieldErrors.phone}</Text>
+                )}
               </View>
             </View>
           </View>
@@ -223,7 +288,8 @@ const RegisterScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-      {/* Modal de confirmación temporal */}
+      {/*
+      // Modal de confirmación temporal (comentado para debug)
       <Modal
         visible={showModal}
         transparent
@@ -243,10 +309,43 @@ const RegisterScreen: React.FC = () => {
               <TouchableOpacity onPress={handleCancel} style={{ padding: 10 }}>
                 <Text style={{ color: '#537CF2', fontWeight: 'bold' }}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleConfirm} style={{ padding: 10 }}>
-                <Text style={{ color: '#537CF2', fontWeight: 'bold' }}>Confirmar</Text>
+              <TouchableOpacity onPress={handleConfirm} style={{ padding: 10 }} disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color="#537CF2" />
+                ) : (
+                  <Text style={{ color: '#537CF2', fontWeight: 'bold' }}>Confirmar</Text>
+                )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+      */}
+
+      {/* Modal de feedback de registro */}
+      <Modal
+        visible={feedbackModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFeedbackModalVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, minWidth: 220, alignItems: 'center' }}>
+            {loading ? (
+              <>
+                <ActivityIndicator size="large" color="#2563eb" style={{ marginBottom: 16 }} />
+                <Text style={{ fontSize: 16, marginBottom: 8 }}>Registrando usuario...</Text>
+              </>
+            ) : (
+              <>
+                <Text style={{ fontSize: 16, marginBottom: 16 }}>{feedbackMessage}</Text>
+                {!feedbackMessage.includes('exitoso') && (
+                  <TouchableOpacity onPress={() => setFeedbackModalVisible(false)} style={{ backgroundColor: '#2563eb', paddingVertical: 8, paddingHorizontal: 24, borderRadius: 8 }}>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Cerrar</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
           </View>
         </View>
       </Modal>

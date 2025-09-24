@@ -9,7 +9,7 @@ export const ContactField: React.FC<ContactFieldProps> = ({ icon, value, classNa
         {icon}
       </View>
       <View className="flex-1 justify-center py-4 pr-4">
-        <Text className="text-white text-base font-bold">
+        <Text className="text-white text-xl font-bold">
           {value}
         </Text>
       </View>

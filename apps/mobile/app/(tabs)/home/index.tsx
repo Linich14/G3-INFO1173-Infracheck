@@ -1,241 +1,80 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Animated, Easing, Dimensions, TouchableWithoutFeedback } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
-import ReportCard from '~/components/ReportCard';
-import { AlignJustify, UserCircle2, Search, LogOut, Home, Settings, Map } from 'lucide-react-native';
+import { isAuthenticated, getUserRole } from '~/features/auth/services/authService';
 
-const MENU_BG = '#0f172a';
-const HEADER_BG = '#13161E';
-const ACCENT = '#537CF2';
+// Importar todos los screens directamente
+import AdminHomeScreen from '~/features/home/screens/Homeadminscreen';
+import AuthorityHomeScreen from '~/features/home/screens/Homeauthoscreen';
+import ClientHomeScreen from '~/features/home/screens/Homeclientescreen';
 
-export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
+export default function HomeRouter() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState<number | null>(null);
 
-  const [open, setOpen] = useState(false);
-  const drawerX = useRef(new Animated.Value(-Dimensions.get('window').width * 0.75)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const DRAWER_W = Math.min(320, Dimensions.get('window').width * 0.75);
+  useEffect(() => {
+    const checkUserRoleAndAuth = async () => {
+      try {
+        // 1. Verificar autenticación
+        const authenticated = await isAuthenticated();
+        if (!authenticated) {
+          router.replace('/(auth)/sign-in');
+          return;
+        }
 
-  const openMenu = () => {
-    setOpen(true);
-    Animated.parallel([
-      Animated.timing(drawerX, {
-        toValue: 0,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(backdropOpacity, {
-        toValue: 0.45,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
+        // 2. Obtener rol del usuario
+        const roleData = await getUserRole();
+        if (!roleData) {
+          router.replace('/(auth)/sign-in');
+          return;
+        }
 
-  const closeMenu = () => {
-    Animated.parallel([
-      Animated.timing(drawerX, {
-        toValue: -DRAWER_W,
-        duration: 200,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(backdropOpacity, {
-        toValue: 0,
-        duration: 200,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]).start(({ finished }) => {
-      if (finished) setOpen(false);
-    });
-  };
+        // 3. Establecer el rol para renderizar el componente correcto
+        setUserRole(roleData.rous_id);
+      } catch (error) {
+        console.error('Error al verificar rol:', error);
+        router.replace('/(auth)/sign-in');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleLogout = () => {
-    // cierra el menú y navega al login
-    closeMenu();
-    router.replace('/(auth)/sign-in');
-  };
+    checkUserRoleAndAuth();
+  }, []);
 
-  return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
-      {/* Header */}
-      <View className="bg-[#13161E] flex-row justify-between p-4">
-        <View className="flex-row items-center gap-4">
-          <TouchableOpacity
-            onPress={openMenu}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityRole="button"
-            accessibilityLabel="Abrir menú"
-            activeOpacity={0.6}
-          >
-            <AlignJustify size={26} color="white" />
-          </TouchableOpacity>
+  // Efecto para manejar rol inválido
+  useEffect(() => {
+    if (!isLoading && userRole !== null && userRole !== 1 && userRole !== 2 && userRole !== 3) {
+      console.warn('Rol de usuario inválido:', userRole);
+      router.replace('/(auth)/sign-in');
+    }
+  }, [isLoading, userRole]);
 
-          <Text className="text-[#537CF2] font-bold text-2xl">Reportes</Text>
-        </View>
-
-        <View className="flex-row items-center gap-6">
-          <TouchableOpacity
-            onPress={() => console.log('Buscar')}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityRole="button"
-            accessibilityLabel="Buscar"
-            activeOpacity={0.6}
-          >
-            <Search size={26} color="white" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => router.push('/profile')}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityRole="button"
-            accessibilityLabel="Perfil"
-            activeOpacity={0.6}
-          >
-            <UserCircle2 size={26} color="white" />
-          </TouchableOpacity>
-        </View>
+  // Loading mientras se verifica el rol
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#090A0D' }}>
+        <ActivityIndicator size="large" color="#537CF2" />
+        <Text style={{ color: '#fff', marginTop: 16 }}>Cargando...</Text>
       </View>
+    );
+  }
 
-      {/* Lista de reportes */}
-      <ScrollView
-        className="px-4 mt-4"
-        contentContainerStyle={{
-          gap: 16,
-          paddingBottom: insets.bottom + 12,
-        }}
-      >
-        <ReportCard
-          title="Calle en mal estado"
-          author="ChristianV"
-          timeAgo="3d"
-          image={require('@assets/Publicaciones/1.png')}
-          upvotes={254}
-          onFollow={() => console.log('Seguir')}
-          onMore={() => console.log('Más opciones')}
-          onLocation={() => console.log('Ubicación')}
-          onUpvote={() => console.log('Upvote')}
-          onComment={() => console.log('Comentar')}
-          onShare={() => console.log('Compartir')}
-        />
-
-        <ReportCard
-          title="Semáforo apagado"
-          author="María"
-          timeAgo="5h"
-          image={{ uri: 'https://picsum.photos/seed/semaforo/800/500' }}
-          upvotes={91}
-          onFollow={() => {}}
-          onMore={() => {}}
-          onLocation={() => {}}
-          onUpvote={() => {}}
-          onComment={() => {}}
-          onShare={() => {}}
-          aspectRatio={4 / 3}
-        />
-      </ScrollView>
-
-      {/* ===== Drawer / Canvas ===== */}
-      {open && (
-        <>
-          {/* Backdrop */}
-          <TouchableWithoutFeedback onPress={closeMenu}>
-            <Animated.View
-              pointerEvents={open ? 'auto' : 'none'}
-              style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                backgroundColor: '#000',
-                opacity: backdropOpacity,
-              }}
-            />
-          </TouchableWithoutFeedback>
-
-          {/* Panel */}
-          <Animated.View
-            style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: 0,
-              width: DRAWER_W,
-              backgroundColor: MENU_BG,
-              paddingTop: insets.top + 12,
-              paddingHorizontal: 16,
-              transform: [{ translateX: drawerX }],
-              borderRightWidth: 1,
-              borderRightColor: '#1f2937', // separador sutil
-            }}
-          >
-            {/* Encabezado del panel */}
-            <View style={{ marginBottom: 16 }}>
-              <Text style={{ color: ACCENT, fontSize: 20, fontWeight: '700' }}>Menú</Text>
-            </View>
-
-            {/* Ítems del menú (ejemplos de navegación) */}
-            <TouchableOpacity
-              onPress={() => {
-                closeMenu();
-                router.replace('/(tabs)/home');
-              }}
-              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10 }}
-              activeOpacity={0.7}
-            >
-              <Home size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 16 }}>Inicio</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                closeMenu();
-                router.push('/(map)/index');
-              }}
-              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10 }}
-              activeOpacity={0.7}
-            >
-              <Map size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 16 }}>Mapa</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                closeMenu();
-                router.push('/settings/index');
-              }}
-              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 10 }}
-              activeOpacity={0.7}
-            >
-              <Settings size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 16 }}>Ajustes</Text>
-            </TouchableOpacity>
-
-            {/* Separador */}
-            <View style={{ height: 1, backgroundColor: '#1f2937', marginVertical: 12 }} />
-
-            {/* Cerrar sesión */}
-            <TouchableOpacity
-              onPress={handleLogout}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingVertical: 12,
-                gap: 10,
-              }}
-              activeOpacity={0.7}
-            >
-              <LogOut size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 16 }}>Cerrar sesión</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </>
-      )}
-    </SafeAreaView>
-  );
+  // Renderizar el componente correcto según el rol
+  switch (userRole) {
+    case 1: // Administrador
+      return <AdminHomeScreen />;
+    case 2: // Municipal
+      return <AuthorityHomeScreen />;
+    case 3: // Usuario normal
+      return <ClientHomeScreen />;
+    default:
+      // Rol no válido - mostrar loading mientras se redirige
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#090A0D' }}>
+          <ActivityIndicator size="large" color="#537CF2" />
+          <Text style={{ color: '#fff', marginTop: 16 }}>Redirigiendo...</Text>
+        </View>
+      );
+  }
 }
