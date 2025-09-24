@@ -15,6 +15,7 @@ import {
 } from '../types';
 import PinDetailsModal from '../components/PinDetailsModal';
 import MapFilters from '../components/MapFilters';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Datos de ejemplo - en producción vendrían de una API
 const SAMPLE_ANNOTATIONS: AnnotationData[] = [
@@ -214,56 +215,58 @@ export default function MapScreen() {
     };
 
     return (
-        <View className="flex-1">
-            <View className="h-full w-full">
-                <MapView
-                    ref={mapRef}
-                    style={{ flex: 1 }}
-                    compassEnabled={true}
-                    mapStyle={MAP_CONFIG.STYLE_URL}
-                    onRegionDidChange={onRegionDidChange}>
-                    {/* Solo mostrar Camera cuando sea necesario actualizar */}
-                    {shouldUpdateCamera && (
-                        <Camera
-                            centerCoordinate={[location.longitud, location.latitud]}
-                            zoomLevel={12} // Zoom inicial en 10
-                            animationDuration={1000}
-                        />
-                    )}
-                    <UserLocation />
-                    {renderAnnotations()}
-                </MapView>
+        <SafeAreaView className="flex-1">
+            <View className="flex-1">
+                <View className="h-full w-full">
+                    <MapView
+                        ref={mapRef}
+                        style={{ flex: 1 }}
+                        compassEnabled={true}
+                        mapStyle={MAP_CONFIG.STYLE_URL}
+                        onRegionDidChange={onRegionDidChange}>
+                        {/* Solo mostrar Camera cuando sea necesario actualizar */}
+                        {shouldUpdateCamera && (
+                            <Camera
+                                centerCoordinate={[location.longitud, location.latitud]}
+                                zoomLevel={12} // Zoom inicial en 10
+                                animationDuration={1000}
+                            />
+                        )}
+                        <UserLocation />
+                        {renderAnnotations()}
+                    </MapView>
+                </View>
+
+                {/* Filtros */}
+                <MapFilters
+                    filterState={filterState}
+                    onFilterChange={setFilterState}
+                    isVisible={filtersVisible}
+                    onToggleVisibility={() => setFiltersVisible(!filtersVisible)}
+                    currentZoom={currentZoomLevel}
+                />
+
+                {/* Botones de acción */}
+                <View className="absolute bottom-0 right-0 flex-col items-center gap-3 px-4 py-7">
+                    <Pressable
+                        className="aspect-square flex-1 rounded-full bg-primary p-2"
+                        onPress={centerOnUserLocation}>
+                        <MaterialCommunityIcons name="crosshairs-gps" size={40} color="#FFFFFF" />
+                    </Pressable>
+                    <Pressable
+                        onPress={() => router.push('/(tabs)/(map)/create_report')}
+                        className="rounded-full bg-primary p-4">
+                        <MaterialCommunityIcons name="plus" size={40} color="#FFFFFF" />
+                    </Pressable>
+                </View>
+
+                <PinDetailsModal
+                    cargando={cargando}
+                    pinDetails={pinDetails}
+                    visible={modalVisible}
+                    onClose={closeModal}
+                />
             </View>
-
-            {/* Filtros */}
-            <MapFilters
-                filterState={filterState}
-                onFilterChange={setFilterState}
-                isVisible={filtersVisible}
-                onToggleVisibility={() => setFiltersVisible(!filtersVisible)}
-                currentZoom={currentZoomLevel}
-            />
-
-            {/* Botones de acción */}
-            <View className="absolute bottom-0 right-0 flex-col items-center gap-3 px-4 py-7">
-                <Pressable
-                    className="aspect-square flex-1 rounded-full bg-primary p-2"
-                    onPress={centerOnUserLocation}>
-                    <MaterialCommunityIcons name="crosshairs-gps" size={40} color="#FFFFFF" />
-                </Pressable>
-                <Pressable
-                    onPress={() => router.push('/(tabs)/(map)/create_report')}
-                    className="rounded-full bg-primary p-4">
-                    <MaterialCommunityIcons name="plus" size={40} color="#FFFFFF" />
-                </Pressable>
-            </View>
-
-            <PinDetailsModal
-                cargando={cargando}
-                pinDetails={pinDetails}
-                visible={modalVisible}
-                onClose={closeModal}
-            />
-        </View>
+        </SafeAreaView>
     );
 }
