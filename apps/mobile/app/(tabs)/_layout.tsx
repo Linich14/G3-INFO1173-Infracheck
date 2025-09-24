@@ -126,6 +126,12 @@ export default function Layout() {
                     href: null, // Oculta de la barra de navegación
                 }}
             />
+            <Tabs.Screen
+                name="proyect"
+                options={{
+                    href: null, // Oculta de la barra de navegación
+                }}
+            />
         </Tabs>
     );
 }

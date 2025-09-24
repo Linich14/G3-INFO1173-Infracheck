@@ -1,10 +1,15 @@
 import React from "react";
+import { router} from "expo-router";
 import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BarChart3, FileText, AlertTriangle, FolderOpen, Plus } from "lucide-react-native";
 
 export default function AuthContent() {
   const insets = useSafeAreaInsets();
+
+  const goproyect = () => {
+        router.replace('/proyect');
+    };
 
   return (
     <ScrollView
@@ -90,7 +95,7 @@ export default function AuthContent() {
           </TouchableOpacity>
           
           <TouchableOpacity 
-            onPress={() => console.log('Lista reportes')}
+            onPress={goproyect}
             className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
             style={{ width: '47%', height: 120 }}
           >
