@@ -2,6 +2,7 @@ import React from "react";
 import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Database, Activity, Users2, BarChart3, Settings } from "lucide-react-native";
+import { router } from "expo-router";
 
 export default function AdminContent() {
   const insets = useSafeAreaInsets();
@@ -74,7 +75,7 @@ export default function AdminContent() {
         
         <View className="flex-row flex-wrap gap-3 justify-center">
           <TouchableOpacity 
-            onPress={() => console.log('Gestionar usuarios')}
+            onPress={() => router.push('/users')}
             className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
             style={{ width: '47%', height: 120 }}
           >
