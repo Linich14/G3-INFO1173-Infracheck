@@ -14,7 +14,6 @@ interface Report {
   fechaCreacion: Date;
 }
 
-type FilterType = 'todos' | 'fecha' | 'votos';
 type SortOrder = 'recientes' | 'antiguos' | 'masVotados' | 'menosVotados';
 
 interface ReportsViewProps {
@@ -113,7 +112,6 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
   // Estados para búsqueda, filtros y paginación
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [filterType, setFilterType] = useState<FilterType>('todos');
   const [sortOrder, setSortOrder] = useState<SortOrder>('recientes');
 
   // Configuración de paginación
@@ -339,7 +337,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
         </View>
         {searchQuery.length > 0 && (
           <Text className="mt-2 text-xs text-blue-400">
-            Buscando: "{searchQuery}" - {filteredAndSortedReports.length} resultado
+            Buscando: &quot;{searchQuery}&quot; - {filteredAndSortedReports.length} resultado
             {filteredAndSortedReports.length !== 1 ? 's' : ''}
           </Text>
         )}
