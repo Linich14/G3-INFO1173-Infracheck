@@ -2,8 +2,12 @@ from django.db import models
 from .rol_usuario import RolUsuario
 import random
 
+def generate_user_id():
+    """Genera un ID único para el usuario"""
+    return random.randint(100000, 999999)
+
 class Usuario(models.Model):
-    usua_id = models.IntegerField(primary_key=True, default=lambda: random.randint(100000, 999999))
+    usua_id = models.IntegerField(primary_key=True, default=generate_user_id)
     usua_rut = models.CharField(max_length=12, unique=True)
     usua_nombre = models.CharField(max_length=50, blank=True, null=True)
     usua_apellido = models.CharField(max_length=50, blank=True, null=True)
