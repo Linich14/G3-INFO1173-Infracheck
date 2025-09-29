@@ -78,7 +78,7 @@ export default function HomeScreen() {
   // Animaciones Drawer
   const drawerX = useRef(new Animated.Value(-Dimensions.get("window").width * 0.75)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const DRAWER_W = Math.min(320, Dimensions.get("window").width * 0.75);
+  const DRAWER_W = Math.min(280, Dimensions.get("window").width * 0.65);
 
   const openMenu = () => {
     setOpen(true);
