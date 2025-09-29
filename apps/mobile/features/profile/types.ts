@@ -46,9 +46,10 @@ export interface ContactFieldProps {
   icon: React.ReactNode;
   value: string;
   className?: string;
-  showEditIcon?: boolean;
 }
 
 export interface UserInfoProps {
   user: User;
+  isEditModalVisible?: boolean;
+  setIsEditModalVisible?: (visible: boolean) => void;
 }

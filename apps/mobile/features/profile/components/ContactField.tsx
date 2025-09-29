@@ -1,29 +1,37 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Edit3 } from 'lucide-react-native';
 import { ContactFieldProps } from '../types';
 
 export const ContactField: React.FC<ContactFieldProps> = ({ 
   icon, 
   value, 
-  className = "",
-  showEditIcon = false 
+  className = ""
 }) => {
   return (
-    <View className={`flex-row w-full bg-[#1D212D] rounded-xl shadow-sm ${className}`}>
-      <View className="justify-center items-center w-[65px] aspect-[1.3]">
+    <View style={{
+      flexDirection: 'row',
+      width: '100%',
+      backgroundColor: '#1D212D',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: 'rgba(83, 124, 242, 0.1)',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      alignItems: 'center'
+    }} className={className}>
+      <View style={{
+        marginRight: 12
+      }}>
         {icon}
       </View>
-      <View className="flex-1 justify-center py-4 pr-4">
-        <Text className="text-white text-xl font-bold">
-          {value}
-        </Text>
-      </View>
-      {showEditIcon && (
-        <View className="justify-center items-center pr-4">
-          <Edit3 size={20} color="#537CF2" />
-        </View>
-      )}
+      <Text style={{
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '500',
+        flex: 1
+      }}>
+        {value}
+      </Text>
     </View>
   );
 };

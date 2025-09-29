@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Animated, Image } from "react-native";
+import { View, Text, TouchableOpacity, Animated, Image, ActivityIndicator } from "react-native";
 import { Home, Map, Settings, LogOut, ChevronRight } from "lucide-react-native";
 import { router } from "expo-router";
+import { useUser } from "~/features/profile/hooks/useUser";
 
 const MENU_BG = "#0f172a";
 const ACCENT = "#537CF2";
@@ -15,6 +16,20 @@ interface AuthDrawerMenuProps {
 }
 
 export default function AuthDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onLogout }: AuthDrawerMenuProps) {
+  const { user, loading } = useUser();
+
+  // Función helper para obtener las iniciales
+  const getInitials = (fullName: string | null | undefined, nickname?: string) => {
+    if (!fullName || fullName === 'null' || fullName.trim() === '') {
+      return nickname ? nickname.charAt(0).toUpperCase() : 'A';
+    }
+    const names = fullName.split(' ').filter(name => name.trim() !== '');
+    if (names.length >= 2) {
+      return (names[0].charAt(0) + names[1].charAt(0)).toUpperCase();
+    }
+    return names.length > 0 ? names[0].charAt(0).toUpperCase() : 'A';
+  };
+
   return (
     <Animated.View
       style={{
@@ -60,75 +75,110 @@ export default function AuthDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onL
           <ChevronRight size={16} color="#94a3b8" />
         </View>
         
-        <Image 
-          source={{ uri: 'https://ui-avatars.com/api/?name=Maria+Gonzalez&background=0ea5e9&color=fff&size=60' }}
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: 30,
-            marginBottom: 8,
-            borderWidth: 2,
-            borderColor: ACCENT
-          }}
-        />
-        <Text style={{ 
-          color: '#fff', 
-          fontSize: 16, 
-          fontWeight: '600',
-          marginBottom: 4 
-        }}>
-          María González
-        </Text>
-        <Text style={{ 
-          color: '#94a3b8', 
-          fontSize: 14,
-          marginBottom: 4
-        }}>
-          maria.autoridad@example.com
-        </Text>
-        <Text style={{ 
-          color: '#94a3b8', 
-          fontSize: 12,
-          fontStyle: 'italic'
-        }}>
-          Toca para ver perfil
-        </Text>
+        {loading ? (
+          <ActivityIndicator size="small" color={ACCENT} style={{ marginBottom: 8 }} />
+        ) : (
+          <>
+            {user?.avatar ? (
+              <Image 
+                source={{ uri: user.avatar }}
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  marginBottom: 8,
+                  borderWidth: 2,
+                  borderColor: ACCENT
+                }}
+              />
+            ) : (
+              <View style={{
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: ACCENT,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 8,
+                borderWidth: 2,
+                borderColor: ACCENT
+              }}>
+                <Text style={{
+                  color: '#fff',
+                  fontSize: 24,
+                  fontWeight: 'bold'
+                }}>
+                  {user ? getInitials(user.full_name, user.usua_nickname) : 'A'}
+                </Text>
+              </View>
+            )}
+            
+            <Text style={{ 
+              color: '#fff', 
+              fontSize: 16, 
+              fontWeight: '600',
+              marginBottom: 4 
+            }}>
+              {user?.full_name && user.full_name !== 'null' 
+                ? user.full_name 
+                : user ? `${user.usua_nombre || ''} ${user.usua_apellido || ''}`.trim() || `@${user.usua_nickname}` : 'Autoridad'
+              }
+            </Text>
+            
+            <Text style={{ 
+              color: '#94a3b8', 
+              fontSize: 14,
+              marginBottom: 4
+            }}>
+              {user?.usua_email || 'Email no disponible'}
+            </Text>
+            
+            <Text style={{ 
+              color: '#94a3b8', 
+              fontSize: 12,
+              fontStyle: 'italic'
+            }}>
+              Toca para ver perfil
+            </Text>
+          </>
+        )}
       </TouchableOpacity>
 
-      <View style={styles.separator} />
+      <View style={{ height: 1, backgroundColor: "#1f2937", marginVertical: 12 }} />
 
-      <TouchableOpacity onPress={() => { onClose(); router.replace("/(tabs)/home"); }} style={styles.item}>
+      <TouchableOpacity 
+        onPress={() => { onClose(); router.replace("/(tabs)/home"); }} 
+        style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 10 }}
+      >
         <Home size={20} color="#fff" />
-        <Text style={styles.text}>Inicio</Text>
+        <Text style={{ color: "#fff", fontSize: 16 }}>Inicio</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => { onClose(); router.push("/(tabs)/(map)"); }} style={styles.item}>
+      <TouchableOpacity 
+        onPress={() => { onClose(); router.push("/(tabs)/(map)"); }} 
+        style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 10 }}
+      >
         <Map size={20} color="#fff" />
-        <Text style={styles.text}>Mapa</Text>
+        <Text style={{ color: "#fff", fontSize: 16 }}>Mapa</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => { onClose(); router.push("/(tabs)/settings"); }} style={styles.item}>
+      <TouchableOpacity 
+        onPress={() => { onClose(); router.push("/(tabs)/settings"); }} 
+        style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 10 }}
+      >
         <Settings size={20} color="#fff" />
-        <Text style={styles.text}>Ajustes</Text>
+        <Text style={{ color: "#fff", fontSize: 16 }}>Ajustes</Text>
       </TouchableOpacity>
 
-      <View style={styles.separator} />
+      <View style={{ height: 1, backgroundColor: "#1f2937", marginVertical: 12 }} />
 
-      <TouchableOpacity onPress={onLogout} style={styles.item}>
+      <TouchableOpacity 
+        onPress={onLogout} 
+        style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 10 }}
+      >
         <LogOut size={20} color="#fff" />
-        <Text style={styles.text}>Cerrar sesión</Text>
+        <Text style={{ color: "#fff", fontSize: 16 }}>Cerrar sesión</Text>
       </TouchableOpacity>
     </Animated.View>
   );
 }
-
-const styles = {
-  item: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    paddingVertical: 12,
-    gap: 10,
-  },
-  text: { color: "#fff", fontSize: 16 },
-  separator: { height: 1, backgroundColor: "#1f2937", marginVertical: 12 },
-};
