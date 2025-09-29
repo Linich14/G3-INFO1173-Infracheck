@@ -73,27 +73,12 @@ export const updateUserProfile = async (updateData: UserUpdateData): Promise<Use
 
 /**
  * Función helper para convertir UserProfileResponse a User
- * Mapea la respuesta de la API y maneja valores null/undefined
+ * Mapea directamente la respuesta de la API sin campos adicionales
  */
 export const mapProfileResponseToUser = (profileData: UserProfileResponse): User => {
-  // Crear full_name si no viene de la API o si es null
-  let fullName = profileData.full_name;
-  if (!fullName || fullName === 'null' || fullName.trim() === '') {
-    const firstName = profileData.usua_nombre && profileData.usua_nombre !== 'null' ? profileData.usua_nombre : '';
-    const lastName = profileData.usua_apellido && profileData.usua_apellido !== 'null' ? profileData.usua_apellido : '';
-    fullName = `${firstName} ${lastName}`.trim() || profileData.usua_nickname || 'Usuario';
-  }
-
   return {
     ...profileData,
-    // Asegurar que full_name nunca sea null
-    full_name: fullName,
-    // Limpiar otros campos que podrían ser null
-    usua_nombre: profileData.usua_nombre && profileData.usua_nombre !== 'null' ? profileData.usua_nombre : '',
-    usua_apellido: profileData.usua_apellido && profileData.usua_apellido !== 'null' ? profileData.usua_apellido : '',
-    usua_email: profileData.usua_email || '',
-    usua_nickname: profileData.usua_nickname || `user_${profileData.usua_id}`,
-    // Campo opcional para futuro
-    avatar: undefined,
+    // Solo agregar campos opcionales que no vienen de la API
+    avatar: undefined, // Campo opcional para futuro
   };
 };

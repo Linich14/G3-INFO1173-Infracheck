@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ArrowLeft, Edit3 } from 'lucide-react-native';
+import { ArrowLeft, Settings } from 'lucide-react-native';
 import { UserInfo } from '~/features/profile/components/UserInfo';
 import { useUser } from '~/features/profile/hooks/useUser';
 
 function ProfileScreen() {
   const { user, loading, error, refreshUser } = useUser();
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   if (loading) {
     return (
@@ -64,23 +63,19 @@ function ProfileScreen() {
         <Text className="text-[#537CF2] font-bold text-2xl">Perfil de usuario</Text>
         
         <TouchableOpacity
-          onPress={() => setIsEditModalVisible(true)}
+          onPress={() => console.log('Configuración')}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
-          accessibilityLabel="Editar perfil"
+          accessibilityLabel="Configuración"
           activeOpacity={0.6}
         >
-          <Edit3 size={26} color="white" />
+          <Settings size={26} color="white" />
         </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* User Information */}
-        <UserInfo 
-          user={user}
-          isEditModalVisible={isEditModalVisible}
-          setIsEditModalVisible={setIsEditModalVisible}
-        />
+        <UserInfo user={user} />
       </ScrollView>
     </SafeAreaView>
   );
