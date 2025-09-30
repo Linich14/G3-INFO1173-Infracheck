@@ -15,6 +15,8 @@ export interface ReportCardProps {
     onShare?: () => void;
     followLabel?: string; // ej: "Seguir"
     aspectRatio?: number; // ej: 16/9 (default)
+    isFollowed?: boolean; // para cambiar el color del botón seguir
+    isUpvoted?: boolean; // para cambiar el color del botón upvote
 }
 
 export interface Post {

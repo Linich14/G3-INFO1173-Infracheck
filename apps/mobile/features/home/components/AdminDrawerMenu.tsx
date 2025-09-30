@@ -61,7 +61,7 @@ export default function AdminDrawerMenu({ drawerX, DRAWER_W, insets, onClose, on
         </View>
         
         <Image 
-          source={{ uri: 'https://ui-avatars.com/api/?name=Carlos+Admin&background=0ea5e9&color=fff&size=60' }}
+          source={{ uri: 'https://ui-avatars.com/api/?name=Admin+User&background=537CF2&color=fff&size=60' }}
           style={{
             width: 60,
             height: 60,
@@ -77,14 +77,14 @@ export default function AdminDrawerMenu({ drawerX, DRAWER_W, insets, onClose, on
           fontWeight: '600',
           marginBottom: 4 
         }}>
-          Carlos Admin
+          Admin Usuario
         </Text>
         <Text style={{ 
           color: '#94a3b8', 
           fontSize: 14,
           marginBottom: 4
         }}>
-          carlos.admin@example.com
+          admin@infracheck.com
         </Text>
         <Text style={{ 
           color: '#94a3b8', 

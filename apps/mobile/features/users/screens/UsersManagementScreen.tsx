@@ -6,6 +6,7 @@ import UsersSearchBar from '../components/UsersSearchBar';
 import UsersList from '../components/UsersList';
 import DeleteUserModal from '../components/DeleteUserModal';
 import UsersFloatingButton from '../components/UsersFloatingButton';
+import AddUserModal from '../components/AddUserModal';
 
 interface User {
   id: number;
@@ -20,6 +21,7 @@ export default function UsersManagementScreen() {
   const insets = useSafeAreaInsets();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
 
   // Datos de ejemplo
   const users: User[] = [
@@ -67,7 +69,11 @@ export default function UsersManagementScreen() {
   };
 
   const handleAddUser = () => {
-    console.log('Agregar nuevo usuario');
+    setShowAddUserModal(true);
+  };
+
+  const handleSubmitNewUser = (userData: any) => {
+    console.log('Nuevo usuario creado:', userData);
   };
 
   return (
@@ -87,6 +93,12 @@ export default function UsersManagementScreen() {
         user={userToDelete}
         onClose={handleCloseModal}
         onConfirm={handleConfirmDelete}
+      />
+
+      <AddUserModal
+        visible={showAddUserModal}
+        onClose={() => setShowAddUserModal(false)}
+        onSubmit={handleSubmitNewUser}
       />
     </View>
   );

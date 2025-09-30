@@ -115,34 +115,45 @@ const FormReport = ({
                             style={{ color: '#FFFFFF', backgroundColor: 'transparent' }}
                             itemStyle={{ color: '#FFFFFF', fontSize: 18 }}
                             selectedValue={formData.tipoDenuncia}
-                            onValueChange={(value) => onUpdateField('tipoDenuncia', value)}>
-                            <Picker.Item label="Selecciona una categoría" value="" />
-                            <Picker.Item label="Vialidad y veredas" value="vialidad_veredas" />
-                            <Picker.Item label="Alumbrado público" value="alumbrado_publico" />
-                            <Picker.Item label="Drenaje y aguas lluvias" value="drenaje_aguas" />
-                            <Picker.Item label="Áreas verdes y arbolado" value="areas_verdes" />
+                            onValueChange={(value) => onUpdateField('tipoDenuncia', value)}
+                            dropdownIconColor="#FFFFFF">
+                            <Picker.Item label="Selecciona una categoría" value="" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                            <Picker.Item label="Vialidad y veredas" value="vialidad_veredas" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                            <Picker.Item label="Alumbrado público" value="alumbrado_publico" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                            <Picker.Item label="Drenaje y aguas lluvias" value="drenaje_aguas" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                            <Picker.Item label="Áreas verdes y arbolado" value="areas_verdes" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
                             <Picker.Item
                                 label="Mobiliario urbano y plazas"
                                 value="mobiliario_urbano"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
                             />
-                            <Picker.Item label="Señalización y demarcación" value="senalizacion" />
-                            <Picker.Item label="Ciclovías y movilidad activa" value="ciclovias" />
+                            <Picker.Item label="Señalización y demarcación" value="senalizacion" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                            <Picker.Item label="Ciclovías y movilidad activa" value="ciclovias" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
                             <Picker.Item
                                 label="Paraderos y equipamiento de transporte"
                                 value="paraderos_transporte"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
                                 label="Infraestructura municipal (edificios y recintos)"
                                 value="infraestructura_municipal"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
                                 label="Limpieza y recuperación de espacio público"
                                 value="limpieza_espacio_publico"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
                             />
-                            <Picker.Item label="Accesibilidad" value="accesibilidad" />
+                            <Picker.Item label="Accesibilidad" value="accesibilidad" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
                             <Picker.Item
                                 label="Riesgos y emergencias"
                                 value="riesgos_emergencias"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
                             />
                         </Picker>
                     </View>
@@ -192,11 +203,12 @@ const FormReport = ({
                         style={{ color: '#FFFFFF', backgroundColor: 'transparent' }}
                         itemStyle={{ color: '#FFFFFF', fontSize: 18 }}
                         selectedValue={formData.nivelUrgencia}
-                        onValueChange={(value) => onUpdateField('nivelUrgencia', value)}>
-                        <Picker.Item label="Selecciona una gravedad" value="" />
-                        <Picker.Item label="Bajo" value="bajo" />
-                        <Picker.Item label="Grave" value="grave" />
-                        <Picker.Item label="Alto" value="alto" />
+                        onValueChange={(value) => onUpdateField('nivelUrgencia', value)}
+                        dropdownIconColor="#FFFFFF">
+                        <Picker.Item label="Selecciona una gravedad" value="" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                        <Picker.Item label="Bajo" value="bajo" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                        <Picker.Item label="Grave" value="grave" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                        <Picker.Item label="Alto" value="alto" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
                     </Picker>
                 </View>
                 {errors.nivelUrgencia && (
