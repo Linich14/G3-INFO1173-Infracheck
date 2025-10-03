@@ -117,19 +117,54 @@ const FormReport = ({
                             selectedValue={formData.tipoDenuncia}
                             onValueChange={(value) => onUpdateField('tipoDenuncia', value)}
                             dropdownIconColor="#FFFFFF">
-                            <Picker.Item label="Selecciona una categoría" value="" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
-                            <Picker.Item label="Vialidad y veredas" value="vialidad_veredas" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
-                            <Picker.Item label="Alumbrado público" value="alumbrado_publico" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
-                            <Picker.Item label="Drenaje y aguas lluvias" value="drenaje_aguas" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
-                            <Picker.Item label="Áreas verdes y arbolado" value="areas_verdes" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                            <Picker.Item
+                                label="Selecciona una categoría"
+                                value=""
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
+                            />
+                            <Picker.Item
+                                label="Vialidad y veredas"
+                                value="vialidad_veredas"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
+                            />
+                            <Picker.Item
+                                label="Alumbrado público"
+                                value="alumbrado_publico"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
+                            />
+                            <Picker.Item
+                                label="Drenaje y aguas lluvias"
+                                value="drenaje_aguas"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
+                            />
+                            <Picker.Item
+                                label="Áreas verdes y arbolado"
+                                value="areas_verdes"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
+                            />
                             <Picker.Item
                                 label="Mobiliario urbano y plazas"
                                 value="mobiliario_urbano"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
-                            <Picker.Item label="Señalización y demarcación" value="senalizacion" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
-                            <Picker.Item label="Ciclovías y movilidad activa" value="ciclovias" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                            <Picker.Item
+                                label="Señalización y demarcación"
+                                value="senalizacion"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
+                            />
+                            <Picker.Item
+                                label="Ciclovías y movilidad activa"
+                                value="ciclovias"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
+                            />
                             <Picker.Item
                                 label="Paraderos y equipamiento de transporte"
                                 value="paraderos_transporte"
@@ -148,7 +183,12 @@ const FormReport = ({
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
-                            <Picker.Item label="Accesibilidad" value="accesibilidad" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                            <Picker.Item
+                                label="Accesibilidad"
+                                value="accesibilidad"
+                                color="#FFFFFF"
+                                style={{ backgroundColor: '#13161E' }}
+                            />
                             <Picker.Item
                                 label="Riesgos y emergencias"
                                 value="riesgos_emergencias"
@@ -178,6 +218,33 @@ const FormReport = ({
 
             <View className={style.container + 'mt-4'}>
                 <Text className="text-xl text-white">Ubicación</Text>
+                <View
+                    className={`overflow-hidden rounded-lg bg-secondary  ${errors.nivelUrgencia ? 'border border-red-500' : ''}`}>
+                    <Picker
+                        style={{ color: '#FFFFFF', backgroundColor: 'transparent' }}
+                        itemStyle={{ color: '#FFFFFF', fontSize: 18 }}
+                        selectedValue={formData.nivelUrgencia}
+                        onValueChange={(value) => onUpdateField('nivelUrgencia', value)}
+                        dropdownIconColor="#FFFFFF">
+                        <Picker.Item
+                            label="Seleccione Ciudad"
+                            value=""
+                            color="#FFFFFF"
+                            enabled={false}
+                            style={{ backgroundColor: '#13161E' }}
+                        />
+                        <Picker.Item
+                            label="Temuco"
+                            value="1"
+                            color="#FFFFFF"
+                            style={{ backgroundColor: '#13161E' }}
+                        />
+                    </Picker>
+                    {errors.idCiudad && (
+                        <Text className="mt-1 text-sm text-red-500">{errors.idCiudad}</Text>
+                    )}
+                </View>
+
                 <Pressable
                     onPress={() => onSetShowMapModal(true)}
                     className={`group w-full items-center justify-center rounded-lg p-3 active:bg-slate-500 ${
@@ -198,17 +265,37 @@ const FormReport = ({
             <View className={style.container + 'mb-4 mt-4'}>
                 <Text className="text-xl text-white">Nivel de Urgencia</Text>
                 <View
-                    className={`h-56 overflow-hidden rounded-lg bg-secondary py-2 ${errors.nivelUrgencia ? 'border border-red-500' : ''}`}>
+                    className={`overflow-hidden rounded-lg bg-secondary  ${errors.nivelUrgencia ? 'border border-red-500' : ''}`}>
                     <Picker
                         style={{ color: '#FFFFFF', backgroundColor: 'transparent' }}
                         itemStyle={{ color: '#FFFFFF', fontSize: 18 }}
                         selectedValue={formData.nivelUrgencia}
                         onValueChange={(value) => onUpdateField('nivelUrgencia', value)}
                         dropdownIconColor="#FFFFFF">
-                        <Picker.Item label="Selecciona una gravedad" value="" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
-                        <Picker.Item label="Bajo" value="bajo" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
-                        <Picker.Item label="Grave" value="grave" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
-                        <Picker.Item label="Alto" value="alto" color="#FFFFFF" style={{ backgroundColor: '#13161E' }} />
+                        <Picker.Item
+                            label="Selecciona una gravedad"
+                            value=""
+                            color="#FFFFFF"
+                            style={{ backgroundColor: '#13161E' }}
+                        />
+                        <Picker.Item
+                            label="Bajo"
+                            value="bajo"
+                            color="#FFFFFF"
+                            style={{ backgroundColor: '#13161E' }}
+                        />
+                        <Picker.Item
+                            label="Grave"
+                            value="grave"
+                            color="#FFFFFF"
+                            style={{ backgroundColor: '#13161E' }}
+                        />
+                        <Picker.Item
+                            label="Alto"
+                            value="alto"
+                            color="#FFFFFF"
+                            style={{ backgroundColor: '#13161E' }}
+                        />
                     </Picker>
                 </View>
                 {errors.nivelUrgencia && (

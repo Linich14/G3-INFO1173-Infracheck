@@ -10,6 +10,7 @@ const initialFormData: ReportFormData = {
     tipoDenuncia: '',
     ubicacion: { latitud: 0, longitud: 0, direccion: '' },
     nivelUrgencia: '',
+    idCiudad: '',
     imagenes: [],
     video: null,
 };
@@ -79,6 +80,10 @@ export const useReportForm = () => {
 
         if (!formData.nivelUrgencia) {
             newErrors.nivelUrgencia = 'Selecciona el nivel de urgencia';
+        }
+
+        if (!formData.idCiudad) {
+            newErrors.idCiudad = 'Selecciona una ciudad';
         }
 
         if (formData.ubicacion.latitud === 0) {
@@ -154,6 +159,7 @@ export const useReportForm = () => {
             console.log('- Descripción:', formData.descripcion);
             console.log('- Tipo Denuncia:', formData.tipoDenuncia);
             console.log('- Nivel Urgencia:', formData.nivelUrgencia);
+            console.log('- Ciudad ID:', formData.idCiudad);
             console.log('- Ubicación:', formData.ubicacion);
             console.log('- Imágenes seleccionadas:', selectedImages.length);
             console.log('- Video seleccionado:', selectedVideo ? 'Sí' : 'No');

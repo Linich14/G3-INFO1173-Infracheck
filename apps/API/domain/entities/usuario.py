@@ -7,7 +7,7 @@ def generate_user_id():
     return random.randint(100000, 999999)
 
 class Usuario(models.Model):
-    usua_id = models.IntegerField(primary_key=True, default=generate_user_id)
+    usua_id = models.AutoField(primary_key=True, unique=True, editable=False, default=generate_user_id)
     usua_rut = models.CharField(max_length=12, unique=True)
     usua_nombre = models.CharField(max_length=50, blank=True, null=True)
     usua_apellido = models.CharField(max_length=50, blank=True, null=True)
@@ -55,3 +55,11 @@ class Usuario(models.Model):
             self.usua_actualizado = None
             
         super().save(*args, **kwargs)
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
