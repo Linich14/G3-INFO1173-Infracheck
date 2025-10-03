@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import WelcomeScreen from '../features/auth/screens/WelcomeScreen';
+import WelcomeScreen from '~/features/auth/screens/WelcomeScreen';
 
 export default function Index() {
   const [mounted, setMounted] = useState(false);

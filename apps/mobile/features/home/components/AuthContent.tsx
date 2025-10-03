@@ -8,7 +8,7 @@ export default function AuthContent() {
   const insets = useSafeAreaInsets();
 
   const goproyect = () => {
-        router.replace('/proyect');
+        router.push('/proyect');
     };
 
   return (

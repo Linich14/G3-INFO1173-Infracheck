@@ -127,7 +127,19 @@ export default function Layout() {
                 }}
             />
             <Tabs.Screen
-                name="proyect"
+                name="proyect/index"
+                options={{
+                    href: null, // Oculta de la barra de navegación
+                }}
+            />
+            <Tabs.Screen
+                name="analytics/index"
+                options={{
+                    href: null, // Oculta de la barra de navegación
+                }}
+            />
+            <Tabs.Screen
+                name="profile/index"
                 options={{
                     href: null, // Oculta de la barra de navegación
                 }}
