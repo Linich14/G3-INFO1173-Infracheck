@@ -1,43 +1,36 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import EmailInput from '../components/EmailInput';
-import RutInput from '../components/RutInput';
+import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator, ScrollView, TextInput } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { requestPasswordReset } from '../services/authService';
-import { isValidIdentifier } from '~/utils/validation';
+import { verifyResetCode } from '../services/authService';
 
-const RecoverPasswordScreen: React.FC = () => {
+const VerifyResetCodeScreen: React.FC = () => {
   const router = useRouter();
-  const [rut, setRut] = useState('');
-  const [email, setEmail] = useState('');
-  const [method, setMethod] = useState<'rut' | 'email'>('rut');
+  const { identifier } = useLocalSearchParams<{ identifier: string }>();
+  
+  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Handler para solicitar recuperación de contraseña
-  const handlePasswordReset = async () => {
-    const identifier = method === 'rut' ? rut : email;
-    
-    // Validar que el campo no esté vacío
-    if (!identifier.trim()) {
-      setFeedbackMessage('Por favor, completa el campo requerido.');
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
-      return;
+  // Función para ocultar parcialmente el identifier
+  const maskIdentifier = (id: string) => {
+    if (!id) return '';
+    if (id.includes('@')) {
+      const [local, domain] = id.split('@');
+      return `${local.slice(0, 2)}***@${domain}`;
+    } else {
+      return `${id.slice(0, 5)}***${id.slice(-2)}`;
     }
+  };
 
-    // Validar formato del identifier
-    const validation = isValidIdentifier(identifier);
-    if (!validation.isValid) {
-      setFeedbackMessage(
-        method === 'rut' 
-          ? 'Por favor, ingresa un RUT válido (ej: 12.345.678-9)'
-          : 'Por favor, ingresa un email válido'
-      );
+  // Handler para verificar el código
+  const handleVerifyCode = async () => {
+    // Validar que el código tenga exactamente 6 dígitos
+    if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+      setFeedbackMessage('Ingresa un código de 6 dígitos válido');
       setIsSuccess(false);
       setFeedbackModalVisible(true);
       return;
@@ -48,21 +41,21 @@ const RecoverPasswordScreen: React.FC = () => {
     setFeedbackModalVisible(true);
     
     try {
-      const result = await requestPasswordReset({ identifier });
+      const result = await verifyResetCode({ identifier: identifier!, code });
       
       setLoading(false);
       setIsSuccess(result.success);
       setFeedbackMessage(result.message);
       
-      if (result.success) {
+      if (result.success && result.reset_token) {
         // Esperar un momento antes de navegar
         setTimeout(() => {
           setFeedbackModalVisible(false);
-          // Navegar a la pantalla de verificación de código
-          console.log('Navegando a verificación de código con identifier:', identifier);
+          // Navegar a la pantalla de reset de contraseña
+          console.log('Navegando a reset password con token:', result.reset_token);
           router.push({
-            pathname: '/(auth)/verify-reset-code',
-            params: { identifier }
+            pathname: '/(auth)/reset-password',
+            params: { reset_token: result.reset_token }
           });
         }, 2000);
       }
@@ -73,6 +66,13 @@ const RecoverPasswordScreen: React.FC = () => {
     }
   };
 
+  // Handler para el input del código
+  const handleCodeChange = (text: string) => {
+    // Solo permitir números y máximo 6 caracteres
+    const numericText = text.replace(/[^0-9]/g, '').slice(0, 6);
+    setCode(numericText);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-[#0f172a]">
       {/* Header decorativo */}
@@ -80,26 +80,28 @@ const RecoverPasswordScreen: React.FC = () => {
         <View className='flex-row justify-between'>
           <View className="top-5 left-10 w-32 h-32 bg-white rounded-full justify-center" />
           <View className='justify-center items-end mr-4'>
-            <Text className=" text-white text-2xl font-bold">Recuperar Contraseña</Text>
+            <Text className="text-white text-2xl font-bold">Verificar Código</Text>
           </View>
         </View>
       </View>
+
       {/* Vector separador */}
       <View>
         <Image
           source={require('@assets/Vectores/Vector 7.png')}
-          className="-left-10 "
+          className="-left-10"
           resizeMode="cover"
           style={{ width: "120%", height: 120 }}
         />
         <Image
           source={require('@assets/Vectores/Vector 6.png')}
-          className="absolute mt-8 -left-10 "
+          className="absolute mt-8 -left-10"
           resizeMode="cover"
           style={{ width: "120%", height: 120 }}
         />
       </View>
-      {/* Formulario de recuperación */}
+
+      {/* Formulario de verificación */}
       <ScrollView 
         className='-my-10 pt-16 flex-1 bg-[#14161E]' 
         keyboardShouldPersistTaps="handled" 
@@ -110,7 +112,7 @@ const RecoverPasswordScreen: React.FC = () => {
           {/* Botón atrás y título en la misma fila */}
           <View className="flex-row items-center justify-between mb-8">
             <TouchableOpacity
-              onPress={() => router.replace('/(auth)/sign-in')}
+              onPress={() => router.replace('/(auth)/recover-password')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               accessibilityRole="button"
               accessibilityLabel="Volver"
@@ -120,58 +122,79 @@ const RecoverPasswordScreen: React.FC = () => {
               <ArrowLeft size={28} color="#fff" />
             </TouchableOpacity>
             
-            <Text className="text-white text-2xl font-bold text-center flex-1 mx-4">¿Olvidaste tu{'\n'}contraseña?</Text>
+            <Text className="text-white text-2xl font-bold text-center flex-1 mx-4">
+              Ingresa el{'\n'}código
+            </Text>
             
             {/* Espacio vacío para balancear el layout */}
             <View className="w-16" />
           </View>
 
-          {/* Selector y campo centrados */}
-          <View className="w-full items-center space-y-6">
-            <Text className="text-white text-lg text-center py-2">Selecciona cómo buscar tu cuenta</Text>
-            
-            <View className="flex-row gap-4 mb-6">
-              <TouchableOpacity
-                onPress={() => setMethod('rut')}
-                className={`flex-row items-center px-6 py-3 rounded-xl ${method === 'rut' ? 'bg-[#537CF2]' : 'bg-gray-700'}`}
-                activeOpacity={0.8}
-              >
-                <View className={`w-5 h-5 mr-3 rounded-full border-2 ${method === 'rut' ? 'bg-white border-blue-600' : 'border-gray-400'}`} />
-                <Text className="text-white text-base font-medium">RUT</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                onPress={() => setMethod('email')}
-                className={`flex-row items-center px-6 py-3 rounded-xl ${method === 'email' ? 'bg-[#537CF2]' : 'bg-gray-700'}`}
-                activeOpacity={0.8}
-              >
-                <View className={`w-5 h-5 mr-3 rounded-full border-2 ${method === 'email' ? 'bg-white border-blue-600' : 'border-gray-400'}`} />
-                <Text className="text-white text-base font-medium">Email</Text>
-              </TouchableOpacity>
-            </View>
-
-            {method === 'rut' ? (
-              <View className="w-full max-w-xs">
-                <Text className="text-white text-xl font-bold mb-3">RUT</Text>
-                <RutInput value={rut} onChangeText={setRut} keyboardType="numeric" />
-              </View>
-            ) : (
-              <View className="w-full max-w-xs">
-                <Text className="text-white text-xl font-bold mb-3">Correo Electrónico</Text>
-                <EmailInput value={email} onChangeText={setEmail} placeholder="usuarioinfracheck@correo.cl" />
-              </View>
-            )}
+          {/* Información del destino */}
+          <View className="w-full items-center mb-8">
+            <Text className="text-white text-lg text-center mb-2">
+              Código enviado a:
+            </Text>
+            <Text className="text-[#537CF2] text-base text-center font-mono">
+              {maskIdentifier(identifier || '')}
+            </Text>
           </View>
 
-          {/* Botón centrado */}
-          <View className='items-center mt-8'>
+          {/* Input del código */}
+          <View className="w-full items-center mb-8">
+            <View className="bg-[#1f2937] rounded-xl p-4 w-full max-w-xs">
+              <TextInput
+                value={code}
+                onChangeText={handleCodeChange}
+                placeholder="000000"
+                placeholderTextColor="#666"
+                keyboardType="numeric"
+                maxLength={6}
+                autoFocus={true}
+                style={{
+                  fontSize: 28,
+                  fontFamily: 'monospace',
+                  textAlign: 'center',
+                  letterSpacing: 8,
+                  color: 'white',
+                  paddingVertical: 12,
+                }}
+              />
+            </View>
+            <Text className="text-gray-400 text-sm text-center mt-2">
+              Ingresa los 6 dígitos del código
+            </Text>
+          </View>
+
+          {/* Botón de verificación */}
+          <View className='items-center mt-4'>
             <TouchableOpacity
               className="bg-[#537CF2] items-center justify-center w-64 py-4 rounded-[32px] shadow active:opacity-80"
-              onPress={handlePasswordReset}
-              disabled={loading}
+              onPress={handleVerifyCode}
+              disabled={loading || code.length !== 6}
+              style={{ 
+                opacity: (loading || code.length !== 6) ? 0.6 : 1 
+              }}
             >
               <Text className="text-white text-lg font-bold">
-                {loading ? 'Enviando...' : 'Recuperar'}
+                {loading ? 'Verificando...' : 'Verificar Código'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Enlace para reenviar código */}
+          <View className='items-center mt-6'>
+            <Text className="text-gray-400 text-sm text-center mb-2">
+              ¿No recibiste el código?
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                // TODO: Implementar reenvío del código
+                console.log('Reenviar código para:', identifier);
+              }}
+            >
+              <Text className="text-[#537CF2] text-sm font-semibold">
+                Enviar nuevamente
               </Text>
             </TouchableOpacity>
           </View>
@@ -190,8 +213,12 @@ const RecoverPasswordScreen: React.FC = () => {
             {loading ? (
               <>
                 <ActivityIndicator size="large" color="#537CF2" style={{ marginBottom: 16 }} />
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>Enviando código...</Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>Por favor espera mientras procesamos tu solicitud</Text>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
+                  Verificando código...
+                </Text>
+                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>
+                  Por favor espera mientras validamos tu código
+                </Text>
               </>
             ) : (
               <>
@@ -209,7 +236,7 @@ const RecoverPasswordScreen: React.FC = () => {
                   </Text>
                 </View>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  {isSuccess ? '¡Código enviado!' : 'Error'}
+                  {isSuccess ? '¡Código verificado!' : 'Error'}
                 </Text>
                 <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 }}>
                   {feedbackMessage}
@@ -219,7 +246,7 @@ const RecoverPasswordScreen: React.FC = () => {
                     onPress={() => setFeedbackModalVisible(false)}
                     style={{ backgroundColor: '#537CF2', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
                   >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Entendido</Text>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Reintentar</Text>
                   </TouchableOpacity>
                 )}
               </>
@@ -231,6 +258,4 @@ const RecoverPasswordScreen: React.FC = () => {
   );
 };
 
-
-
-export default RecoverPasswordScreen;
+export default VerifyResetCodeScreen;

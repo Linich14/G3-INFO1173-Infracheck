@@ -28,6 +28,37 @@ export interface AuthResponse {
   user?: User;
 }
 
+export interface PasswordResetRequest {
+  identifier: string; // RUT o email
+}
+
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface VerifyResetCodeRequest {
+  identifier: string;
+  code: string;
+}
+
+export interface VerifyResetCodeResponse {
+  success: boolean;
+  message: string;
+  reset_token?: string;
+}
+
+export interface ResetPasswordRequest {
+  reset_token: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 // Guardar token y fecha de expiración en almacenamiento local
 export const saveToken = async (token: string, expiresAt: string): Promise<void> => {
   try {
@@ -272,4 +303,130 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
   }
 
   return response;
+};
+
+// ========== FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA ==========
+
+// Solicitar reset de contraseña
+export const requestPasswordReset = async (data: PasswordResetRequest): Promise<PasswordResetResponse> => {
+  try {
+    console.log('Requesting password reset for:', data.identifier);
+    
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/request-password-reset/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    
+    console.log('Password reset request response:', result);
+
+    if (response.ok) {
+      return {
+        success: result.success || true,
+        message: result.message || 'Código enviado exitosamente',
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || result.error || 'Error al enviar el código',
+      };
+    }
+  } catch (error: any) {
+    console.error('Password reset request error:', error);
+    return {
+      success: false,
+      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+    };
+  }
+};
+
+// Verificar código de reset
+export const verifyResetCode = async (data: VerifyResetCodeRequest): Promise<VerifyResetCodeResponse> => {
+  try {
+    console.log('Verifying reset code for:', data.identifier);
+    
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/verify-reset-code/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    
+    console.log('Verify reset code response:', result);
+
+    if (response.ok && result.success) {
+      return {
+        success: true,
+        message: result.message || 'Código verificado exitosamente',
+        reset_token: result.reset_token,
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || result.error || 'Código inválido o expirado',
+      };
+    }
+  } catch (error: any) {
+    console.error('Verify reset code error:', error);
+    return {
+      success: false,
+      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+    };
+  }
+};
+
+// Resetear contraseña
+export const resetPassword = async (data: ResetPasswordRequest): Promise<ResetPasswordResponse> => {
+  try {
+    console.log('Resetting password with token and confirm_password');
+    console.log('Reset password data:', { ...data, new_password: '[HIDDEN]', confirm_password: '[HIDDEN]' });
+    
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/reset-password/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    
+    console.log('Reset password response:', result);
+
+    if (response.ok && result.success) {
+      return {
+        success: true,
+        message: result.message || 'Contraseña actualizada exitosamente',
+      };
+    } else {
+      // Manejar errores específicos del backend
+      let errorMessage = 'Error al actualizar la contraseña';
+      
+      if (result.errors && Array.isArray(result.errors)) {
+        errorMessage = result.errors.join(', ');
+      } else if (result.message) {
+        errorMessage = result.message;
+      } else if (result.error) {
+        errorMessage = result.error;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    }
+  } catch (error: any) {
+    console.error('Reset password error:', error);
+    return {
+      success: false,
+      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+    };
+  }
 };
