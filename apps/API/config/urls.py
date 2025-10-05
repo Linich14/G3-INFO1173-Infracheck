@@ -10,7 +10,7 @@ from interfaces.api.v1.reset_password import reset_password_view
 from interfaces.api.v1.profile import profile_view
 from interfaces.api.v1.delete_account import delete_account
 from django.urls import include
-from interfaces.api.v1.admin_users import admin_list_users, admin_update_user_status
+from interfaces.api.v1.admin_users import admin_list_users, admin_update_user_status, admin_search_users
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/', include('reports.urls')), 
 
     # Rutas para admin users
-    path('api/v1/admin/users/', admin_list_users, name='admin-list-users'),
-    re_path(r'^api/v1/admin/users/(?P<user_id>\d+)/$', admin_update_user_status, name='admin-update-user-status'),
+    path('api/users/', admin_list_users, name='admin-list-users'),
+    path('api/users/search/', admin_search_users, name='admin-search-users'),
+    re_path(r'^api/users/(?P<user_id>\d+)/status/$', admin_update_user_status, name='admin-update-user-status'),
 ]

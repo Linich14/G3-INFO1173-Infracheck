@@ -1,22 +1,35 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
-import { Edit, Trash2, UserCheck, UserX } from 'lucide-react-native';
+import { Edit, UserCheck, UserX } from 'lucide-react-native';
+import { User } from '../services/usersService';
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-  joinDate: string;
-}
+// Helper para convertir rol numérico a texto
+const getRoleName = (rous_id: number): string => {
+  switch (rous_id) {
+    case 1: return 'Usuario';
+    case 2: return 'Administrador';
+    case 3: return 'Municipal';
+    default: return 'Desconocido';
+  }
+};
+
+// Helper para convertir estado numérico a texto
+const getStatusName = (usua_estado: number): string => {
+  return usua_estado === 1 ? 'Habilitado' : 'Deshabilitado';
+};
+
+// Helper para formatear fecha
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-CL');
+};
 
 interface UserCardProps {
   user: User;
-  onDelete: (user: User) => void;
+  onToggleStatus: (user: User) => void;
 }
 
-export default function UserCard({ user, onDelete }: UserCardProps) {
+export default function UserCard({ user, onToggleStatus }: UserCardProps) {
   return (
     <View
       className='bg-tertiary'
@@ -39,41 +52,49 @@ export default function UserCard({ user, onDelete }: UserCardProps) {
 
         {/* Información del usuario */}
         <View style={{ flex: 1 }}>
-          <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 4 }}>
-            {user.name}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>
+              {user.usua_nickname}
+            </Text>
+            <Text style={{ color: '#64748b', fontSize: 12 }}>
+              (ID: {user.usua_id})
+            </Text>
+          </View>
+          <Text style={{ color: '#94a3b8', fontSize: 14, marginBottom: 4 }}>
+            {user.usua_email}
           </Text>
-          <Text style={{ color: '#94a3b8', fontSize: 14, marginBottom: 8 }}>
-            {user.email}
+          <Text style={{ color: '#94a3b8', fontSize: 12, marginBottom: 8 }}>
+            RUT: {user.usua_rut}
           </Text>
           
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
             <View style={{
-              backgroundColor: user.role === 'Administrador' ? '#f59e0b' : 
-                             user.role === 'Autoridad' ? '#dc2626' : 
+              backgroundColor: user.rous_id === 2 ? '#f59e0b' : 
+                             user.rous_id === 3 ? '#dc2626' : 
                              '#537CF2',
               paddingHorizontal: 8,
               paddingVertical: 4,
               borderRadius: 6
             }}>
               <Text style={{ color: 'white', fontSize: 12, fontWeight: '500' }}>
-                {user.role}
+                {getRoleName(user.rous_id)}
               </Text>
             </View>
             
             <View style={{
-              backgroundColor: user.status === 'Activo' ? '#10b981' : '#ef4444',
+              backgroundColor: user.usua_estado === 1 ? '#10b981' : '#ef4444',
               paddingHorizontal: 8,
               paddingVertical: 4,
               borderRadius: 6
             }}>
               <Text style={{ color: 'white', fontSize: 12, fontWeight: '500' }}>
-                {user.status}
+                {getStatusName(user.usua_estado)}
               </Text>
             </View>
           </View>
           
           <Text style={{ color: '#64748b', fontSize: 12 }}>
-            Registro: {user.joinDate}
+            Registro: {formatDate(user.usua_creado)}
           </Text>
         </View>
 
@@ -87,39 +108,32 @@ export default function UserCard({ user, onDelete }: UserCardProps) {
               alignItems: 'center',
               justifyContent: 'center'
             }}
-            onPress={() => console.log('Editar usuario', user.id)}
+            onPress={() => console.log('Editar usuario', user.usua_nickname, 'ID:', user.usua_id)}
           >
             <Edit size={16} color="#94a3b8" />
           </TouchableOpacity>
           
           <TouchableOpacity
             style={{
-              backgroundColor: user.status === 'Activo' ? '#ef4444' : '#10b981',
-              padding: 8,
+              backgroundColor: user.usua_estado === 1 ? '#ef4444' : '#10b981',
+              padding: 12,
               borderRadius: 8,
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              minWidth: 80
             }}
-            onPress={() => console.log('Toggle status', user.id)}
+            onPress={() => onToggleStatus(user)}
           >
-            {user.status === 'Activo' ? (
-              <UserX size={16} color="white" />
-            ) : (
-              <UserCheck size={16} color="white" />
-            )}
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#dc2626',
-              padding: 8,
-              borderRadius: 8,
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            onPress={() => onDelete(user)}
-          >
-            <Trash2 size={16} color="white" />
+            <View style={{ alignItems: 'center', gap: 4 }}>
+              {user.usua_estado === 1 ? (
+                <UserX size={16} color="white" />
+              ) : (
+                <UserCheck size={16} color="white" />
+              )}
+              <Text style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
+                {user.usua_estado === 1 ? 'Deshabilitar' : 'Habilitar'}
+              </Text>
+            </View>
           </TouchableOpacity>
         </View>
       </View>

@@ -6,16 +6,14 @@ class AdminUserSerializer(serializers.ModelSerializer):
     Serializer para usuarios en panel admin.
     Incluye campos básicos y estado, excluye contraseña.
     """
-    rous_nombre = serializers.CharField(source='rous_id.rous_nombre', read_only=True)
 
     class Meta:
         model = Usuario
         fields = [
-            'usua_id', 'usua_rut', 'usua_nombre', 'usua_apellido',
-            'usua_nickname', 'usua_email', 'usua_creado', 'usua_actualizado',
-            'usua_telefono', 'usua_estado', 'rous_nombre'
+            'usua_id', 'usua_rut', 'usua_nickname', 'usua_email',
+            'usua_telefono', 'rous_id', 'usua_estado', 'usua_creado'
         ]
-        read_only_fields = ['usua_id', 'usua_creado', 'usua_actualizado']
+        read_only_fields = ['usua_id', 'usua_creado']
 
 class AdminUserUpdateSerializer(serializers.Serializer):
     """

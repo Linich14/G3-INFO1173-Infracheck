@@ -281,6 +281,15 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
 
   headers['Authorization'] = `Bearer ${token}`;
 
+  // 🔍 DEBUG: Log detallado del token y headers
+  console.log('🔑 authenticatedFetch DEBUG:');
+  console.log('  - URL:', url);
+  console.log('  - Method:', options.method || 'GET');
+  console.log('  - Token presente:', !!token);
+  console.log('  - Token length:', token?.length || 0);
+  console.log('  - Token preview:', token ? token.substring(0, 50) + '...' : 'N/A');
+  console.log('  - Authorization header:', headers['Authorization'] ? 'Bearer [SET]' : 'NOT SET');
+
   const response = await fetch(url, {
     ...options,
     headers,
@@ -293,15 +302,8 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
     throw new Error('Session expired. Please log in again.');
   }
 
-  // Si hay otros errores relacionados con autenticación (403 Forbidden)
-  if (response.status === 403) {
-    const result = await response.json().catch(() => ({}));
-    if (result.message?.includes('expired') || result.message?.includes('invalid')) {
-      await removeToken();
-      throw new Error('Session expired. Please log in again.');
-    }
-  }
-
+  // No procesar respuestas 403 aquí para evitar "Already read"
+  // Dejamos que el código llamador maneje los errores específicos
   return response;
 };
 
