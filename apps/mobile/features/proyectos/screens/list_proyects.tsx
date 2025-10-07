@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, FlatList, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ProjectDetails from './project_details';
-import CreateProject from './create_project';
+import { router } from 'expo-router';
 
 interface ProjectItem {
   id: number;
@@ -111,10 +110,6 @@ const dataProyectos: ProjectItem[] = [
 ];
 
 export default function App() {
-  const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
-  const [showDetails, setShowDetails] = useState<boolean>(false);
-  const [showCreateProject, setShowCreateProject] = useState<boolean>(false);
-
   // Estados para filtros y ordenamiento
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [filterType, setFilterType] = useState<FilterType>('todos');
@@ -185,28 +180,15 @@ export default function App() {
   // Cálculo de páginas totales
   const totalPages = Math.ceil(filteredAndSortedProjects.length / ITEMS_PER_PAGE);
 
+  /**
+   * Navega a la pantalla de detalles del proyecto usando router
+   * @param project - El proyecto seleccionado
+   */
   const handleProjectSelect = (project: ProjectItem) => {
-    setSelectedProject(project);
-    setShowDetails(true);
-  };
-
-  const handleBackToList = () => {
-    setShowDetails(false);
-    setSelectedProject(null);
-  };
-
-  const handleShowCreateProject = () => {
-    setShowCreateProject(true);
-  };
-
-  const handleBackFromCreateProject = () => {
-    setShowCreateProject(false);
-  };
-
-  const handleProjectCreated = (newProject: any) => {
-    // Aquí podrías agregar el nuevo proyecto a la lista
-    console.log('Nuevo proyecto creado:', newProject);
-    setShowCreateProject(false);
+    router.push({
+      pathname: '/(tabs)/proyect/[id]',
+      params: { id: project.id.toString() }
+    });
   };
 
   // Funciones de filtrado
@@ -283,7 +265,7 @@ export default function App() {
     <View className="mt-3 flex-row items-center justify-between px-2">
       <TouchableOpacity
         className={`flex-row items-center rounded-lg px-3 py-2 ${
-          currentPage === 1 ? 'bg-neutral-700' : 'bg-blue-600'
+          currentPage === 1 ? 'bg-[#1D212D]' : 'bg-[#537CF2]'
         }`}
         onPress={onPrevious}
         disabled={currentPage === 1}>
@@ -301,7 +283,7 @@ export default function App() {
 
       <TouchableOpacity
         className={`flex-row items-center rounded-lg px-3 py-2 ${
-          currentPage === totalPages ? 'bg-neutral-700' : 'bg-blue-600'
+          currentPage === totalPages ? 'bg-[#1D212D]' : 'bg-[#537CF2]'
         }`}
         onPress={onNext}
         disabled={currentPage === totalPages}>
@@ -321,7 +303,7 @@ export default function App() {
   // Renderizado de elemento de proyecto con información completa
   const renderProjectItem = ({ item }: { item: ProjectItem }) => (
     <TouchableOpacity
-      className="mb-3 rounded-lg bg-neutral-800 p-4"
+      className="mb-3 rounded-lg bg-[#1D212D] p-4"
       onPress={() => handleProjectSelect(item)}>
       <View className="flex-row items-start justify-between">
         <View className="flex-1">
@@ -371,45 +353,30 @@ export default function App() {
     onPress: () => void;
   }) => (
     <TouchableOpacity
-      className={`mr-2 rounded-lg px-3 py-2 ${isActive ? 'bg-blue-600' : 'bg-neutral-700'}`}
+      className={`mr-2 rounded-lg px-3 py-2 ${isActive ? 'bg-[#537CF2]' : 'bg-[#1D212D]'}`}
       onPress={onPress}>
       <Text className={`text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>{title}</Text>
     </TouchableOpacity>
   );
-
-  if (showCreateProject) {
-    return (
-      <CreateProject onBack={handleBackFromCreateProject} onProjectCreated={handleProjectCreated} />
-    );
-  }
-
-  if (showDetails && selectedProject) {
-    return <ProjectDetails project={selectedProject} onBack={handleBackToList} />;
-  }
 
   return (
     <View className="flex-1 bg-black px-4 pt-10">
       {/* Header */}
       <View className="mb-4 flex-row items-center justify-between">
         <View className="flex-row items-center">
-          <TouchableOpacity className="rounded-xl bg-blue-500 p-2">
+          <TouchableOpacity 
+            className="rounded-xl bg-[#537CF2] p-2"
+            onPress={() => router.push('/(tabs)/home')}
+          >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="ml-4 text-xl font-bold text-white">Proyectos</Text>
         </View>
-
-        <View className="flex-row gap-2">
-          <TouchableOpacity
-            className="rounded-xl bg-green-600 p-2"
-            onPress={handleShowCreateProject}>
-            <Ionicons name="add" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
       </View>
 
       {/* Barra de Búsqueda */}
-      <View className="mb-4 rounded-xl bg-neutral-900 p-4">
-        <View className="flex-row items-center rounded-lg bg-neutral-800 px-3 py-2">
+      <View className="mb-4 rounded-xl bg-[#13161E] p-4">
+        <View className="flex-row items-center rounded-lg bg-[#1D212D] px-3 py-2">
           <Ionicons name="search" size={20} color="gray" />
           <TextInput
             className="ml-3 flex-1 text-white"
@@ -435,7 +402,7 @@ export default function App() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Controles de Filtro y Ordenamiento */}
-        <View className="mb-4 rounded-xl bg-neutral-900 p-4">
+        <View className="mb-4 rounded-xl bg-[#13161E] p-4">
           {/* Filtros principales */}
           <View className="mb-3">
             <Text className="mb-2 text-sm font-bold text-blue-400">Filtrar por:</Text>
@@ -457,7 +424,7 @@ export default function App() {
               />
               {hasActiveFilters() && (
                 <TouchableOpacity
-                  className="mr-2 rounded-lg bg-red-600 px-3 py-2"
+                  className="mr-2 rounded-lg bg-[#537CF2] px-3 py-2"
                   onPress={clearFilters}>
                   <Text className="text-sm text-white">Limpiar Todo</Text>
                 </TouchableOpacity>
@@ -527,7 +494,7 @@ export default function App() {
         </View>
 
         {/* Lista de Proyectos */}
-        <View className="rounded-xl bg-neutral-900 p-4">
+        <View className="rounded-xl bg-[#13161E] p-4">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-lg font-bold text-blue-400">
               {searchQuery.length > 0

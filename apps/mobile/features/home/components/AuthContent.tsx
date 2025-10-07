@@ -7,10 +7,6 @@ import { BarChart3, FileText, AlertTriangle, FolderOpen, Plus } from "lucide-rea
 export default function AuthContent() {
   const insets = useSafeAreaInsets();
 
-  const goproyect = () => {
-        router.push('/proyect');
-    };
-
   return (
     <ScrollView
       className="px-4 mt-4"
@@ -77,7 +73,7 @@ export default function AuthContent() {
         
         <View className="flex-row flex-wrap gap-3 justify-center">
           <TouchableOpacity 
-            onPress={() => console.log('Lista proyectos')}
+            onPress={() => router.push('/(tabs)/proyect')}
             className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
             style={{ width: '47%', height: 120 }}
           >
@@ -86,7 +82,7 @@ export default function AuthContent() {
           </TouchableOpacity>
           
           <TouchableOpacity 
-            onPress={() => console.log('Crear proyecto')}
+            onPress={() => router.push('/(tabs)/proyect/create')}
             className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
             style={{ width: '47%', height: 120 }}
           >
@@ -95,7 +91,7 @@ export default function AuthContent() {
           </TouchableOpacity>
           
           <TouchableOpacity 
-            onPress={goproyect}
+            onPress={() => router.push('/(tabs)/proyect/reports')}
             className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
             style={{ width: '47%', height: 120 }}
           >
@@ -104,7 +100,7 @@ export default function AuthContent() {
           </TouchableOpacity>
           
           <TouchableOpacity 
-            onPress={() => console.log('Ver estadísticas')}
+            onPress={() => router.push('/(tabs)/proyect/statistics')}
             className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
             style={{ width: '47%', height: 120 }}
           >

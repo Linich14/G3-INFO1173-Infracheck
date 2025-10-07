@@ -127,9 +127,9 @@ export default function Layout() {
                 }}
             />
             <Tabs.Screen
-                name="proyect/index"
+                name="proyect"
                 options={{
-                    href: null, // Oculta de la barra de navegación
+                    href: null, // Grupo de proyectos oculto de la barra
                 }}
             />
             <Tabs.Screen
