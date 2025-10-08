@@ -27,6 +27,7 @@ class TokenAuthenticationMiddleware(MiddlewareMixin):
             '/api/v1/register/',
             '/api/v1/login/',
             '/api/v1/verify-token/',
+            '/api/v1/request-password-reset/',
             '/admin/',
         ]
         
