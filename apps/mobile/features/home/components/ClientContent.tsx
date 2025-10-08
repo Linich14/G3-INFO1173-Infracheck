@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { ScrollView, RefreshControl, View, Text, TouchableOpacity, Modal, Share, Alert } from "react-native";
 import { ReportCard } from "~/features/posts";
-import { CommentsModal, Comment, Report } from "~/features/comments";
+import { CommentsModal, Report } from "~/features/comments";
 import { SearchModal } from "~/features/search";
-import { X, MapPin, Check } from "lucide-react-native";
+import { X, MapPin } from "lucide-react-native";
+import CategoryFilter from "./CategoryFilter";
 
 interface ClientContentProps {
   reports: Report[];
@@ -18,6 +19,8 @@ interface ClientContentProps {
   searchModalVisible: boolean;
   onCloseSearchModal: () => void;
   onSelectReport: (report: Report) => void;
+  selectedCategoria: string | null;
+  onCategoriaChange: (categoria: string | null) => void;
 }
 
 export default function ClientContent({
@@ -33,6 +36,8 @@ export default function ClientContent({
   searchModalVisible,
   onCloseSearchModal,
   onSelectReport,
+  selectedCategoria,
+  onCategoriaChange,
 }: ClientContentProps) {
   // Estados para manejar las interacciones
   const [upvotedReports, setUpvotedReports] = useState<Set<string>>(new Set());
@@ -121,6 +126,12 @@ export default function ClientContent({
 
   return (
     <>
+      {/* Filtro de categorías */}
+      <CategoryFilter 
+        selectedCategoria={selectedCategoria}
+        onCategoriaChange={onCategoriaChange}
+      />
+
       <ScrollView
         className="mt-4 px-4"
         contentContainerStyle={{ gap: 16, paddingBottom: insets.bottom + 12 }}

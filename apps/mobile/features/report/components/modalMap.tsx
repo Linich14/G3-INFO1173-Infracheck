@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { MapView, Camera, UserLocation, PointAnnotation } from '@maplibre/maplibre-react-native';
 import { MAP_CONFIG } from '~/constants/config';
 import { useUserLocation } from '~/utils/userLocation';
+import { GPSPermissionModal } from '~/components/GPSPermissionModal';
 
 interface Location {
     latitude: number;
@@ -25,7 +26,7 @@ const ModalMap = ({
     initialLocation,
     title = 'Seleccionar Ubicación',
 }: ModalMapProps) => {
-    const { location, errorMsg } = useUserLocation();
+    const { location, errorMsg, showPermissionModal, handleAcceptPermission, handleCancelPermission } = useUserLocation();
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(
         initialLocation || null
     );
@@ -184,6 +185,13 @@ const ModalMap = ({
                     </View>
                 </View>
             </View>
+
+            {/* Modal de permisos GPS */}
+            <GPSPermissionModal
+                visible={showPermissionModal}
+                onAccept={handleAcceptPermission}
+                onCancel={handleCancelPermission}
+            />
         </Modal>
     );
 };

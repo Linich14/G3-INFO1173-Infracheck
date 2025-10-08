@@ -26,8 +26,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
     onShare,
     followLabel = 'Seguir',
     aspectRatio = 16 / 9,
-    isFollowed = false,
-    isUpvoted = false,
 }) => {
     const router = useRouter();
     const hasImage = !!image;
@@ -55,9 +53,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
                 <View className="flex-shrink-0">
                     <TouchableOpacity
-                        className={`rounded-[32px] border border-white px-4 py-1 shadow active:opacity-80 ${
-                            isFollowed ? 'bg-green-600' : 'bg-[#537CF2]'
-                        }`}
+                        className="rounded-[32px] border border-white bg-[#537CF2] px-4 py-1 shadow active:opacity-80"
                         onPress={onFollow}>
                         <Text className="text-center text-lg font-medium text-white">
                             {followLabel}
@@ -111,9 +107,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 <View className="flex-row items-center justify-between p-4">
                     <View className="flex-row">
                         <TouchableOpacity
-                            className={`mr-4 flex-row items-center gap-2 rounded-[32px] border border-white px-4 py-2 shadow active:opacity-90 ${
-                                isUpvoted ? 'bg-green-600' : 'bg-[#537CF2]'
-                            }`}
+                            className="mr-4 flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 shadow active:opacity-90"
                             onPress={(e) => {
                                 e.stopPropagation();
                                 onUpvote?.();

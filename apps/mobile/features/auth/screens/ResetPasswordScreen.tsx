@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator, ScrollView, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { resetPassword } from '../services/authService';
 import { isValidPassword, getPasswordValidationState } from '~/utils/validation';
@@ -12,6 +12,8 @@ const ResetPasswordScreen: React.FC = () => {
   
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState('');
@@ -155,19 +157,31 @@ const ResetPasswordScreen: React.FC = () => {
             {/* Campo Nueva Contraseña */}
             <View className="space-y-2 w-72">
               <Text className="text-white text-xl font-bold">Nueva Contraseña</Text>
-              <TextInput
-                value={newPassword}
-                onChangeText={(text) => {
-                  setNewPassword(text);
-                  setShowPasswordRequirements(text.length > 0);
-                }}
-                placeholder="*************"
-                placeholderTextColor="#ccc"
-                secureTextEntry
-                className="text-white text-xl border-b border-white pb-2"
-                keyboardType="default"
-                onFocus={() => setShowPasswordRequirements(true)}
-              />
+              <View className="relative">
+                <TextInput
+                  value={newPassword}
+                  onChangeText={(text) => {
+                    setNewPassword(text);
+                    setShowPasswordRequirements(text.length > 0);
+                  }}
+                  placeholder="*************"
+                  placeholderTextColor="#ccc"
+                  secureTextEntry={!showNewPassword}
+                  className="text-white text-xl border-b border-white pb-2 pr-10"
+                  keyboardType="default"
+                  onFocus={() => setShowPasswordRequirements(true)}
+                />
+                <TouchableOpacity 
+                  onPress={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-0 bottom-2"
+                >
+                  {showNewPassword ? (
+                    <EyeOff size={24} color="#fff" />
+                  ) : (
+                    <Eye size={24} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Indicadores de requisitos de contraseña */}
@@ -194,17 +208,29 @@ const ResetPasswordScreen: React.FC = () => {
             {/* Campo Confirmar Contraseña */}
             <View className="space-y-2 w-72 pt-4">
               <Text className="text-white text-xl font-bold">Confirmar Contraseña</Text>
-              <TextInput
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="*************"
-                placeholderTextColor="#ccc"
-                secureTextEntry
-                className="text-white text-xl border-b border-white pb-2"
-                keyboardType="default"
-                returnKeyType="done"
-                onSubmitEditing={handleResetPassword}
-              />
+              <View className="relative">
+                <TextInput
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="*************"
+                  placeholderTextColor="#ccc"
+                  secureTextEntry={!showConfirmPassword}
+                  className="text-white text-xl border-b border-white pb-2 pr-10"
+                  keyboardType="default"
+                  returnKeyType="done"
+                  onSubmitEditing={handleResetPassword}
+                />
+                <TouchableOpacity 
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-0 bottom-2"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={24} color="#fff" />
+                  ) : (
+                    <Eye size={24} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              </View>
               {/* Indicador de coincidencia */}
               {confirmPassword.length > 0 && (
                 <Text className={`text-xs mt-1 ${
