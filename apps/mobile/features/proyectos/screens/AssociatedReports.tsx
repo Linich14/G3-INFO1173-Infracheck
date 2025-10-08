@@ -337,8 +337,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
         </View>
         {searchQuery.length > 0 && (
           <Text className="mt-2 text-xs text-blue-400">
-            Buscando: &quot;{searchQuery}&quot; - {filteredAndSortedReports.length} resultado
-            {filteredAndSortedReports.length !== 1 ? 's' : ''}
+            Buscando: &quot;{searchQuery}&quot; - {filteredAndSortedReports.length} resultado{filteredAndSortedReports.length !== 1 ? 's' : ''}
           </Text>
         )}
       </View>
@@ -405,8 +404,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
               {searchQuery.length > 0 ? 'Resultados de Búsqueda' : 'Reportes Individuales'}
             </Text>
             <Text className="text-sm text-gray-400">
-              {filteredAndSortedReports.length} reporte
-              {filteredAndSortedReports.length !== 1 ? 's' : ''}
+              {filteredAndSortedReports.length} reporte{filteredAndSortedReports.length !== 1 ? 's' : ''}
             </Text>
           </View>
 

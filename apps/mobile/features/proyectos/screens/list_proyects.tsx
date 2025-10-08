@@ -394,8 +394,7 @@ export default function App() {
         </View>
         {searchQuery.length > 0 && (
           <Text className="mt-2 text-xs text-blue-400">
-            Buscando: &quot;{searchQuery}&quot; - {filteredAndSortedProjects.length} resultado
-            {filteredAndSortedProjects.length !== 1 ? 's' : ''}
+            Buscando: &quot;{searchQuery}&quot; - {filteredAndSortedProjects.length} resultado{filteredAndSortedProjects.length !== 1 ? 's' : ''}
           </Text>
         )}
       </View>
@@ -506,8 +505,7 @@ export default function App() {
                     : `Estado: ${filterValue || 'Todos'}`}
             </Text>
             <Text className="text-sm text-gray-400">
-              {filteredAndSortedProjects.length} elemento
-              {filteredAndSortedProjects.length !== 1 ? 's' : ''}
+              {filteredAndSortedProjects.length} elemento{filteredAndSortedProjects.length !== 1 ? 's' : ''}
             </Text>
           </View>
 

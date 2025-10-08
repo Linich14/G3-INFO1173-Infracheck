@@ -149,13 +149,15 @@ export default function ReportsStatistics({ projectName, onBack }: ReportsStatis
                         <View className="flex-row items-start">
                             <Ionicons name="trending-up" size={16} color="#10B981" />
                             <Text className="ml-2 flex-1 text-sm text-gray-300">
-                                El tipo de problema más reportado es "
-                                {
-                                    tipoProblemasData.labels[
+                                <Text>El tipo de problema más reportado es "</Text>
+                                <Text className="font-semibold text-white">
+                                    {tipoProblemasData.labels[
                                         tipoProblemasData.datasets[0].data.indexOf(maxValue)
-                                    ]
-                                }
-                                " con {maxValue} casos
+                                    ]}
+                                </Text>
+                                <Text>" con </Text>
+                                <Text className="font-semibold text-white">{maxValue}</Text>
+                                <Text> casos</Text>
                             </Text>
                         </View>
 

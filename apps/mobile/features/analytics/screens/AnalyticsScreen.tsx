@@ -13,7 +13,7 @@ function AnalyticsScreen() {
       <View className="px-4 pt-3 pb-4">
         <View className="bg-[#14161F] rounded-[10px] p-4 flex-row items-center justify-between">
           <TouchableOpacity 
-            onPress={() => router.back()}
+            onPress={() => router.push('/(tabs)/home')}
             className="w-8 h-8 items-center justify-center"
           >
             <ArrowLeft size={24} color="#537CF2" />
