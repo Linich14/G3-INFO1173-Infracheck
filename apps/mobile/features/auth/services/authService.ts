@@ -266,6 +266,42 @@ export const logout = async (): Promise<void> => {
   }
 };
 
+// Función para refrescar el token
+export const refreshToken = async (): Promise<boolean> => {
+  try {
+    const token = await getToken();
+    if (!token) {
+      return false;
+    }
+
+    console.log('🔄 Intentando refrescar token...');
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/refresh/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    console.log('🔄 Refresh response status:', response.status);
+    if (response.ok) {
+      const result = await response.json();
+      console.log('🔄 Refresh response data:', result);
+      
+      if (result.token && result.expires_at) {
+        await saveToken(result.token, result.expires_at);
+        console.log('✅ Token refrescado exitosamente');
+        return true;
+      }
+    }
+    console.log('❌ Falló el refresh del token');
+    return false;
+  } catch (error) {
+    console.error('❌ Error refrescando token:', error);
+    return false;
+  }
+};
+
 // Función para hacer requests autenticadas
 export const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = await getToken();
@@ -290,16 +326,45 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
   console.log('  - Token preview:', token ? token.substring(0, 50) + '...' : 'N/A');
   console.log('  - Authorization header:', headers['Authorization'] ? 'Bearer [SET]' : 'NOT SET');
 
-  const response = await fetch(url, {
+  let response = await fetch(url, {
     ...options,
     headers,
   });
 
-  // Si el token es inválido, expirado o no autorizado (401 Unauthorized)
+  // Si el token es inválido o expirado (401 Unauthorized), intentar refrescar
   if (response.status === 401) {
-    // Cerrar sesión automáticamente
-    await removeToken();
-    throw new Error('Session expired. Please log in again.');
+    console.log('🔄 Token expired, attempting refresh...');
+    const refreshSuccess = await refreshToken();
+    
+    if (refreshSuccess) {
+      console.log('✅ Token refreshed successfully, retrying request...');
+      // Re-obtener el nuevo token
+      const newToken = await getToken();
+      if (newToken) {
+        headers['Authorization'] = `Bearer ${newToken}`;
+        
+        // Reintentar la petición con el nuevo token
+        response = await fetch(url, {
+          ...options,
+          headers,
+        });
+        
+        // Si aún falla después del refresh, entonces cerrar sesión
+        if (response.status === 401) {
+          console.log('❌ Token still invalid after refresh, logging out...');
+          await removeToken();
+          throw new Error('Session expired. Please log in again.');
+        }
+      } else {
+        console.log('❌ Failed to get new token after refresh, logging out...');
+        await removeToken();
+        throw new Error('Session expired. Please log in again.');
+      }
+    } else {
+      console.log('❌ Token refresh failed, logging out...');
+      await removeToken();
+      throw new Error('Session expired. Please log in again.');
+    }
   }
 
   // No procesar respuestas 403 aquí para evitar "Already read"

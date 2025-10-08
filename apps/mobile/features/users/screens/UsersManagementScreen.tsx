@@ -39,6 +39,7 @@ export default function UsersManagementScreen() {
   const [lastFetchTime, setLastFetchTime] = useState<number | null>(null);
   const [isPollingActive, setIsPollingActive] = useState(true);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false); // Nueva flag para evitar llamadas simultáneas
   
   // Constantes de configuración
   const CACHE_DURATION = 60000; // 1 minuto en milisegundos
@@ -155,6 +156,12 @@ Revisa la consola para detalles completos.
 
   // Función para cargar usuarios con control de cache
   const loadUsersWithCache = async (forceRefresh: boolean = false, source: string = 'manual') => {
+    // Evitar llamadas simultáneas
+    if (isLoadingUsers) {
+      return;
+    }
+    
+    setIsLoadingUsers(true);
     try {
       // Verificar cache solo si no es un refresh forzado
       if (!forceRefresh && isCacheValid() && users.length > 0) {
@@ -197,11 +204,18 @@ Revisa la consola para detalles completos.
       setErrorMessage('Error inesperado al cargar usuarios');
     } finally {
       setLoading(false);
+      setIsLoadingUsers(false);
     }
   };
   
   // Función para cargar usuarios según especificación
   const loadUsers = async () => {
+    // Evitar llamadas simultáneas
+    if (isLoadingUsers) {
+      return;
+    }
+    
+    setIsLoadingUsers(true);
     setLoading(true);
     setErrorMessage(null);
     
@@ -218,6 +232,7 @@ Revisa la consola para detalles completos.
       setErrorMessage('Error inesperado al cargar usuarios');
     } finally {
       setLoading(false);
+      setIsLoadingUsers(false);
     }
   };
 

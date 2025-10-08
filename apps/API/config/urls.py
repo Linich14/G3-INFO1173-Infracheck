@@ -9,6 +9,7 @@ from interfaces.api.v1.verify_reset_code import verify_reset_code_view
 from interfaces.api.v1.reset_password import reset_password_view
 from interfaces.api.v1.profile import profile_view
 from interfaces.api.v1.delete_account import delete_account
+from interfaces.api.v1.refresh import refresh_token_view
 from django.urls import include
 from interfaces.api.v1.admin_users import admin_list_users, admin_update_user_status, admin_search_users
 
@@ -17,6 +18,7 @@ urlpatterns = [
     path('api/v1/register/', RegisterView.as_view(), name='user-register'),
     path('api/v1/login/', login_view, name='user-login'),
     path('api/v1/verify-token/', verify_token_view, name='verify-token'),
+    path('api/v1/refresh/', refresh_token_view, name='refresh-token'),
     path('api/v1/logout/', logout_view, name='user-logout'),
     path('api/v1/request-password-reset/', request_password_reset_view, name='request-password-reset'),
     path('api/v1/verify-reset-code/', verify_reset_code_view, name='verify-reset-code'),

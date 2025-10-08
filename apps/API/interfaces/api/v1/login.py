@@ -52,6 +52,7 @@ def login_view(request):
                 'user_id': usuario.usua_id,
                 'username': usuario.usua_nickname,
                 'rut': usuario.usua_rut,
+                'email': usuario.usua_email,
                 'rous_id': usuario.rous_id.rous_id,
                 'rous_nombre': usuario.rous_id.rous_nombre
             }

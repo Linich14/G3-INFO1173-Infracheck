@@ -7,29 +7,31 @@ import logging
 logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
-def verify_token_view(request):
+def refresh_token_view(request):
     """
-    Endpoint para verificar la validez de un token de sesión.
+    Endpoint para refrescar un token de sesión válido.
     
     Headers:
-        Authorization: Bearer <token>
+        Authorization: Bearer <token_actual>
     
     Body (JSON):
     {
-        "token": "string"  // Token a verificar (opcional si se pasa en headers)
+        "token": "string"  // Token actual a refrescar (opcional si se pasa en headers)
     }
     
     Respuesta exitosa (200):
     {
-        "valid": true,
-        "user_id": integer,
-        "username": "string",
-        "expires_at": "datetime"
+        "token": "string",              // Nuevo token generado
+        "expires_at": "datetime",       // Fecha y hora de expiración del nuevo token
+        "user_id": integer,             // ID del usuario
+        "username": "string",           // Nickname del usuario
+        "email": "string",              // Email del usuario
+        "rous_id": integer,             // ID del rol
+        "rous_nombre": "string"         // Nombre del rol
     }
     
     Respuesta de error (401):
     {
-        "valid": false,
         "errors": ["string"]
     }
     """
@@ -50,7 +52,6 @@ def verify_token_view(request):
         if not token_value:
             return Response(
                 {
-                    'valid': False,
                     'errors': ['Token no proporcionado. Use header Authorization: Bearer <token> o campo token en el body.']
                 }, 
                 status=status.HTTP_401_UNAUTHORIZED
@@ -65,47 +66,52 @@ def verify_token_view(request):
             
             # Verificar si el token sigue siendo válido
             if sesion_token.is_valid():
-                logger.info(f"Token válido verificado para usuario: {sesion_token.usua_id.usua_nickname}")
+                usuario = sesion_token.usua_id
+                
+                # Desactivar el token actual
+                sesion_token.deactivate()
+                
+                # Generar nuevo token
+                nuevo_token = SesionToken.generate_token(usuario, hours=24)
+                
+                logger.info(f"Token refrescado para usuario: {usuario.usua_nickname}")
                 
                 response_data = {
-                    'valid': True,
-                    'user_id': sesion_token.usua_id.usua_id,
-                    'username': sesion_token.usua_id.usua_nickname,
-                    'email': sesion_token.usua_id.usua_email,
-                    'expires_at': sesion_token.token_expira_en.isoformat(),
-                    'rous_id': sesion_token.usua_id.rous_id.rous_id,
-                    'rous_nombre': sesion_token.usua_id.rous_id.rous_nombre
+                    'token': nuevo_token.token_valor,
+                    'expires_at': nuevo_token.token_expira_en.isoformat(),
+                    'user_id': usuario.usua_id,
+                    'username': usuario.usua_nickname,
+                    'email': usuario.usua_email,
+                    'rous_id': usuario.rous_id.rous_id,
+                    'rous_nombre': usuario.rous_id.rous_nombre
                 }
                 
                 return Response(response_data, status=status.HTTP_200_OK)
             else:
                 # Token expirado - eliminarlo
                 sesion_token.delete()
-                logger.warning(f"Token expirado eliminado: {token_value[:10]}...")
+                logger.warning(f"Intento de refresh con token expirado: {token_value[:10]}...")
                 
                 return Response(
                     {
-                        'valid': False,
-                        'errors': ['Token expirado.']
+                        'errors': ['Token expirado. Inicie sesión nuevamente.']
                     }, 
                     status=status.HTTP_401_UNAUTHORIZED
                 )
         
         except SesionToken.DoesNotExist:
-            logger.warning(f"Token inválido intentado: {token_value[:10]}...")
+            logger.warning(f"Token inválido para refresh: {token_value[:10]}...")
             return Response(
                 {
-                    'valid': False,
                     'errors': ['Token inválido o no encontrado.']
                 }, 
                 status=status.HTTP_401_UNAUTHORIZED
             )
     
     except Exception as e:
-        logger.error(f"Error inesperado en verificación de token: {str(e)}")
+        logger.error(f"Error inesperado en refresh de token: {str(e)}")
         return Response(
             {
-                'valid': False,
                 'errors': ['Error interno del servidor. Intente nuevamente.']
             }, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
