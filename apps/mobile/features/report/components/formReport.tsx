@@ -3,6 +3,7 @@ import { Picker } from '@react-native-picker/picker';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import ModalMap from './modalMap';
 import MediaSection from './mediaSelected';
+import { SelectorNivelUrgencia } from './SelectorNivelUrgencia';
 import { ReportFormData, ReportFormErrors } from '../types';
 
 interface Location {
@@ -263,44 +264,11 @@ const FormReport = ({
             </View>
 
             <View className={style.container + 'mb-4 mt-4'}>
-                <Text className="text-xl text-white">Nivel de Urgencia</Text>
-                <View
-                    className={`overflow-hidden rounded-lg bg-secondary  ${errors.nivelUrgencia ? 'border border-red-500' : ''}`}>
-                    <Picker
-                        style={{ color: '#FFFFFF', backgroundColor: 'transparent' }}
-                        itemStyle={{ color: '#FFFFFF', fontSize: 18 }}
-                        selectedValue={formData.nivelUrgencia}
-                        onValueChange={(value) => onUpdateField('nivelUrgencia', value)}
-                        dropdownIconColor="#FFFFFF">
-                        <Picker.Item
-                            label="Selecciona una gravedad"
-                            value=""
-                            color="#FFFFFF"
-                            style={{ backgroundColor: '#13161E' }}
-                        />
-                        <Picker.Item
-                            label="Bajo"
-                            value="bajo"
-                            color="#FFFFFF"
-                            style={{ backgroundColor: '#13161E' }}
-                        />
-                        <Picker.Item
-                            label="Grave"
-                            value="grave"
-                            color="#FFFFFF"
-                            style={{ backgroundColor: '#13161E' }}
-                        />
-                        <Picker.Item
-                            label="Alto"
-                            value="alto"
-                            color="#FFFFFF"
-                            style={{ backgroundColor: '#13161E' }}
-                        />
-                    </Picker>
-                </View>
-                {errors.nivelUrgencia && (
-                    <Text className="mt-1 text-sm text-red-500">{errors.nivelUrgencia}</Text>
-                )}
+                <SelectorNivelUrgencia
+                    value={formData.nivelUrgencia}
+                    onChange={(value) => onUpdateField('nivelUrgencia', value)}
+                    error={errors.nivelUrgencia}
+                />
             </View>
 
             <ModalMap

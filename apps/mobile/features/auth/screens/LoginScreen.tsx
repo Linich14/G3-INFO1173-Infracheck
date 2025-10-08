@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import RutInput from '../components/RutInput';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loginUser } from '../services/authService';
 import { useAuth } from '~/contexts/AuthContext';
@@ -23,6 +23,7 @@ const LoginScreen: React.FC = () => {
     const { checkAuthStatus } = useAuth();
     const [rut, setRut] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
     const [feedbackMessage, setFeedbackMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -149,17 +150,29 @@ const LoginScreen: React.FC = () => {
                             {/* Campo Contraseña */}
                             <View className="w-72 space-y-2 pt-8">
                                 <Text className="text-2xl font-bold text-white">Contraseña</Text>
-                                <TextInput
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    placeholder="*************"
-                                    placeholderTextColor="#ccc"
-                                    secureTextEntry
-                                    className="border-b border-white pb-2 text-xl text-white"
-                                    keyboardType="default"
-                                    returnKeyType="done" // Añadido para mejor UX
-                                    onSubmitEditing={handleLogin} // Permite hacer login con Enter
-                                />
+                                <View className="relative">
+                                    <TextInput
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        placeholder="*************"
+                                        placeholderTextColor="#ccc"
+                                        secureTextEntry={!showPassword}
+                                        className="border-b border-white pb-2 pr-12 text-xl text-white"
+                                        keyboardType="default"
+                                        returnKeyType="done"
+                                        onSubmitEditing={handleLogin}
+                                    />
+                                    <TouchableOpacity
+                                        onPress={() => setShowPassword(!showPassword)}
+                                        className="absolute right-0 bottom-2"
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                                        {showPassword ? (
+                                            <EyeOff size={24} color="#ccc" />
+                                        ) : (
+                                            <Eye size={24} color="#ccc" />
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
                         {/* Botones centrados y visibles */}

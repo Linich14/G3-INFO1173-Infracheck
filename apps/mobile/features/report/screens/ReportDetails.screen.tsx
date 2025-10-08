@@ -345,20 +345,22 @@ export default function ReportDetailsScreen() {
                         </View>
                         <View className="flex-row items-center justify-between border-b border-gray-600 py-2">
                             <Text className="text-gray-300">Estado</Text>
-                            <View className="rounded-full bg-yellow-500 bg-opacity-20 px-3 py-1">
-                                <Text className="font-medium text-black">En proceso</Text>
+                            <View className="rounded-full bg-yellow-500/20 px-3 py-1">
+                                <Text className="font-medium text-yellow-500">{report.estado}</Text>
                             </View>
                         </View>
-                        <View className="flex-row items-center justify-between py-2">
+                        <View className="flex-row items-start justify-between py-2">
                             <Text className="text-gray-300">Fecha de creación</Text>
-                            <Text className="text-white">{formatDate(report.fecha)}</Text>
+                            <Text className="flex-1 text-right text-white ml-4">
+                                {formatDate(report.fecha)}
+                            </Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Acciones */}
-                <View className="mx-4 mt-4 space-y-3">
-                    <TouchableOpacity className="rounded-xl bg-[#537CF2] p-4">
+                <View className="mx-4 mt-4 mb-6">
+                    <TouchableOpacity className="rounded-xl bg-[#537CF2] p-4 mb-3">
                         <View className="flex-row items-center justify-center">
                             <Ionicons name="create-outline" size={20} color="white" />
                             <Text className="ml-2 font-semibold text-white">

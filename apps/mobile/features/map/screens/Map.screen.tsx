@@ -4,6 +4,7 @@ import { MapView, Camera, UserLocation, PointAnnotation } from '@maplibre/maplib
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import { useUserLocation } from '~/utils/userLocation';
+import { GPSPermissionModal } from '~/components/GPSPermissionModal';
 import { MAP_CONFIG } from '~/constants/config';
 import { localizacion, PinDetails } from '../types';
 import {
@@ -95,7 +96,7 @@ export default function MapScreen() {
     });
     const [filtersVisible, setFiltersVisible] = useState(false);
 
-    const { getUserLocation } = useUserLocation();
+    const { getUserLocation, showPermissionModal, handleAcceptPermission, handleCancelPermission } = useUserLocation();
     const router = useRouter();
 
     // Función para actualizar el zoom actual
@@ -265,6 +266,13 @@ export default function MapScreen() {
                     pinDetails={pinDetails}
                     visible={modalVisible}
                     onClose={closeModal}
+                />
+
+                {/* Modal de permisos GPS */}
+                <GPSPermissionModal
+                    visible={showPermissionModal}
+                    onAccept={handleAcceptPermission}
+                    onCancel={handleCancelPermission}
                 />
             </View>
         </SafeAreaView>

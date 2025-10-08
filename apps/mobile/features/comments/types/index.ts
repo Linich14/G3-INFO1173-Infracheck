@@ -13,6 +13,7 @@ export interface Report {
   image?: any;
   upvotes: number;
   comments: Comment[];
+  categoria?: string; // Categoría del reporte (Infraestructura, Limpieza, Alumbrado, etc.)
 }
 
 export interface CommentsModalProps {
