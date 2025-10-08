@@ -71,6 +71,7 @@ def verify_token_view(request):
                     'valid': True,
                     'user_id': sesion_token.usua_id.usua_id,
                     'username': sesion_token.usua_id.usua_nickname,
+                    'email': sesion_token.usua_id.usua_email,
                     'expires_at': sesion_token.token_expira_en.isoformat(),
                     'rous_id': sesion_token.usua_id.rous_id.rous_id,
                     'rous_nombre': sesion_token.usua_id.rous_id.rous_nombre

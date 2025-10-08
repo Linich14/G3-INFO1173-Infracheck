@@ -67,7 +67,7 @@ export default function ReportsStatistics({ projectName, onBack }: ReportsStatis
         <View className="flex-1 bg-black px-4 pt-10">
             {/* Header */}
             <View className="mb-6 flex-row items-center">
-                <TouchableOpacity className="rounded-xl bg-blue-500 p-2" onPress={onBack}>
+                <TouchableOpacity className="rounded-xl bg-[#537CF2] p-2" onPress={onBack}>
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
                 <Text className="ml-4 text-xl font-bold text-white">Estadísticas de Reportes</Text>
@@ -75,7 +75,7 @@ export default function ReportsStatistics({ projectName, onBack }: ReportsStatis
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Información del Proyecto */}
-                <View className="mb-6 rounded-xl bg-neutral-900 p-6">
+                <View className="mb-6 rounded-xl bg-[#13161E] p-6">
                     <Text className="mb-2 text-lg font-bold text-blue-400">
                         Proyecto: {projectName}
                     </Text>
@@ -85,7 +85,7 @@ export default function ReportsStatistics({ projectName, onBack }: ReportsStatis
                 </View>
 
                 {/* Gráfico 2: Evolución Temporal */}
-                <View className="mb-8 rounded-xl bg-neutral-900 p-6">
+                <View className="mb-8 rounded-xl bg-[#13161E] p-6">
                     <Text className="mb-4 text-lg font-bold text-blue-400">
                         Historial de reportes en (calle o ubicación aquí)
                     </Text>
@@ -113,7 +113,7 @@ export default function ReportsStatistics({ projectName, onBack }: ReportsStatis
 
                     {/* Métricas adicionales */}
                     <View className="mt-4 flex-row justify-between">
-                        <View className="mr-2 flex-1 rounded-lg bg-neutral-800 p-3">
+                        <View className="mr-2 flex-1 rounded-lg bg-[#1D212D] p-3">
                             <Text className="text-sm text-gray-400">Promedio Mensual</Text>
                             <Text className="text-lg font-bold text-white">
                                 {Math.round(
@@ -125,7 +125,7 @@ export default function ReportsStatistics({ projectName, onBack }: ReportsStatis
                                 reportes
                             </Text>
                         </View>
-                        <View className="ml-2 flex-1 rounded-lg bg-neutral-800 p-3">
+                        <View className="ml-2 flex-1 rounded-lg bg-[#1D212D] p-3">
                             <Text className="text-sm text-gray-400">Mes con Más Reportes</Text>
                             <Text className="text-lg font-bold text-white">
                                 {
@@ -142,20 +142,22 @@ export default function ReportsStatistics({ projectName, onBack }: ReportsStatis
                 </View>
 
                 {/* Resumen de Insights */}
-                <View className="mb-6 rounded-xl bg-neutral-900 p-6">
+                <View className="mb-6 rounded-xl bg-[#13161E] p-6">
                     <Text className="mb-4 text-lg font-bold text-blue-400">Insights Clave</Text>
 
                     <View className="space-y-3">
                         <View className="flex-row items-start">
                             <Ionicons name="trending-up" size={16} color="#10B981" />
                             <Text className="ml-2 flex-1 text-sm text-gray-300">
-                                El tipo de problema más reportado es "
-                                {
-                                    tipoProblemasData.labels[
+                                <Text>El tipo de problema más reportado es "</Text>
+                                <Text className="font-semibold text-white">
+                                    {tipoProblemasData.labels[
                                         tipoProblemasData.datasets[0].data.indexOf(maxValue)
-                                    ]
-                                }
-                                " con {maxValue} casos
+                                    ]}
+                                </Text>
+                                <Text>" con </Text>
+                                <Text className="font-semibold text-white">{maxValue}</Text>
+                                <Text> casos</Text>
                             </Text>
                         </View>
 
@@ -177,15 +179,15 @@ export default function ReportsStatistics({ projectName, onBack }: ReportsStatis
                 </View>
 
                 {/* Acciones */}
-                <View className="mb-6 rounded-xl bg-neutral-900 p-6">
+                <View className="mb-6 rounded-xl bg-[#13161E] p-6">
                     <Text className="mb-4 text-lg font-bold text-blue-400">Acciones</Text>
 
-                    <TouchableOpacity className="mb-3 flex-row items-center rounded-lg bg-green-600 p-4">
+                    <TouchableOpacity className="mb-3 flex-row items-center rounded-lg bg-[#537CF2] p-4">
                         <Ionicons name="download" size={20} color="white" />
                         <Text className="ml-3 font-semibold text-white">Exportar Estadísticas</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity className="flex-row items-center rounded-lg bg-purple-600 p-4">
+                    <TouchableOpacity className="flex-row items-center rounded-lg bg-[#537CF2] p-4">
                         <Ionicons name="share" size={20} color="white" />
                         <Text className="ml-3 font-semibold text-white">Compartir Reporte</Text>
                     </TouchableOpacity>

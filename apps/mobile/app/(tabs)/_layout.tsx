@@ -126,6 +126,24 @@ export default function Layout() {
                     href: null, // Oculta de la barra de navegación
                 }}
             />
+            <Tabs.Screen
+                name="proyect"
+                options={{
+                    href: null, // Grupo de proyectos oculto de la barra
+                }}
+            />
+            <Tabs.Screen
+                name="analytics/index"
+                options={{
+                    href: null, // Oculta de la barra de navegación
+                }}
+            />
+            <Tabs.Screen
+                name="profile/index"
+                options={{
+                    href: null, // Oculta de la barra de navegación
+                }}
+            />
         </Tabs>
     );
 }

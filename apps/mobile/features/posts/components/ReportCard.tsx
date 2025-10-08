@@ -86,7 +86,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                                 className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-[#537CF2] shadow active:opacity-80"
                                 onPress={(e) => {
                                     e.stopPropagation();
-                                    onMore();
+                                    onMore?.();
                                 }}>
                                 <MoreVertical size={22} color="#fff" />
                             </TouchableOpacity>
@@ -95,7 +95,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                                 className="h-12 w-12 items-center justify-center rounded-full bg-[#537CF2] shadow active:opacity-80"
                                 onPress={(e) => {
                                     e.stopPropagation();
-                                    onLocation();
+                                    onLocation?.();
                                 }}>
                                 <MapPin size={22} color="#fff" />
                             </TouchableOpacity>
@@ -110,7 +110,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                             className="mr-4 flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 shadow active:opacity-90"
                             onPress={(e) => {
                                 e.stopPropagation();
-                                onUpvote();
+                                onUpvote?.();
                             }}>
                             <ArrowBigUp size={18} color="#fff" />
                             <Text className="text-center text-base font-medium text-white">
@@ -122,7 +122,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                             className="flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 shadow active:opacity-90"
                             onPress={(e) => {
                                 e.stopPropagation();
-                                onComment();
+                                onComment?.();
                             }}>
                             <MessageCircle size={18} color="#fff" />
                         </TouchableOpacity>
@@ -132,7 +132,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                         className="flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 shadow active:opacity-90"
                         onPress={(e) => {
                             e.stopPropagation();
-                            onShare();
+                            onShare?.();
                         }}>
                         <Share2 size={18} color="#fff" />
                         <Text className="text-center text-base font-medium text-white">

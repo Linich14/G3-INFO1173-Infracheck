@@ -3,6 +3,7 @@ import { localizacion } from '../map/types';
 export type ReportFormData = {
     titulo: string;
     descripcion: string;
+    idCiudad: string;
     tipoDenuncia: string;
     ubicacion: localizacion;
     nivelUrgencia: string;
@@ -13,6 +14,7 @@ export type ReportFormData = {
 export type ReportFormErrors = {
     titulo?: string;
     descripcion?: string;
+    idCiudad?: string;
     tipoDenuncia?: string;
     ubicacion?: string;
     nivelUrgencia?: string;

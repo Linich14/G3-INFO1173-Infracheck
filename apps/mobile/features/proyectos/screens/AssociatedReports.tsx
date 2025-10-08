@@ -199,7 +199,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
 
   // Componente de renderizado de reporte
   const renderReportItem = ({ item }: { item: Report }) => (
-    <TouchableOpacity key={item.id} className="mb-4 rounded-xl bg-neutral-900 p-4">
+    <TouchableOpacity key={item.id} className="mb-4 rounded-xl bg-[#13161E] p-4">
       {/* Header del reporte */}
       <View className="mb-3 flex-row items-start justify-between">
         <Text className="flex-1 pr-2 text-lg font-semibold text-white">{item.titulo}</Text>
@@ -244,7 +244,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
     <View className="mt-4 flex-row items-center justify-between px-2">
       <TouchableOpacity
         className={`flex-row items-center rounded-lg px-3 py-2 ${
-          currentPage === 1 ? 'bg-neutral-700' : 'bg-blue-600'
+          currentPage === 1 ? 'bg-[#1D212D]' : 'bg-[#537CF2]'
         }`}
         onPress={onPrevious}
         disabled={currentPage === 1}>
@@ -262,7 +262,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
 
       <TouchableOpacity
         className={`flex-row items-center rounded-lg px-3 py-2 ${
-          currentPage === totalPages ? 'bg-neutral-700' : 'bg-blue-600'
+          currentPage === totalPages ? 'bg-[#1D212D]' : 'bg-[#537CF2]'
         }`}
         onPress={onNext}
         disabled={currentPage === totalPages}>
@@ -290,7 +290,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
     onPress: () => void;
   }) => (
     <TouchableOpacity
-      className={`mr-2 rounded-lg px-3 py-2 ${isActive ? 'bg-blue-600' : 'bg-neutral-700'}`}
+      className={`mr-2 rounded-lg px-3 py-2 ${isActive ? 'bg-[#537CF2]' : 'bg-[#1D212D]'}`}
       onPress={onPress}>
       <Text className={`text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>{title}</Text>
     </TouchableOpacity>
@@ -311,15 +311,15 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
     <View className="flex-1 bg-black px-4 pt-10">
       {/* Header */}
       <View className="mb-4 flex-row items-center">
-        <TouchableOpacity className="rounded-xl bg-blue-500 p-2" onPress={onBack}>
+        <TouchableOpacity className="rounded-xl bg-[#537CF2] p-2" onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text className="ml-4 text-xl font-bold text-white">Reportes Asociados</Text>
       </View>
 
       {/* Barra de Búsqueda */}
-      <View className="mb-4 rounded-xl bg-neutral-900 p-4">
-        <View className="flex-row items-center rounded-lg bg-neutral-800 px-3 py-2">
+      <View className="mb-4 rounded-xl bg-[#13161E] p-4">
+        <View className="flex-row items-center rounded-lg bg-[#1D212D] px-3 py-2">
           <Ionicons name="search" size={20} color="gray" />
           <TextInput
             className="ml-3 flex-1 text-white"
@@ -337,25 +337,24 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
         </View>
         {searchQuery.length > 0 && (
           <Text className="mt-2 text-xs text-blue-400">
-            Buscando: &quot;{searchQuery}&quot; - {filteredAndSortedReports.length} resultado
-            {filteredAndSortedReports.length !== 1 ? 's' : ''}
+            Buscando: &quot;{searchQuery}&quot; - {filteredAndSortedReports.length} resultado{filteredAndSortedReports.length !== 1 ? 's' : ''}
           </Text>
         )}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Resumen del Proyecto */}
-        <View className="mb-4 rounded-xl bg-neutral-900 p-4">
+        <View className="mb-4 rounded-xl bg-[#13161E] p-4">
           <Text className="mb-3 text-lg font-bold text-blue-400">Proyecto: {projectName}</Text>
 
           <View className="mb-3 flex-row justify-between">
-            <View className="mr-2 flex-1 rounded-lg bg-neutral-800 p-3">
+            <View className="mr-2 flex-1 rounded-lg bg-[#1D212D] p-3">
               <Text className="text-center text-gray-400">Total Reportes</Text>
               <Text className="text-center text-2xl font-bold text-white">
                 {reportesEjemplo.length}
               </Text>
             </View>
-            <View className="ml-2 flex-1 rounded-lg bg-neutral-800 p-3">
+            <View className="ml-2 flex-1 rounded-lg bg-[#1D212D] p-3">
               <Text className="text-center text-gray-400">Total Votos</Text>
               <Text className="text-center text-2xl font-bold text-white">{totalVotos}</Text>
             </View>
@@ -363,7 +362,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
         </View>
 
         {/* Controles de Ordenamiento */}
-        <View className="mb-4 rounded-xl bg-neutral-900 p-4">
+        <View className="mb-4 rounded-xl bg-[#13161E] p-4">
           <View className="mb-3">
             <Text className="mb-2 text-sm font-bold text-blue-400">Ordenar por:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -389,7 +388,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
               />
               {hasActiveFilters() && (
                 <TouchableOpacity
-                  className="mr-2 rounded-lg bg-red-600 px-3 py-2"
+                  className="mr-2 rounded-lg bg-[#537CF2] px-3 py-2"
                   onPress={clearFilters}>
                   <Text className="text-sm text-white">Limpiar</Text>
                 </TouchableOpacity>
@@ -399,14 +398,13 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
         </View>
 
         {/* Lista de Reportes */}
-        <View className="mb-4 rounded-xl bg-neutral-900 p-4">
+        <View className="mb-4 rounded-xl bg-[#13161E] p-4">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-lg font-bold text-blue-400">
               {searchQuery.length > 0 ? 'Resultados de Búsqueda' : 'Reportes Individuales'}
             </Text>
             <Text className="text-sm text-gray-400">
-              {filteredAndSortedReports.length} reporte
-              {filteredAndSortedReports.length !== 1 ? 's' : ''}
+              {filteredAndSortedReports.length} reporte{filteredAndSortedReports.length !== 1 ? 's' : ''}
             </Text>
           </View>
 
@@ -440,17 +438,17 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
         </View>
 
         {/* Acciones */}
-        <View className="mb-6 rounded-xl bg-neutral-900 p-4">
+        <View className="mb-6 rounded-xl bg-[#13161E] p-4">
           <Text className="mb-4 text-lg font-bold text-blue-400">Acciones</Text>
 
           <TouchableOpacity
-            className="mb-3 flex-row items-center rounded-lg bg-purple-600 p-4"
+            className="mb-3 flex-row items-center rounded-lg bg-[#537CF2] p-4"
             onPress={() => setShowStatistics(true)}>
             <Ionicons name="analytics" size={20} color="white" />
             <Text className="ml-3 font-semibold text-white">Ver Estadísticas</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-row items-center rounded-lg bg-orange-600 p-4">
+          <TouchableOpacity className="flex-row items-center rounded-lg bg-[#537CF2] p-4">
             <Ionicons name="download" size={20} color="white" />
             <Text className="ml-3 font-semibold text-white">Exportar Reportes</Text>
           </TouchableOpacity>

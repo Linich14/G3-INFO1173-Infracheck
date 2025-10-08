@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { UserCircle2, Bell, Globe, Sun, Check, ChevronDown } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SonidosNotificacion } from '~/components/SonidosNotificacion';
 
 /** ---------- Traducciones simples (i18n local) ---------- */
 type Locale = 'es' | 'en';
@@ -111,31 +112,32 @@ export default function SettingsPag() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#090A0D]">
-      {/* Header “píldora” */}
-      <View className="bg-[#13161E] p-3 mx-4 mt-2 mb-3 rounded-[12px]">
-        <Text className="text-[#537CF2] font-bold text-center text-2xl">{t.settings}</Text>
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header "píldora" */}
+        <View className="bg-[#13161E] p-3 mx-4 mt-2 mb-3 rounded-[12px]">
+          <Text className="text-[#537CF2] font-bold text-center text-2xl">{t.settings}</Text>
+        </View>
 
-      {/* Cuenta / Account */}
-      <SettingRow
-        icon={<UserCircle2 size={28} color="#FF8C2A" />}
-        label={t.account}
-        onPress={() => {}}
-      />
+        {/* Cuenta / Account */}
+        <SettingRow
+          icon={<UserCircle2 size={28} color="#FF8C2A" />}
+          label={t.account}
+          onPress={() => {}}
+        />
 
-      {/* Notificaciones / Notifications */}
-      <SettingRow
-        icon={<Bell size={28} color="#F9504F" />}
-        label={t.notifications}
-        right={
-          <Switch
-            value={notifEnabled}
-            onValueChange={setNotifEnabled}
-            trackColor={{ false: '#3b3b3b', true: '#22c55e' }}
-            thumbColor="#fff"
-          />
-        }
-      />
+        {/* Notificaciones / Notifications */}
+        <SettingRow
+          icon={<Bell size={28} color="#F9504F" />}
+          label={t.notifications}
+          right={
+            <Switch
+              value={notifEnabled}
+              onValueChange={setNotifEnabled}
+              trackColor={{ false: '#3b3b3b', true: '#22c55e' }}
+              thumbColor="#fff"
+            />
+          }
+        />
 
       {/* Idioma / Language */}
       <SettingRow
@@ -184,6 +186,12 @@ export default function SettingsPag() {
           />
         }
       />
-    </SafeAreaView>
-  );
+
+      {/* Sonidos de Notificación */}
+      <View className="mx-4 my-2">
+        <SonidosNotificacion />
+      </View>
+    </ScrollView>
+  </SafeAreaView>
+);
 }

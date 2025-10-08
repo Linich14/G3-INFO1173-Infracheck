@@ -1,8 +1,9 @@
-import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ReportDetails } from '../types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 
 // Mock de datos
 const mockReports: ReportDetails[] = [
@@ -97,7 +98,12 @@ function getUrgencyColor(nivel: string): string {
 
 export default function ReportDetailsScreen() {
     const params = useLocalSearchParams();
+    const router = useRouter();
     const reportId = typeof params.id === 'string' ? params.id : params.id?.[0] || '';
+    
+    // Estados para el carrusel
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const { width: screenWidth } = Dimensions.get('window');
 
     // Buscar el reporte en el mock
     const report = mockReports.find((r) => r.id === reportId);
@@ -120,15 +126,94 @@ export default function ReportDetailsScreen() {
         <SafeAreaView className="flex-1 bg-background">
             {/* Header */}
             <View className="bg-secondary px-4 py-3 shadow-lg">
-                <Text className="text-center text-2xl font-bold text-white">
-                    Detalle del Reporte
-                </Text>
+                <View className="flex-row items-center justify-between">
+                    <TouchableOpacity 
+                        onPress={() => router.back()}
+                        className="flex-row items-center">
+                        <Ionicons name="arrow-back" size={24} color="white" />
+                    </TouchableOpacity>
+                    <Text className="text-2xl font-bold text-white flex-1 text-center mr-6">
+                        Detalle del Reporte
+                    </Text>
+                </View>
             </View>
 
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 20 }}>
+                
+                {/* Carrusel de imágenes */}
+                {report.imagenes.length > 0 && (
+                    <View className="relative bg-black">
+                        <ScrollView
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            onMomentumScrollEnd={(event) => {
+                                const newIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
+                                setCurrentImageIndex(newIndex);
+                            }}
+                            className="h-64">
+                            {report.imagenes.map((imagen, index) => (
+                                <TouchableOpacity 
+                                    key={index} 
+                                    style={{ width: screenWidth }}
+                                    activeOpacity={0.9}>
+                                    <Image
+                                        source={{ uri: imagen }}
+                                        className="h-full w-full"
+                                        resizeMode="cover"
+                                    />
+                                    {/* Overlay con gradiente */}
+                                    <View className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 py-6">
+                                        <View className="flex-row justify-between items-end">
+                                            <View className="flex-1">
+                                                <View className="flex-row items-center mb-1">
+                                                    <Ionicons name="images-outline" size={16} color="#537CF2" />
+                                                    <Text className="ml-2 text-sm text-white font-medium">
+                                                        Evidencia fotográfica
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <View className="bg-black/50 rounded-full px-3 py-1">
+                                                <Text className="text-sm text-white font-medium">
+                                                    {index + 1}/{report.imagenes.length}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                    
+                                    {/* Icono de expandir */}
+                                    <View className="absolute right-4 top-4">
+                                        <View className="bg-black/50 rounded-full p-2">
+                                            <Ionicons name="expand-outline" size={20} color="white" />
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                        
+                        {/* Indicadores de paginación mejorados */}
+                        {report.imagenes.length > 1 && (
+                            <View className="absolute bottom-4 left-4">
+                                <View className="flex-row space-x-2">
+                                    {report.imagenes.map((_, index) => (
+                                        <TouchableOpacity key={index}>
+                                            <View
+                                                className={`h-1 rounded-full transition-all duration-300 ${
+                                                    index === currentImageIndex 
+                                                        ? 'bg-[#537CF2] w-8' 
+                                                        : 'bg-white/60 w-4'
+                                                }`}
+                                            />
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+                        )}
+                    </View>
+                )}
                 {/* Título del reporte */}
                 <View className="mx-4 mt-4 rounded-xl bg-gradient-to-r from-[#537CF2] to-[#6366f1] p-4 shadow-lg">
                     <Text className="text-center text-xl font-bold text-white">
@@ -220,40 +305,7 @@ export default function ReportDetailsScreen() {
                     </TouchableOpacity>
                 </View>
 
-                {/* Imágenes */}
-                {report.imagenes.length > 0 && (
-                    <View className="mx-4 mt-4 rounded-xl bg-secondary p-4">
-                        <View className="mb-3 flex-row items-center">
-                            <Ionicons name="images-outline" size={20} color="#537CF2" />
-                            <Text className="ml-2 text-lg font-semibold text-white">
-                                Imágenes ({report.imagenes.length})
-                            </Text>
-                        </View>
 
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            <View className="flex-row gap-3">
-                                {report.imagenes.map((imagen, index) => (
-                                    <TouchableOpacity
-                                        key={index}
-                                        className="overflow-hidden rounded-lg">
-                                        <Image
-                                            source={{ uri: imagen }}
-                                            className="h-32 w-32"
-                                            resizeMode="cover"
-                                        />
-                                        <View className="absolute right-2 top-2 rounded-full bg-black bg-opacity-50 p-1">
-                                            <Ionicons
-                                                name="expand-outline"
-                                                size={16}
-                                                color="white"
-                                            />
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </ScrollView>
-                    </View>
-                )}
 
                 {/* Video */}
                 {report.video && (
@@ -293,20 +345,22 @@ export default function ReportDetailsScreen() {
                         </View>
                         <View className="flex-row items-center justify-between border-b border-gray-600 py-2">
                             <Text className="text-gray-300">Estado</Text>
-                            <View className="rounded-full bg-yellow-500 bg-opacity-20 px-3 py-1">
-                                <Text className="font-medium text-black">En proceso</Text>
+                            <View className="rounded-full bg-yellow-500/20 px-3 py-1">
+                                <Text className="font-medium text-yellow-500">{report.estado}</Text>
                             </View>
                         </View>
-                        <View className="flex-row items-center justify-between py-2">
+                        <View className="flex-row items-start justify-between py-2">
                             <Text className="text-gray-300">Fecha de creación</Text>
-                            <Text className="text-white">{formatDate(report.fecha)}</Text>
+                            <Text className="flex-1 text-right text-white ml-4">
+                                {formatDate(report.fecha)}
+                            </Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Acciones */}
-                <View className="mx-4 mt-4 space-y-3">
-                    <TouchableOpacity className="rounded-xl bg-[#537CF2] p-4">
+                <View className="mx-4 mt-4 mb-6">
+                    <TouchableOpacity className="rounded-xl bg-[#537CF2] p-4 mb-3">
                         <View className="flex-row items-center justify-center">
                             <Ionicons name="create-outline" size={20} color="white" />
                             <Text className="ml-2 font-semibold text-white">
@@ -327,8 +381,4 @@ export default function ReportDetailsScreen() {
     );
 }
 
-const styles = {
-    title_card: 'mb-2 text-lg font-semibold text-white',
-    text_card: 'mb-1 text-gray-200',
-    container_card: 'mb-4 rounded-xl bg-secondary p-4',
-};
+

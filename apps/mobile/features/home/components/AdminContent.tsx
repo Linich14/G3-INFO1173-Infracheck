@@ -1,8 +1,9 @@
 import React from "react";
 import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Database, Activity, Users2, BarChart3, Settings } from "lucide-react-native";
+import { Users2, BarChart3 } from "lucide-react-native";
 import { router } from "expo-router";
+import { SystemMetrics } from "~/components/SystemMetrics";
 
 export default function AdminContent() {
   const insets = useSafeAreaInsets();
@@ -16,29 +17,7 @@ export default function AdminContent() {
       }}
     >
       {/* Métricas del Sistema */}
-      <View className="bg-[#13161E] rounded-[12px] p-4">
-        <Text className="text-white text-xl font-bold mb-4">Estado del Sistema</Text>
-        
-        <View className="flex-row justify-between mb-4">
-          <View className="items-center">
-            <Users2 size={32} color="#4ECDC4" />
-            <Text className="text-white text-lg font-bold mt-2">1,247</Text>
-            <Text className="text-gray-400">Usuarios</Text>
-          </View>
-          
-          <View className="items-center">
-            <Database size={32} color="#45B7D1" />
-            <Text className="text-white text-lg font-bold mt-2">5,632</Text>
-            <Text className="text-gray-400">Reportes</Text>
-          </View>
-          
-          <View className="items-center">
-            <Activity size={32} color="#96CEB4" />
-            <Text className="text-white text-lg font-bold mt-2">98.5%</Text>
-            <Text className="text-gray-400">Uptime</Text>
-          </View>
-        </View>
-      </View>
+      <SystemMetrics title="Estado del Sistema" />
 
       {/* Gestión de Usuarios */}
       <View className="bg-[#13161E] rounded-[12px] p-4">
@@ -84,30 +63,12 @@ export default function AdminContent() {
           </TouchableOpacity>
           
           <TouchableOpacity 
-            onPress={() => console.log('Base de datos')}
-            className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-            style={{ width: '47%', height: 120 }}
-          >
-            <Database size={24} color="white" />
-            <Text className="text-white mt-2 text-center">Base de Datos</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            onPress={() => console.log('Analytics')}
+            onPress={() => router.push('/analytics')}
             className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
             style={{ width: '47%', height: 120 }}
           >
             <BarChart3 size={24} color="white" />
             <Text className="text-white mt-2 text-center">Analytics</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            onPress={() => console.log('Configuración')}
-            className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
-            style={{ width: '47%', height: 120 }}
-          >
-            <Settings size={24} color="white" />
-            <Text className="text-white mt-2 text-center">Configuración</Text>
           </TouchableOpacity>
         </View>
       </View>

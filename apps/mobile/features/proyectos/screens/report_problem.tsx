@@ -66,7 +66,7 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
     <View className="flex-1 bg-black px-4 pt-10">
       {/* Header */}
       <View className="mb-6 flex-row items-center">
-        <TouchableOpacity className="rounded-xl bg-blue-500 p-2" onPress={onBack}>
+        <TouchableOpacity className="rounded-xl bg-[#537CF2] p-2" onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text className="ml-4 text-xl font-bold text-white">Reportar Problema</Text>
@@ -74,7 +74,7 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* Instrucciones */}
-        <View className="mb-6 rounded-xl border border-blue-600/30 bg-blue-900/20 p-4">
+        <View className="mb-6 rounded-xl border border-[#537CF2]/30 bg-[#537CF2]/20 p-4">
           <View className="mb-2 flex-row items-center">
             <Ionicons name="information-circle" size={20} color="#60A5FA" />
             <Text className="ml-2 font-semibold text-blue-400">¿Cómo reportar?</Text>
@@ -86,13 +86,13 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
         </View>
 
         {/* Formulario Principal */}
-        <View className="mb-6 rounded-xl bg-neutral-900 p-6">
+        <View className="mb-6 rounded-xl bg-[#13161E] p-6">
           <Text className="mb-4 text-lg font-bold text-blue-400">Describe el Problema</Text>
 
           {/* Caja de texto grande */}
           <View className="mb-4">
             <TextInput
-              className="min-h-[200px] rounded-lg bg-neutral-800 p-4 text-base leading-6 text-white"
+              className="min-h-[200px] rounded-lg bg-[#1D212D] p-4 text-base leading-6 text-white"
               placeholderTextColor="#9CA3AF"
               value={formData.descripcion}
               onChangeText={handleTextChange}
@@ -120,7 +120,7 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
         </View>
 
         {/* Consejos */}
-        <View className="mb-6 rounded-xl bg-neutral-900 p-4">
+        <View className="mb-6 rounded-xl bg-[#13161E] p-4">
           <Text className="text-md mb-3 font-semibold text-green-400">
             💡 Consejos para un buen reporte:
           </Text>
@@ -134,15 +134,15 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
       </ScrollView>
 
       {/* Botones de Acción */}
-      <View className="border-t border-neutral-800 pb-6 pt-4">
+      <View className="border-t border-[#1D212D] pb-6 pt-4">
         <View className="flex-row gap-3">
-          <TouchableOpacity className="flex-1 rounded-lg bg-gray-600 p-4" onPress={onBack}>
+          <TouchableOpacity className="flex-1 rounded-lg bg-[#1D212D] p-4" onPress={onBack}>
             <Text className="text-center font-semibold text-white">Cancelar</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             className={`flex-1 rounded-lg p-4 ${
-              formData.descripcion.trim().length >= 10 ? 'bg-red-600' : 'bg-gray-700'
+              formData.descripcion.trim().length >= 10 ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
             }`}
             onPress={handleSubmitReport}
             disabled={formData.descripcion.trim().length < 10}>

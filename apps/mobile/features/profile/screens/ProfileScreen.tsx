@@ -4,10 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, Settings } from 'lucide-react-native';
 import { UserInfo } from '~/features/profile/components/UserInfo';
+import { DeleteAccountSection } from '~/features/profile/components/DeleteAccountSection';
 import { useUser } from '~/features/profile/hooks/useUser';
 
 function ProfileScreen() {
-  const { user, loading, error } = useUser();
+  const { user, loading, error, refreshUser } = useUser();
 
   if (loading) {
     return (
@@ -24,13 +25,23 @@ function ProfileScreen() {
     return (
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
         <View className="flex-1 justify-center items-center px-4">
-          <Text className="text-red-500 text-center">{error || 'Error al cargar el perfil'}</Text>
-          <TouchableOpacity 
-            onPress={() => router.back()}
-            className="mt-4 bg-[#537CF2] px-6 py-3 rounded-lg"
-          >
-            <Text className="text-white font-bold">Volver</Text>
-          </TouchableOpacity>
+          <Text className="text-red-500 text-center text-lg mb-4">
+            {error || 'Error al cargar el perfil'}
+          </Text>
+          <View className="flex-row space-x-4">
+            <TouchableOpacity 
+              onPress={refreshUser}
+              className="bg-[#537CF2] px-6 py-3 rounded-lg"
+            >
+              <Text className="text-white font-bold">Reintentar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => router.back()}
+              className="bg-gray-600 px-6 py-3 rounded-lg"
+            >
+              <Text className="text-white font-bold">Volver</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -66,6 +77,11 @@ function ProfileScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* User Information */}
         <UserInfo user={user} />
+
+        {/* Delete Account Section */}
+        <View className="px-4 pb-8">
+          <DeleteAccountSection />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

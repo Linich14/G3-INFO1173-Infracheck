@@ -6,6 +6,9 @@ const TOKEN_EXPIRY_KEY = 'auth_token_expiry';
 const USER_ROLE_ID_KEY = 'user_role_id';
 const USER_ROLE_NAME_KEY = 'user_role_name';
 
+// Variable para controlar llamadas simultáneas a isAuthenticated
+let isAuthenticating = false;
+
 export interface LoginData {
   rut: string;
   password: string;
@@ -26,6 +29,37 @@ export interface AuthResponse {
   token?: string;
   expires_at?: string;
   user?: User;
+}
+
+export interface PasswordResetRequest {
+  identifier: string; // RUT o email
+}
+
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface VerifyResetCodeRequest {
+  identifier: string;
+  code: string;
+}
+
+export interface VerifyResetCodeResponse {
+  success: boolean;
+  message: string;
+  reset_token?: string;
+}
+
+export interface ResetPasswordRequest {
+  reset_token: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
 }
 
 // Guardar token y fecha de expiración en almacenamiento local
@@ -115,6 +149,14 @@ export const isAuthenticated = async (): Promise<boolean> => {
 
   // Verificar con el backend si el token es válido y no ha expirado
   try {
+    // Evitar llamadas simultáneas a isAuthenticated
+    if (isAuthenticating) {
+      // Si ya hay una verificación en curso, retornar estado del token local
+      return token !== null;
+    }
+
+    isAuthenticating = true;
+    
     const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/verify-token/`, {
       method: 'POST',
       headers: {
@@ -144,6 +186,8 @@ export const isAuthenticated = async (): Promise<boolean> => {
     console.error('Error verifying token:', error);
     // En caso de error de red, confiar en la verificación local
     return token !== null;
+  } finally {
+    isAuthenticating = false;
   }
 };
 
@@ -235,6 +279,42 @@ export const logout = async (): Promise<void> => {
   }
 };
 
+// Función para refrescar el token
+export const refreshToken = async (): Promise<boolean> => {
+  try {
+    const token = await getToken();
+    if (!token) {
+      return false;
+    }
+
+    console.log('🔄 Intentando refrescar token...');
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/refresh/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    console.log('🔄 Refresh response status:', response.status);
+    if (response.ok) {
+      const result = await response.json();
+      console.log('🔄 Refresh response data:', result);
+      
+      if (result.token && result.expires_at) {
+        await saveToken(result.token, result.expires_at);
+        console.log('✅ Token refrescado exitosamente');
+        return true;
+      }
+    }
+    console.log('❌ Falló el refresh del token');
+    return false;
+  } catch (error) {
+    console.error('❌ Error refrescando token:', error);
+    return false;
+  }
+};
+
 // Función para hacer requests autenticadas
 export const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = await getToken();
@@ -250,26 +330,183 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
 
   headers['Authorization'] = `Bearer ${token}`;
 
-  const response = await fetch(url, {
+  // 🔍 DEBUG: Log detallado del token y headers
+  console.log('🔑 authenticatedFetch DEBUG:');
+  console.log('  - URL:', url);
+  console.log('  - Method:', options.method || 'GET');
+  console.log('  - Token presente:', !!token);
+  console.log('  - Token length:', token?.length || 0);
+  console.log('  - Token preview:', token ? token.substring(0, 50) + '...' : 'N/A');
+  console.log('  - Authorization header:', headers['Authorization'] ? 'Bearer [SET]' : 'NOT SET');
+
+  let response = await fetch(url, {
     ...options,
     headers,
   });
 
-  // Si el token es inválido, expirado o no autorizado (401 Unauthorized)
+  // Si el token es inválido o expirado (401 Unauthorized), intentar refrescar
   if (response.status === 401) {
-    // Cerrar sesión automáticamente
-    await removeToken();
-    throw new Error('Session expired. Please log in again.');
-  }
-
-  // Si hay otros errores relacionados con autenticación (403 Forbidden)
-  if (response.status === 403) {
-    const result = await response.json().catch(() => ({}));
-    if (result.message?.includes('expired') || result.message?.includes('invalid')) {
+    console.log('🔄 Token expired, attempting refresh...');
+    const refreshSuccess = await refreshToken();
+    
+    if (refreshSuccess) {
+      console.log('✅ Token refreshed successfully, retrying request...');
+      // Re-obtener el nuevo token
+      const newToken = await getToken();
+      if (newToken) {
+        headers['Authorization'] = `Bearer ${newToken}`;
+        
+        // Reintentar la petición con el nuevo token
+        response = await fetch(url, {
+          ...options,
+          headers,
+        });
+        
+        // Si aún falla después del refresh, entonces cerrar sesión
+        if (response.status === 401) {
+          console.log('❌ Token still invalid after refresh, logging out...');
+          await removeToken();
+          throw new Error('Session expired. Please log in again.');
+        }
+      } else {
+        console.log('❌ Failed to get new token after refresh, logging out...');
+        await removeToken();
+        throw new Error('Session expired. Please log in again.');
+      }
+    } else {
+      console.log('❌ Token refresh failed, logging out...');
       await removeToken();
       throw new Error('Session expired. Please log in again.');
     }
   }
 
+  // No procesar respuestas 403 aquí para evitar "Already read"
+  // Dejamos que el código llamador maneje los errores específicos
   return response;
+};
+
+// ========== FUNCIONES DE RECUPERACIÓN DE CONTRASEÑA ==========
+
+// Solicitar reset de contraseña
+export const requestPasswordReset = async (data: PasswordResetRequest): Promise<PasswordResetResponse> => {
+  try {
+    console.log('Requesting password reset for:', data.identifier);
+    
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/request-password-reset/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    
+    console.log('Password reset request response:', result);
+
+    if (response.ok) {
+      return {
+        success: result.success || true,
+        message: result.message || 'Código enviado exitosamente',
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || result.error || 'Error al enviar el código',
+      };
+    }
+  } catch (error: any) {
+    console.error('Password reset request error:', error);
+    return {
+      success: false,
+      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+    };
+  }
+};
+
+// Verificar código de reset
+export const verifyResetCode = async (data: VerifyResetCodeRequest): Promise<VerifyResetCodeResponse> => {
+  try {
+    console.log('Verifying reset code for:', data.identifier);
+    
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/verify-reset-code/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    
+    console.log('Verify reset code response:', result);
+
+    if (response.ok && result.success) {
+      return {
+        success: true,
+        message: result.message || 'Código verificado exitosamente',
+        reset_token: result.reset_token,
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || result.error || 'Código inválido o expirado',
+      };
+    }
+  } catch (error: any) {
+    console.error('Verify reset code error:', error);
+    return {
+      success: false,
+      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+    };
+  }
+};
+
+// Resetear contraseña
+export const resetPassword = async (data: ResetPasswordRequest): Promise<ResetPasswordResponse> => {
+  try {
+    console.log('Resetting password with token and confirm_password');
+    console.log('Reset password data:', { ...data, new_password: '[HIDDEN]', confirm_password: '[HIDDEN]' });
+    
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/reset-password/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    
+    console.log('Reset password response:', result);
+
+    if (response.ok && result.success) {
+      return {
+        success: true,
+        message: result.message || 'Contraseña actualizada exitosamente',
+      };
+    } else {
+      // Manejar errores específicos del backend
+      let errorMessage = 'Error al actualizar la contraseña';
+      
+      if (result.errors && Array.isArray(result.errors)) {
+        errorMessage = result.errors.join(', ');
+      } else if (result.message) {
+        errorMessage = result.message;
+      } else if (result.error) {
+        errorMessage = result.error;
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+      };
+    }
+  } catch (error: any) {
+    console.error('Reset password error:', error);
+    return {
+      success: false,
+      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+    };
+  }
 };
