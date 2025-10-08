@@ -6,6 +6,9 @@ const TOKEN_EXPIRY_KEY = 'auth_token_expiry';
 const USER_ROLE_ID_KEY = 'user_role_id';
 const USER_ROLE_NAME_KEY = 'user_role_name';
 
+// Variable para controlar llamadas simultáneas a isAuthenticated
+let isAuthenticating = false;
+
 export interface LoginData {
   rut: string;
   password: string;
@@ -146,6 +149,14 @@ export const isAuthenticated = async (): Promise<boolean> => {
 
   // Verificar con el backend si el token es válido y no ha expirado
   try {
+    // Evitar llamadas simultáneas a isAuthenticated
+    if (isAuthenticating) {
+      // Si ya hay una verificación en curso, retornar estado del token local
+      return token !== null;
+    }
+
+    isAuthenticating = true;
+    
     const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/verify-token/`, {
       method: 'POST',
       headers: {
@@ -175,6 +186,8 @@ export const isAuthenticated = async (): Promise<boolean> => {
     console.error('Error verifying token:', error);
     // En caso de error de red, confiar en la verificación local
     return token !== null;
+  } finally {
+    isAuthenticating = false;
   }
 };
 

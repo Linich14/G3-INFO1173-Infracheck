@@ -8,6 +8,7 @@ export const useUser = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [isLoadingUser, setIsLoadingUser] = useState(false); // Flag para evitar llamadas simultáneas
   
   const { isLoggedIn, handleSessionExpired } = useAuth();
 
@@ -17,6 +18,13 @@ export const useUser = () => {
       setLoading(false);
       return;
     }
+
+    // Evitar llamadas simultáneas
+    if (isLoadingUser) {
+      return;
+    }
+
+    setIsLoadingUser(true);
 
     try {
       setLoading(true);
@@ -40,6 +48,7 @@ export const useUser = () => {
       setUser(null);
     } finally {
       setLoading(false);
+      setIsLoadingUser(false);
     }
   }, [isLoggedIn, handleSessionExpired]);
 

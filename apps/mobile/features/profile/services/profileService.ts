@@ -82,3 +82,53 @@ export const mapProfileResponseToUser = (profileData: UserProfileResponse): User
     avatar: undefined, // Campo opcional para futuro
   };
 };
+
+/**
+ * Servicio para eliminar/desactivar la cuenta del usuario autenticado
+ * Realiza un soft delete de la cuenta
+ */
+export const deleteAccount = async (): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await authenticatedFetch(`${API_CONFIG.BASE_URL}/api/v1/delete-account/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}), // Body vacío como especificado
+    });
+
+    // Intentar parsear la respuesta JSON, pero manejar casos donde no hay contenido
+    let data;
+    try {
+      const responseText = await response.text();
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+      // Si no se puede parsear JSON, crear un objeto básico basado en el status
+      data = {};
+    }
+
+    if (response.ok) {
+      return {
+        success: true,
+        message: data.message || 'Cuenta desactivada exitosamente'
+      };
+    } else {
+      return {
+        success: false,
+        message: data.message || data.error || `Error HTTP ${response.status}: ${response.statusText}`
+      };
+    }
+  } catch (error: any) {
+    console.error('Error deleting account:', error);
+    
+    // Si es un error de sesión expirada, el authenticatedFetch ya lo maneja
+    if (error.message?.includes('Session expired')) {
+      throw error;
+    }
+    
+    return {
+      success: false,
+      message: error.message || 'Error de conexión al eliminar la cuenta'
+    };
+  }
+};

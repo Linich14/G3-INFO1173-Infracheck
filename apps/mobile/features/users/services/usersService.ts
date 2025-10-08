@@ -89,8 +89,8 @@ export const getUsers = async (): Promise<{ success: boolean; data?: User[]; mes
       };
     }
     
-    const url = `${API_CONFIG.BASE_URL}/api/users`;
-    console.log('📡 GET /api/users - Token: Bearer [hidden], Role:', userRole.rous_nombre);
+    const url = `${API_CONFIG.BASE_URL}/api/users/`;
+    console.log('📡 GET /api/users/ - Token: Bearer [hidden], Role:', userRole.rous_nombre);
 
     const response = await authenticatedFetch(url, {
       method: 'GET',

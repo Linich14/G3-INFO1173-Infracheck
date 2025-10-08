@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @csrf_exempt
-@require_http_methods(["DELETE"])
+@require_http_methods(["POST"])
 def delete_account(request):
     """
     Endpoint para eliminar la cuenta del usuario autenticado.
