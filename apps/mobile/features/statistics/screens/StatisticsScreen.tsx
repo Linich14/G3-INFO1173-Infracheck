@@ -246,7 +246,8 @@ export default function StatisticsScreen() {
         <Text className="flex-1 text-center text-xl font-bold text-white">
           Estadísticas Globales
         </Text>
-        <View className="w-10" /> {/* Espaciador para centrar título */}
+        {/* Espaciador para centrar título */}
+        <View className="w-10" />
       </View>
 
       <ScrollView

@@ -241,7 +241,8 @@ export default function ReportsListScreen() {
         <Text className="flex-1 text-center text-xl font-bold text-white">
           Lista de Reportes
         </Text>
-        <View className="w-10" /> {/* Espaciador para centrar título */}
+        {/* Espaciador para centrar título */}
+        <View className="w-10" />
       </View>
 
       <ScrollView
