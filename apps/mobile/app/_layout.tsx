@@ -4,11 +4,14 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '~/contexts/AuthContext';
 import { View, ActivityIndicator } from 'react-native';
+import { useNavigationBreadcrumb } from '~/hooks/useNavigationBreadcrumb';
 
 function RootLayoutNav() {
   const { isLoggedIn, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  useNavigationBreadcrumb();
 
   useEffect(() => {
     console.log('Layout navigation check:', { isLoading, isLoggedIn, segments }); // Debug log
