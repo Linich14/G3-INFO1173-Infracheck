@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { isAuthenticated, logout as logoutService, getUserRole } from '../features/auth/services/authService';
+import { initializeSecureStorage } from '../services/secureStorage';
 import { router } from 'expo-router';
 
 interface UserRole {
@@ -36,19 +37,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
 
   const checkAuthStatus = async () => {
-    setIsLoading(true); // Forzar loading durante la verificación
+    setIsLoading(true);
     try {
       const authenticated = await isAuthenticated();
-      console.log('Auth status check result:', authenticated); // Debug log
       setIsLoggedIn(authenticated);
-      
+
       if (authenticated) {
-        // Si está autenticado, obtener información del rol
         const role = await getUserRole();
         setUserRole(role);
-        console.log('User role loaded:', role);
       } else {
-        // Si no está autenticado, limpiar datos
         setUserRole(null);
         await logoutService();
       }
@@ -77,7 +74,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await logoutService();
       setIsLoggedIn(false);
       setUserRole(null);
-      // Redirigir al login con mensaje de sesión expirada
       router.replace('/(auth)/sign-in');
     } catch (error) {
       console.error('Error handling session expiration:', error);
@@ -85,7 +81,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    checkAuthStatus();
+    const initializeApp = async () => {
+      try {
+        await initializeSecureStorage({ enableMigration: true });
+        console.log('Secure storage initialized successfully');
+      } catch (error) {
+        console.warn('Failed to initialize secure storage, attempting cleanup:', error);
+
+        // Intentar limpieza de emergencia para datos corruptos
+        try {
+          console.log('🚨 Attempting emergency cleanup...');
+          const { secureClearAll } = await import('../services/secureStorage');
+          await secureClearAll();
+
+          console.log('✅ Emergency cleanup completed, retrying initialization...');
+
+          // Reintentar inicialización después de limpieza
+          await initializeSecureStorage({ enableMigration: true });
+          console.log('Secure storage reinitialized successfully after emergency cleanup');
+        } catch (cleanupError) {
+          console.error('Failed emergency cleanup and reinitialize:', cleanupError);
+          console.warn('Continuing with degraded mode - some features may not work');
+        }
+      }
+
+      await checkAuthStatus();
+    };
+
+    initializeApp();
   }, []);
 
   const value: AuthContextType = {
