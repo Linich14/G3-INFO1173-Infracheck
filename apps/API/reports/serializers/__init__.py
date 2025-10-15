@@ -10,6 +10,15 @@ from .shared_serializers import (
     TipoDenunciaSerializer,
     DenunciaEstadoSerializer
 )
+from .proyecto_serializers import (
+    ProyectoArchivoSerializer,
+    CreateProyectoArchivoSerializer,
+    CreateProyectoSerializer,
+    UpdateProyectoSerializer,
+    ProyectoListSerializer,
+    ProyectoDetailSerializer,
+    ProyectoReportSerializer
+)
 
 __all__ = [
     'ReportSerializer',
@@ -19,5 +28,12 @@ __all__ = [
     'ReportDetailSerializer',
     'CiudadSerializer',
     'TipoDenunciaSerializer',
-    'DenunciaEstadoSerializer'
+    'DenunciaEstadoSerializer',
+    'ProyectoArchivoSerializer',
+    'CreateProyectoArchivoSerializer',
+    'CreateProyectoSerializer',
+    'UpdateProyectoSerializer',
+    'ProyectoListSerializer',
+    'ProyectoDetailSerializer',
+    'ProyectoReportSerializer'
 ]

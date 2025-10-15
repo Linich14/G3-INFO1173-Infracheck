@@ -1,6 +1,6 @@
 import { API_CONFIG } from '~/constants/config';
 import { authenticatedFetch } from '~/features/auth/services/authService';
-import { User, UserProfileResponse, UserUpdateData } from '../types';
+import { User, UserProfileResponse, UserUpdateData, ChangePasswordData, ChangePasswordResponse } from '../types';
 
 /**
  * Servicio para obtener el perfil del usuario autenticado
@@ -129,6 +129,48 @@ export const deleteAccount = async (): Promise<{ success: boolean; message: stri
     return {
       success: false,
       message: error.message || 'Error de conexión al eliminar la cuenta'
+    };
+  }
+};
+
+/**
+ * Servicio para cambiar la contraseña del usuario autenticado
+ */
+export const changePassword = async (passwordData: ChangePasswordData): Promise<ChangePasswordResponse> => {
+  try {
+    const response = await authenticatedFetch(`${API_CONFIG.BASE_URL}/api/v1/change-password/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(passwordData),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return {
+        success: true,
+        message: result.message || 'Contraseña cambiada exitosamente'
+      };
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.errors?.[0] || errorData.message || 'Error al cambiar la contraseña';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  } catch (error: any) {
+    console.error('Error changing password:', error);
+
+    // Si es un error de sesión expirada, el authenticatedFetch ya lo maneja
+    if (error.message?.includes('Session expired')) {
+      throw error;
+    }
+
+    return {
+      success: false,
+      message: error.message || 'Error de conexión al cambiar la contraseña'
     };
   }
 };

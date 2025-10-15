@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ArrowLeft, Settings } from 'lucide-react-native';
 import { UserInfo } from '~/features/profile/components/UserInfo';
+import { ChangePasswordSection } from '~/features/profile/components/ChangePasswordSection';
 import { DeleteAccountSection } from '~/features/profile/components/DeleteAccountSection';
 import { useUser } from '~/features/profile/hooks/useUser';
 
@@ -77,6 +78,11 @@ function ProfileScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* User Information */}
         <UserInfo user={user} />
+
+        {/* Change Password Section */}
+        <View className="px-4">
+          <ChangePasswordSection />
+        </View>
 
         {/* Delete Account Section */}
         <View className="px-4 pb-8">
