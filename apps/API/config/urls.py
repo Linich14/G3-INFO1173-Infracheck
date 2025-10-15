@@ -10,6 +10,7 @@ from interfaces.api.v1.reset_password import reset_password_view
 from interfaces.api.v1.profile import profile_view
 from interfaces.api.v1.delete_account import delete_account
 from interfaces.api.v1.refresh import refresh_token_view
+from interfaces.api.v1.change_password import change_password_view
 from django.urls import include
 from interfaces.api.v1.admin_users import admin_list_users, admin_update_user_status, admin_search_users
 
@@ -24,6 +25,7 @@ urlpatterns = [
     path('api/v1/verify-reset-code/', verify_reset_code_view, name='verify-reset-code'),
     path('api/v1/reset-password/', reset_password_view, name='reset-password'),
     path('api/v1/profile/', profile_view, name='user-profile'),
+    path('api/v1/change-password/', change_password_view, name='change-password'),
     path('api/v1/delete-account/', delete_account, name='delete-account'),
 
     # Ruta de reportes /api/reports/

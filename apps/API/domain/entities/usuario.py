@@ -33,6 +33,11 @@ class Usuario(models.Model):
         from django.contrib.auth.hashers import check_password
         return check_password(raw_password, self.usua_pass)
     
+    def set_password(self, raw_password):
+        """Establece una nueva contraseña hasheada"""
+        from django.contrib.auth.hashers import make_password
+        self.usua_pass = make_password(raw_password)
+    
     def save(self, *args, **kwargs):
         # Verificar si es una creación (no actualización)
         is_new = self._state.adding
