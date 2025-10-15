@@ -1,13 +1,11 @@
 from django.urls import path
 from .views.report_views import (
-    CreateReportView,
+    ReportCreateView,
     ReportListView,
     ReportDetailView,
-    UpdateReportView,
-    DeleteReportView,
-    UserReportsView,
-    UrgentReportsView,
-    ReportStatisticsView
+    ReportUpdateView,
+    ReportDeleteView,
+    ReportImageDeleteView,
 )
 from .views.notification_views import (
     NotificationListView,
@@ -16,16 +14,12 @@ from .views.notification_views import (
 )
 
 urlpatterns = [
-    path('reports/', ReportListView.as_view(), name='list-reports'),
-    path('reports/create/', CreateReportView.as_view(), name='create-report'),
-    path('reports/<int:report_id>/', ReportDetailView.as_view(), name='report-detail'),
-    path('reports/<int:report_id>/update/', UpdateReportView.as_view(), name='update-report'),
-    path('reports/<int:report_id>/delete/', DeleteReportView.as_view(), name='delete-report'),
-    path('reports/user/', UserReportsView.as_view(), name='user-reports'),
-    path('reports/urgent/', UrgentReportsView.as_view(), name='urgent-reports'),
-    path('reports/statistics/', ReportStatisticsView.as_view(), name='report-statistics'),
-    
-    # Notificaciones
+    path('', ReportListView.as_view(), name='report-list'),
+    path('create/', ReportCreateView.as_view(), name='report-create'),
+    path('<int:report_id>/', ReportDetailView.as_view(), name='report-detail'),
+    path('<int:report_id>/update/', ReportUpdateView.as_view(), name='report-update'),
+    path('<int:report_id>/delete/', ReportDeleteView.as_view(), name='report-delete'),
+    path('<int:report_id>/images/<int:image_id>/delete/', ReportImageDeleteView.as_view(), name='report-image-delete'),
     path('notifications/', NotificationListView.as_view(), name='notifications-list'),
     path('notifications/<int:notification_id>/mark-read/', MarkNotificationReadView.as_view(), name='mark-notification-read'),
     path('notifications/mark-all-read/', MarkAllNotificationsReadView.as_view(), name='mark-all-notifications-read'),

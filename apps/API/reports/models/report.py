@@ -15,6 +15,20 @@ class ReportModel(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True, null=True, blank=True)
     
+    latitud = models.DecimalField(
+        max_digits=10, 
+        decimal_places=7, 
+        default=0.0,
+        verbose_name="Latitud",
+        help_text="Coordenada de latitud (-90 a 90)"
+    )
+    longitud = models.DecimalField(
+        max_digits=10, 
+        decimal_places=7,
+        default=0.0, 
+        verbose_name="Longitud", 
+        help_text="Coordenada de longitud (-180 a 180)"
+    )
     # Foreign Keys
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='reportes', to_field='usua_id')
     denuncia_estado = models.ForeignKey('DenunciaEstado', on_delete=models.PROTECT)

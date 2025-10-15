@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Max
 from django.core.exceptions import ValidationError as DjangoValidationError
 from datetime import datetime, timedelta
 
@@ -10,10 +10,24 @@ from .validation_service import validation_service
 from .notification_service import notification_service
 from domain.entities.usuario import Usuario
 from django.utils import timezone
+from django.apps import apps
 
+import uuid
+import os
+from django.core.files.storage import default_storage
+from django.conf import settings
+from reports.models.report_archivos import ReportArchivo
+
+
+# Obtener el modelo correctamente
+ReportArchivo = apps.get_model('reports', 'ReportArchivo')
 
 class ReportService:
     """Servicio con toda la lógica de negocio de reportes"""
+    
+    def __init__(self):
+        self.storage = default_storage
+        self.base_media_path = getattr(settings, 'MEDIA_ROOT', 'media/')
     
     @transaction.atomic
     def create_report(
@@ -135,6 +149,9 @@ class ReportService:
         """Elimina un reporte"""
         report = self._get_report_or_raise(report_id)
         
+        # Eliminar archivos asociados primero
+        self.delete_report_files(report_id)
+        
         notification_service.notify_report_deleted(report)
         report.delete()
         
@@ -240,7 +257,257 @@ class ReportService:
         if not report:
             raise ReportNotFoundException(report_id)
         return report
+    
+    # Métodos con archivos
+    @transaction.atomic
+    def create_report_with_files(self, data, imagenes=None, video=None):
+        """Crear reporte con archivos multimedia"""
+        # Validar límites antes de crear
+        if imagenes and len(imagenes) > 10:
+            raise ValueError("Máximo 10 imágenes permitidas")
+        
+        if video and imagenes and len(imagenes) == 10:
+            raise ValueError("No se puede agregar video si ya hay 10 imágenes")
+        
+        # Crear el reporte primero
+        reporte = ReportModel.objects.create(**data)
+        
+        try:
+            # Procesar imágenes
+            if imagenes:
+                self._save_images(reporte, imagenes)
+            
+            # Procesar video
+            if video:
+                self._save_video(reporte, video)
+                
+            return reporte
+            
+        except Exception as e:
+            # Si hay error, eliminar el reporte creado y sus archivos
+            self.delete_report_files(reporte.id)
+            reporte.delete()
+            raise e
+    
+    def _save_images(self, reporte, imagenes):
+        """Guardar múltiples imágenes con la estructura de carpetas especificada"""
+        fecha_str = datetime.now().strftime("%d-%m-%Y")
+        
+        for i, imagen in enumerate(imagenes):
+            # Obtener extensión sin el punto
+            extension = os.path.splitext(imagen.name)[1].lower().replace('.', '')
+            nombre_archivo = f"foto_{str(i+1).zfill(3)}.{extension}"
+            
+            # Crear estructura de carpetas: uploads/01-11-2024/id_report/images/
+            carpeta_destino = f"uploads/{fecha_str}/id_{reporte.id}/images"
+            
+            # Crear directorio si no existe
+            directorio_completo = os.path.join(self.base_media_path, carpeta_destino)
+            os.makedirs(directorio_completo, exist_ok=True)
+            
+            # Guardar archivo físicamente
+            ruta_archivo_completa = os.path.join(directorio_completo, nombre_archivo)
+            with open(ruta_archivo_completa, 'wb+') as destino:
+                for chunk in imagen.chunks():
+                    destino.write(chunk)
+            
+            # Crear registro en la base de datos
+            ReportArchivo.objects.create(
+                denu=reporte,
+                dear_nombre=nombre_archivo,
+                dear_extension=extension,
+                dear_es_principal=(i == 0),  # La primera imagen es principal
+                dear_orden=i
+            )
+    
+    def _save_video(self, reporte, video):
+        """Guardar video con la estructura de carpetas especificada"""
+        fecha_str = datetime.now().strftime("%d-%m-%Y")
+        
+        # Obtener extensión sin el punto
+        extension = os.path.splitext(video.name)[1].lower().replace('.', '')
+        nombre_archivo = f"video_001.{extension}"
+        
+        # Crear estructura de carpetas: uploads/01-11-2024/id_report/videos/
+        carpeta_destino = f"uploads/{fecha_str}/id_{reporte.id}/videos"
+        
+        # Crear directorio si no existe
+        directorio_completo = os.path.join(self.base_media_path, carpeta_destino)
+        os.makedirs(directorio_completo, exist_ok=True)
+        
+        # Guardar archivo físicamente
+        ruta_archivo_completa = os.path.join(directorio_completo, nombre_archivo)
+        with open(ruta_archivo_completa, 'wb+') as destino:
+            for chunk in video.chunks():
+                destino.write(chunk)
+        
+        # Crear registro en la base de datos
+        ReportArchivo.objects.create(
+            denu=reporte,
+            dear_nombre=nombre_archivo,
+            dear_extension=extension,
+            dear_es_principal=True,  # El video siempre es principal
+            dear_orden=0
+        )
+    
+    def _save_images_with_order(self, reporte, imagenes, orden_inicial):
+        """Guardar imágenes con orden específico"""
+        fecha_str = datetime.now().strftime("%d-%m-%Y")
+        
+        for i, imagen in enumerate(imagenes):
+            # Obtener extensión sin el punto
+            extension = os.path.splitext(imagen.name)[1].lower().replace('.', '')
+            numero_archivo = orden_inicial + i + 1
+            nombre_archivo = f"foto_{str(numero_archivo).zfill(3)}.{extension}"
+            
+            # Crear estructura de carpetas
+            carpeta_destino = f"uploads/{fecha_str}/id_{reporte.id}/images"
+            
+            # Crear directorio si no existe
+            directorio_completo = os.path.join(self.base_media_path, carpeta_destino)
+            os.makedirs(directorio_completo, exist_ok=True)
+            
+            # Guardar archivo físicamente
+            ruta_archivo_completa = os.path.join(directorio_completo, nombre_archivo)
+            with open(ruta_archivo_completa, 'wb+') as destino:
+                for chunk in imagen.chunks():
+                    destino.write(chunk)
+            
+            # Crear registro en la base de datos
+            ReportArchivo.objects.create(
+                denu=reporte,
+                dear_nombre=nombre_archivo,
+                dear_extension=extension,
+                dear_es_principal=False,  # Las imágenes adicionales no son principales
+                dear_orden=orden_inicial + i
+            )
+    
+    def get_report_files(self, reporte_id):
+        """Obtener archivos de un reporte específico"""
+        # Usamos objeto.pk como forma universal de referirse a la clave primaria
+        return ReportArchivo.objects.filter(denu_id=reporte_id).order_by('dear_orden')
+    
+    def get_report_images(self, reporte_id):
+        """Obtener solo imágenes de un reporte"""
+        extensiones_imagen = ['jpg', 'jpeg', 'png', 'webp']
+        return ReportArchivo.objects.filter(
+            denu_id=reporte_id,
+            dear_extension__in=extensiones_imagen
+        ).order_by('dear_orden')
+    
+    def get_report_video(self, reporte_id):
+        """Obtener video de un reporte"""
+        extensiones_video = ['mp4', 'avi', 'mov', 'mkv', 'webm']
+        return ReportArchivo.objects.filter(
+            denu_id=reporte_id,
+            dear_extension__in=extensiones_video
+        ).first()
+    
+    def delete_report_files(self, reporte_id):
+        """Eliminar todos los archivos de un reporte"""
+        archivos = ReportArchivo.objects.filter(denu_id=reporte_id)
+        
+        for archivo in archivos:
+            # Construir la ruta del archivo basada en los datos del registro
+            fecha_str = datetime.now().strftime("%d-%m-%Y")
+            
+            # Determinar si es imagen o video
+            extensiones_video = ['mp4', 'avi', 'mov', 'mkv', 'webm']
+            if archivo.dear_extension in extensiones_video:
+                tipo_carpeta = 'videos'
+            else:
+                tipo_carpeta = 'images'
+            
+            ruta_archivo = os.path.join(
+                self.base_media_path, 
+                'uploads', 
+                fecha_str, 
+                f'id_{reporte_id}', 
+                tipo_carpeta, 
+                archivo.dear_nombre
+            )
+            
+            # Eliminar archivo físico si existe
+            if os.path.exists(ruta_archivo):
+                try:
+                    os.remove(ruta_archivo)
+                except OSError:
+                    pass  # Continuar aunque no se pueda eliminar el archivo
+        
+        # Eliminar registros de la base de datos
+        archivos.delete()
+    
+    def update_report_files(self, reporte, nuevas_imagenes=None, nuevo_video=None):
+        """Actualizar archivos de un reporte existente"""
+        
+        # Validar límites antes de procesar
+        imagenes_actuales = self.get_report_images(reporte.id).count()
+        
+        if nuevas_imagenes:
+            total_imagenes = imagenes_actuales + len(nuevas_imagenes)
+            if total_imagenes > 10:
+                raise ValueError(f"El total de imágenes ({total_imagenes}) excede el límite de 10")
+        
+        # Agregar nuevas imágenes
+        if nuevas_imagenes:
+            # Obtener el próximo orden disponible
+            ultimo_orden = ReportArchivo.objects.filter(
+                denu_id=reporte.id
+            ).aggregate(
+                max_orden=Max('dear_orden')
+            )['max_orden'] or -1
+            
+            self._save_images_with_order(reporte, nuevas_imagenes, ultimo_orden + 1)
+        
+        # Reemplazar video si se proporciona uno nuevo
+        if nuevo_video:
+            # Eliminar video anterior
+            video_anterior = self.get_report_video(reporte.id)
+            if video_anterior:
+                fecha_str = datetime.now().strftime("%d-%m-%Y")
+                ruta_archivo = os.path.join(
+                    self.base_media_path, 
+                    'uploads', 
+                    fecha_str, 
+                    f'id_{reporte.id}', 
+                    'videos', 
+                    video_anterior.dear_nombre
+                )
+                
+                if os.path.exists(ruta_archivo):
+                    try:
+                        os.remove(ruta_archivo)
+                    except OSError:
+                        pass
+                video_anterior.delete()
+            
+            # Guardar nuevo video
+            self._save_video(reporte, nuevo_video)
+    
+    def set_image_as_principal(self, archivo_id):
+        """Establecer una imagen como principal"""
+        try:
+            archivo = ReportArchivo.objects.get(dear_id=archivo_id)
+            
+            # Verificar que es una imagen
+            extensiones_imagen = ['jpg', 'jpeg', 'png', 'webp']
+            if archivo.dear_extension not in extensiones_imagen:
+                raise ValueError("Solo las imágenes pueden ser principales")
+            
+            # Quitar principal de otras imágenes del mismo reporte
+            ReportArchivo.objects.filter(
+                denu_id=archivo.denu.id,
+                dear_extension__in=extensiones_imagen
+            ).update(dear_es_principal=False)
+            
+            # Establecer como principal
+            archivo.dear_es_principal = True
+            archivo.save()
+            
+            return True
+        except ReportArchivo.DoesNotExist:
+            return False
 
 
-# Instancia del servicio
+# Instancia global del servicio
 report_service = ReportService()
