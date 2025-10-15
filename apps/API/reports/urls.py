@@ -9,6 +9,11 @@ from .views.report_views import (
     UrgentReportsView,
     ReportStatisticsView
 )
+from .views.notification_views import (
+    NotificationListView,
+    MarkNotificationReadView,
+    MarkAllNotificationsReadView
+)
 
 urlpatterns = [
     path('reports/', ReportListView.as_view(), name='list-reports'),
@@ -19,4 +24,9 @@ urlpatterns = [
     path('reports/user/', UserReportsView.as_view(), name='user-reports'),
     path('reports/urgent/', UrgentReportsView.as_view(), name='urgent-reports'),
     path('reports/statistics/', ReportStatisticsView.as_view(), name='report-statistics'),
+    
+    # Notificaciones
+    path('notifications/', NotificationListView.as_view(), name='notifications-list'),
+    path('notifications/<int:notification_id>/mark-read/', MarkNotificationReadView.as_view(), name='mark-notification-read'),
+    path('notifications/mark-all-read/', MarkAllNotificationsReadView.as_view(), name='mark-all-notifications-read'),
 ]
