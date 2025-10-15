@@ -42,11 +42,16 @@ export interface UserUpdateData {
   usua_telefono?: number;
 }
 
-export interface ContactFieldProps {
-  icon: React.ReactNode;
-  value: string;
-  className?: string;
-  showEditIcon?: boolean;
+// Interface para cambiar contraseña
+export interface ChangePasswordData {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface UserInfoProps {
