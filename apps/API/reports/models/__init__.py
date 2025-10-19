@@ -3,9 +3,10 @@ from .ciudad import Ciudad
 from .tipo_denuncia import TipoDenuncia
 from .denuncia_estado import DenunciaEstado
 from .report_archivos import ReportArchivo
-from .proyecto import ProyectoModel
-from .proyecto_archivos import ProyectoArchivosModel
-from .notification import Notification
+
+# Imports para mantener compatibilidad con migraciones antiguas
+from proyectos.models import ProyectoModel, ProyectoArchivosModel
+from notifications.models import Notification
 
 
 __all__ = [
@@ -16,6 +17,5 @@ __all__ = [
     'ReportArchivo',
     'ProyectoModel',
     'ProyectoArchivosModel',
-    'ReportArchivo',
     'Notification',
 ]
