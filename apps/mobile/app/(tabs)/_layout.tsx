@@ -144,6 +144,18 @@ export default function Layout() {
                     href: null, // Oculta de la barra de navegación
                 }}
             />
+            <Tabs.Screen
+                name="notifications/create"
+                options={{
+                    href: null, // Oculta de la barra de navegación
+                }}
+            />
+            <Tabs.Screen
+                name="notifications/index"
+                options={{
+                    href: null, // Oculta de la barra de navegación
+                }}
+            />
         </Tabs>
     );
 }
