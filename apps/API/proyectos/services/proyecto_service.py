@@ -118,9 +118,35 @@ class ProyectoService:
         self,
         estado: Optional[int] = None,
         prioridad: Optional[int] = None,
+        categoria: Optional[str] = None,
         search: Optional[str] = None
     ) -> List[ProyectoModel]:
-        """Obtiene todos los proyectos con filtros opcionales"""
+        """
+        Obtiene todos los proyectos con filtros opcionales
+        
+        Args:
+            estado: Filtro por estado del proyecto (1-7)
+                1 = Planificación
+                2 = En Progreso
+                3 = Completado
+                4 = Cancelado
+                5 = Pendiente
+                6 = Aprobado
+                7 = Rechazado
+            
+            prioridad: Filtro por nivel de urgencia/prioridad (1-3)
+                1 = Normal
+                2 = Importante
+                3 = Muy Importante (Urgente)
+            
+            categoria: Filtro por tipo/categoría de denuncia (texto)
+                Ejemplos: "Bache o pavimento dañado", "Alumbrado público deficiente", etc.
+            
+            search: Búsqueda de texto en título, descripción y lugar
+        
+        Returns:
+            Lista de proyectos que coincidan con los filtros
+        """
         queryset = ProyectoModel.objects.select_related('denu_id').prefetch_related('archivos').filter(proy_visible=1)
         
         # Aplicar filtros
@@ -129,6 +155,9 @@ class ProyectoService:
         
         if prioridad is not None:
             queryset = queryset.filter(proy_prioridad=prioridad)
+        
+        if categoria:
+            queryset = queryset.filter(proy_tipo_denuncia__icontains=categoria)
         
         if search:
             queryset = queryset.filter(

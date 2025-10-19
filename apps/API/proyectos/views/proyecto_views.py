@@ -59,7 +59,49 @@ class ProyectoListView(APIView):
     """
     GET /api/proyectos/
     Listar todos los proyectos con filtros opcionales
-    Query params: estado, prioridad, search
+    
+    Query Parameters:
+        - estado (int): Filtrar por estado del proyecto
+            1 = Planificación
+            2 = En Progreso
+            3 = Completado
+            4 = Cancelado
+            5 = Pendiente
+            6 = Aprobado
+            7 = Rechazado
+            Ejemplo: ?estado=2
+        
+        - prioridad (int): Filtrar por nivel de urgencia/prioridad
+            1 = Normal
+            2 = Importante
+            3 = Muy Importante (Urgente)
+            Ejemplo: ?prioridad=3
+        
+        - categoria (str): Filtrar por tipo/categoría de denuncia
+            Categorías disponibles:
+                - Bache o pavimento dañado
+                - Vereda rota o en mal estado
+                - Acceso peatonal inaccesible
+                - Señalización faltante o dañada
+                - Alumbrado público deficiente
+                - Basura o escombros acumulados
+                - Daño en mobiliario urbano
+                - Alcantarilla tapada u obstruida
+                - Árbol o vegetación que obstruye
+                - Graffiti o vandalismo
+                - Semáforo en mal estado
+                - Plaza o parque deteriorado
+                - Fuga de agua o alcantarillado
+                - Otro problema de infraestructura
+            Ejemplo: ?categoria=Bache
+        
+        - search (str): Búsqueda de texto en título, descripción y lugar
+            Ejemplo: ?search=centro
+    
+    Ejemplos de uso combinado:
+        - /api/proyectos/?estado=2&prioridad=3
+        - /api/proyectos/?categoria=Alumbrado&estado=2
+        - /api/proyectos/?search=centro&prioridad=3
     """
     authentication_classes = [SesionTokenAuthentication]
     permission_classes = [IsAuthenticatedWithSesionToken]
@@ -69,6 +111,7 @@ class ProyectoListView(APIView):
             # Obtener parámetros de filtrado
             estado = request.query_params.get('estado')
             prioridad = request.query_params.get('prioridad')
+            categoria = request.query_params.get('categoria')
             search = request.query_params.get('search')
             
             # Convertir a int si existen
@@ -78,18 +121,25 @@ class ProyectoListView(APIView):
             proyectos = proyecto_service.get_all_proyectos(
                 estado=estado,
                 prioridad=prioridad,
+                categoria=categoria,
                 search=search
             )
             
             serializer = ProyectoListSerializer(proyectos, many=True)
             return Response({
                 'results': serializer.data,
-                'count': len(serializer.data)
+                'count': len(serializer.data),
+                'filters_applied': {
+                    'estado': estado,
+                    'prioridad': prioridad,
+                    'categoria': categoria,
+                    'search': search
+                }
             })
             
         except ValueError:
             return Response(
-                {'error': 'Parámetros de filtro inválidos'},
+                {'error': 'Parámetros de filtro inválidos. Estado y prioridad deben ser números enteros.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
