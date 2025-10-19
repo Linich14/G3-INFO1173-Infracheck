@@ -34,8 +34,8 @@ class ProyectoModel(models.Model):
         related_name='proyectos'
     )
     
-    # Campos adicionales para el frontend
-    proy_lugar = models.CharField(max_length=255, db_column='proy_lugar', default='')
+    # Campos adicionales
+    proy_lugar = models.CharField(max_length=255, db_column='proy_lugar', blank=True, null=True)
     proy_prioridad = models.IntegerField(
         db_column='proy_prioridad',
         choices=[(1, 'Normal'), (2, 'Importante'), (3, 'Muy Importante')],
@@ -49,8 +49,8 @@ class ProyectoModel(models.Model):
     proy_tipo_denuncia = models.CharField(
         max_length=100,
         db_column='proy_tipo_denuncia',
-        default='',
-        blank=True
+        blank=True,
+        null=True
     )
     
     class Meta:

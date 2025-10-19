@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from interfaces.authentication.permissions import IsAuthenticatedWithSesionToken
 from interfaces.authentication.session_token_auth import SesionTokenAuthentication
 
-from reports.services import proyecto_service, ProyectoNotFoundException, ProyectoValidationException
-from reports.serializers import (
+from proyectos.services import proyecto_service, ProyectoNotFoundException, ProyectoValidationException
+from proyectos.serializers import (
     CreateProyectoSerializer,
     UpdateProyectoSerializer,
     ProyectoDetailSerializer,
@@ -21,7 +21,7 @@ from reports.serializers import (
 
 class CreateProyectoView(APIView):
     """
-    POST /api/projects/create/
+    POST /api/proyectos/create/
     Crear nuevo proyecto vinculado a una denuncia
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -57,7 +57,7 @@ class CreateProyectoView(APIView):
 
 class ProyectoListView(APIView):
     """
-    GET /api/projects/
+    GET /api/proyectos/
     Listar todos los proyectos con filtros opcionales
     Query params: estado, prioridad, search
     """
@@ -101,7 +101,7 @@ class ProyectoListView(APIView):
 
 class ProyectoDetailView(APIView):
     """
-    GET /api/projects/<id>/
+    GET /api/proyectos/<id>/
     Obtener detalle completo de un proyecto
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -128,7 +128,7 @@ class ProyectoDetailView(APIView):
 
 class UpdateProyectoView(APIView):
     """
-    PUT/PATCH /api/projects/<id>/update/
+    PUT/PATCH /api/proyectos/<id>/update/
     Actualizar información de un proyecto
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -175,7 +175,7 @@ class UpdateProyectoView(APIView):
 
 class DeleteProyectoView(APIView):
     """
-    DELETE /api/projects/<id>/delete/
+    DELETE /api/proyectos/<id>/delete/
     Eliminar un proyecto (soft delete)
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -202,7 +202,7 @@ class DeleteProyectoView(APIView):
 
 class ProyectosByDenunciaView(APIView):
     """
-    GET /api/projects/denuncia/<denuncia_id>/
+    GET /api/proyectos/denuncia/<denuncia_id>/
     Obtener proyectos vinculados a una denuncia específica
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -225,7 +225,7 @@ class ProyectosByDenunciaView(APIView):
 
 class ProyectosUrgentesView(APIView):
     """
-    GET /api/projects/urgent/
+    GET /api/proyectos/urgent/
     Obtener proyectos con prioridad alta (Muy Importante)
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -248,7 +248,7 @@ class ProyectosUrgentesView(APIView):
 
 class ProyectosActivosView(APIView):
     """
-    GET /api/projects/active/
+    GET /api/proyectos/active/
     Obtener proyectos activos (En Progreso o Pendientes)
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -273,7 +273,7 @@ class ProyectosActivosView(APIView):
 
 class ProyectoReportsView(APIView):
     """
-    GET /api/projects/<id>/reports/
+    GET /api/proyectos/<id>/reports/
     Obtener reportes/denuncias asociadas a un proyecto
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -302,7 +302,7 @@ class ProyectoReportsView(APIView):
 
 class ReportProblemaView(APIView):
     """
-    POST /api/projects/<id>/report-problem/
+    POST /api/proyectos/<id>/report-problem/
     Reportar un problema en un proyecto existente
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -347,7 +347,7 @@ class ReportProblemaView(APIView):
 
 class ProyectoStatisticsView(APIView):
     """
-    GET /api/projects/statistics/
+    GET /api/proyectos/statistics/
     Obtener estadísticas generales de todos los proyectos
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -366,7 +366,7 @@ class ProyectoStatisticsView(APIView):
 
 class ProyectoDetailStatisticsView(APIView):
     """
-    GET /api/projects/<id>/statistics/
+    GET /api/proyectos/<id>/statistics/
     Obtener estadísticas específicas de un proyecto
     Incluye gráficos de distribución y evolución temporal
     """
@@ -394,7 +394,7 @@ class ProyectoDetailStatisticsView(APIView):
 
 class ProyectoArchivosView(APIView):
     """
-    GET /api/projects/<id>/archivos/
+    GET /api/proyectos/<id>/archivos/
     Obtener todos los archivos de un proyecto
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -417,7 +417,7 @@ class ProyectoArchivosView(APIView):
 
 class AddArchivoProyectoView(APIView):
     """
-    POST /api/projects/<id>/archivos/add/
+    POST /api/proyectos/<id>/archivos/add/
     Añadir un archivo a un proyecto
     """
     authentication_classes = [SesionTokenAuthentication]
@@ -461,7 +461,7 @@ class AddArchivoProyectoView(APIView):
 
 class DeleteArchivoView(APIView):
     """
-    DELETE /api/projects/archivos/<archivo_id>/delete/
+    DELETE /api/proyectos/archivos/<archivo_id>/delete/
     Eliminar un archivo (soft delete)
     """
     authentication_classes = [SesionTokenAuthentication]

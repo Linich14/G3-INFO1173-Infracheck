@@ -4,8 +4,6 @@ from .tipo_denuncia import TipoDenuncia
 from .denuncia_estado import DenunciaEstado
 from .report_archivos import ReportArchivo
 from .notification import Notification
-from .proyecto import ProyectoModel
-from .proyecto_archivos import ProyectoArchivosModel
 
 
 __all__ = [
@@ -13,8 +11,6 @@ __all__ = [
     'Ciudad',
     'TipoDenuncia', 
     'DenunciaEstado',
-    'ReportArchivo'
+    'ReportArchivo',
     'Notification',
-    'ProyectoModel',
-    'ProyectoArchivosModel',
 ]
