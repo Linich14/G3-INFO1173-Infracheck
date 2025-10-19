@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from reports.models import ProyectoModel, ProyectoArchivosModel, ReportModel
+from proyectos.models import ProyectoModel, ProyectoArchivosModel
+from reports.models import ReportModel
 from datetime import date
 
 
@@ -61,7 +62,7 @@ class CreateProyectoSerializer(serializers.Serializer):
     )
     denu_id = serializers.IntegerField(min_value=1)
     
-    # Campos adicionales del frontend
+    # Campos adicionales
     proy_lugar = serializers.CharField(max_length=255, required=False, allow_blank=True)
     proy_prioridad = serializers.ChoiceField(
         choices=[1, 2, 3],

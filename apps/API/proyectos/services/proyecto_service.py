@@ -5,8 +5,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-from reports.models import ProyectoModel, ProyectoArchivosModel, ReportModel
-from reports.exceptions import ReportValidationException
+from proyectos.models import ProyectoModel, ProyectoArchivosModel
+from reports.models import ReportModel
 
 
 class ProyectoNotFoundException(Exception):

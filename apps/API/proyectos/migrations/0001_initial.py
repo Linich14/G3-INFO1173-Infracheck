@@ -1,0 +1,116 @@
+# Generated migration for proyectos app
+# This migration uses SeparateDatabaseAndState to register models
+# that already exist in the database (created in reports.0001_initial)
+
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+        ('reports', '0001_initial'),  # Depends on reports because tables already exist there
+    ]
+
+    operations = [
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                # Define los modelos en el estado de Django
+                migrations.CreateModel(
+                    name='ProyectoModel',
+                    fields=[
+                        ('proy_id', models.AutoField(db_column='proy_id', primary_key=True, serialize=False)),
+                        ('proy_titulo', models.CharField(db_column='proy_titulo', max_length=50)),
+                        ('proy_descripcion', models.TextField(db_column='proy_descripcion')),
+                        ('proy_estado', models.IntegerField(
+                            choices=[
+                                (1, 'Planificación'),
+                                (2, 'En Progreso'),
+                                (3, 'Completado'),
+                                (4, 'Cancelado'),
+                                (5, 'Pendiente'),
+                                (6, 'Aprobado'),
+                                (7, 'Rechazado')
+                            ],
+                            db_column='proy_estado',
+                            default=1
+                        )),
+                        ('proy_visible', models.IntegerField(db_column='proy_visible', default=1)),
+                        ('proy_creado', models.DateTimeField(auto_now_add=True, db_column='proy_creado')),
+                        ('proy_actualizado', models.DateTimeField(auto_now=True, db_column='proy_actualizado')),
+                        ('proy_lugar', models.CharField(db_column='proy_lugar', default='', max_length=255)),
+                        ('proy_prioridad', models.IntegerField(
+                            choices=[(1, 'Normal'), (2, 'Importante'), (3, 'Muy Importante')],
+                            db_column='proy_prioridad',
+                            default=1
+                        )),
+                        ('proy_fecha_inicio_estimada', models.DateField(
+                            blank=True,
+                            db_column='proy_fecha_inicio_estimada',
+                            null=True
+                        )),
+                        ('proy_tipo_denuncia', models.CharField(
+                            blank=True,
+                            db_column='proy_tipo_denuncia',
+                            default='',
+                            max_length=100
+                        )),
+                        ('denu_id', models.ForeignKey(
+                            db_column='denu_id',
+                            on_delete=django.db.models.deletion.CASCADE,
+                            related_name='proyectos',
+                            to='reports.reportmodel'
+                        )),
+                    ],
+                    options={
+                        'db_table': 'Proyecto',
+                        'ordering': ['-proy_creado'],
+                        'verbose_name': 'Proyecto',
+                        'verbose_name_plural': 'Proyectos',
+                    },
+                ),
+                migrations.CreateModel(
+                    name='ProyectoArchivosModel',
+                    fields=[
+                        ('proar_id', models.AutoField(db_column='proar_id', primary_key=True, serialize=False)),
+                        ('proar_tipo', models.CharField(
+                            choices=[
+                                ('imagen', 'Imagen'),
+                                ('documento', 'Documento'),
+                                ('video', 'Video'),
+                                ('plano', 'Plano'),
+                                ('otro', 'Otro')
+                            ],
+                            db_column='proar_tipo',
+                            max_length=50
+                        )),
+                        ('proar_contenido_tipo', models.CharField(db_column='proar_contenido_tipo', max_length=100)),
+                        ('proar_mime', models.CharField(db_column='proar_mime', max_length=100)),
+                        ('proar_nombre_archivo', models.CharField(db_column='proar_nombre_archivo', max_length=255)),
+                        ('proar_ruta', models.CharField(db_column='proar_ruta', max_length=500)),
+                        ('proar_visible', models.IntegerField(db_column='proar_visible', default=1)),
+                        ('proar_creado', models.DateTimeField(auto_now_add=True, db_column='proar_creado')),
+                        ('proar_actualizado', models.DateTimeField(auto_now=True, db_column='proar_actualizado')),
+                        ('proy_id', models.ForeignKey(
+                            db_column='proy_id',
+                            on_delete=django.db.models.deletion.CASCADE,
+                            related_name='archivos',
+                            to='proyectos.proyectomodel'
+                        )),
+                    ],
+                    options={
+                        'db_table': 'Proyecto_archivos',
+                        'ordering': ['-proar_creado'],
+                        'verbose_name': 'Archivo de Proyecto',
+                        'verbose_name_plural': 'Archivos de Proyectos',
+                    },
+                ),
+            ],
+            database_operations=[
+                # NO hacer nada en la BD porque las tablas ya existen
+                # Las tablas fueron creadas en la migración reports.0001_initial
+            ],
+        ),
+    ]

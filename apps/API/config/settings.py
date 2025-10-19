@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'domain.entities',
     'reports',
     'notifications',
+    'proyectos',
 ]
 
 MIDDLEWARE = [

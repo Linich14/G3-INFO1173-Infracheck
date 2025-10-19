@@ -34,6 +34,9 @@ urlpatterns = [
     # Ruta de notificaciones /api/notifications/
     path('api/notifications/', include('notifications.urls')),
 
+    # Ruta de proyectos /api/proyectos/
+    path('api/proyectos/', include('proyectos.urls')),
+
     # Rutas para admin users
     path('api/users/', admin_list_users, name='admin-list-users'),
     path('api/users/search/', admin_search_users, name='admin-search-users'),

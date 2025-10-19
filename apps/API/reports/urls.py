@@ -25,6 +25,11 @@ from .views.proyecto_views import (
     AddArchivoProyectoView,
     DeleteArchivoView
 )
+from .views.notification_views import (
+    NotificationListView,
+    MarkNotificationReadView,
+    MarkAllNotificationsReadView
+)
 
 urlpatterns = [
     path('', ReportListView.as_view(), name='report-list'),
@@ -58,4 +63,7 @@ urlpatterns = [
     path('projects/<int:proyecto_id>/archivos/', ProyectoArchivosView.as_view(), name='project-archivos'),
     path('projects/<int:proyecto_id>/archivos/add/', AddArchivoProyectoView.as_view(), name='add-archivo'),
     path('projects/archivos/<int:archivo_id>/delete/', DeleteArchivoView.as_view(), name='delete-archivo'),
+    path('notifications/', NotificationListView.as_view(), name='notifications-list'),
+    path('notifications/<int:notification_id>/mark-read/', MarkNotificationReadView.as_view(), name='mark-notification-read'),
+    path('notifications/mark-all-read/', MarkAllNotificationsReadView.as_view(), name='mark-all-notifications-read'),
 ]
