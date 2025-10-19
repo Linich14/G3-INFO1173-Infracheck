@@ -1,7 +1,7 @@
 import React from "react";
 import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Users2, BarChart3 } from "lucide-react-native";
+import { Users2, BarChart3, Bell } from "lucide-react-native";
 import { router } from "expo-router";
 import { SystemMetrics } from "~/components/SystemMetrics";
 
@@ -69,6 +69,15 @@ export default function AdminContent() {
           >
             <BarChart3 size={24} color="white" />
             <Text className="text-white mt-2 text-center">Analytics</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            onPress={() => router.push('/notifications/create')}
+            className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
+            style={{ width: '47%', height: 120 }}
+          >
+            <Bell size={24} color="white" />
+            <Text className="text-white mt-2 text-center">Crear Notificación</Text>
           </TouchableOpacity>
         </View>
       </View>

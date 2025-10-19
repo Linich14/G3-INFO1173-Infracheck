@@ -6,7 +6,7 @@ import { ArrowLeft, CheckCheck, Bell, AlertCircle, CheckCircle, Info, XCircle } 
 import { useNotifications } from '~/hooks/useNotifications';
 import { Notification } from '~/services/notificationService';
 
-const NotificationsScreen: React.FC = () => {
+const NotificationListScreen: React.FC = () => {
   const router = useRouter();
   const {
     notifications,
@@ -180,4 +180,4 @@ const NotificationsScreen: React.FC = () => {
   );
 };
 
-export default NotificationsScreen;
+export default NotificationListScreen;

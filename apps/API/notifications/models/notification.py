@@ -29,7 +29,7 @@ class Notification(models.Model):
     )
     leida = models.BooleanField(default=False, verbose_name='Leída')
     denuncia = models.ForeignKey(
-        'ReportModel',
+        'reports.ReportModel',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

@@ -1,4 +1,4 @@
-import { useReportDetail } from '../hooks/useReportDetail';
+import { useReportDetail } from '../hooks/useReportDetails';
 
 export default function ReportDetailsScreen() {
     const params = useLocalSearchParams();

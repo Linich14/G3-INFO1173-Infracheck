@@ -1,48 +1,14 @@
 import logging
 from typing import Dict, Optional
-from reports.models import ReportModel, Notification
+from reports.models import ReportModel
 from domain.entities.usuario import Usuario
+from notifications.services import notification_service as notif_service
 
 logger = logging.getLogger('reports')
 
 
 class NotificationService:
-    """Servicio para notificaciones"""
-    
-    def create_notification(
-        self,
-        usuario: Usuario,
-        titulo: str,
-        mensaje: str,
-        tipo: str = 'info',
-        denuncia: Optional[ReportModel] = None
-    ) -> Notification:
-        """
-        Crea una notificación en la base de datos
-        
-        Args:
-            usuario: Usuario que recibirá la notificación
-            titulo: Título de la notificación
-            mensaje: Mensaje detallado
-            tipo: Tipo de notificación (info, success, warning, error)
-            denuncia: Reporte relacionado (opcional)
-        
-        Returns:
-            Notification: La notificación creada
-        """
-        try:
-            notificacion = Notification.objects.create(
-                usuario=usuario,
-                titulo=titulo,
-                mensaje=mensaje,
-                tipo=tipo,
-                denuncia=denuncia
-            )
-            logger.info(f"Notificación creada: {titulo} para usuario {usuario.username}")
-            return notificacion
-        except Exception as e:
-            logger.error(f"Error al crear notificación: {str(e)}")
-            raise
+    """Servicio para notificaciones de reportes - Wrapper del servicio de notificaciones"""
     
     def notify_urgent_report(self, report: ReportModel):
         """Notifica cuando se crea un reporte urgente"""
@@ -51,7 +17,7 @@ class NotificationService:
             
             # Crear notificación para el usuario
             if report.usuario:
-                self.create_notification(
+                notif_service.create_notification(
                     usuario=report.usuario,
                     titulo="Reporte Urgente Creado",
                     mensaje=f"Tu reporte '{report.titulo}' ha sido marcado como urgente y será atendido prioritariamente.",
@@ -65,7 +31,7 @@ class NotificationService:
         
         # Crear notificación para el usuario
         if report.usuario:
-            self.create_notification(
+            notif_service.create_notification(
                 usuario=report.usuario,
                 titulo="Reporte Creado Exitosamente",
                 mensaje=f"Tu reporte '{report.titulo}' ha sido creado y está siendo procesado.",
@@ -79,7 +45,7 @@ class NotificationService:
         
         # Crear notificación para el usuario
         if report.usuario:
-            self.create_notification(
+            notif_service.create_notification(
                 usuario=report.usuario,
                 titulo="Reporte Actualizado",
                 mensaje=f"Tu reporte '{report.titulo}' ha sido actualizado.",
@@ -93,7 +59,7 @@ class NotificationService:
         
         # Crear notificación para el usuario (antes de eliminar)
         if report.usuario:
-            self.create_notification(
+            notif_service.create_notification(
                 usuario=report.usuario,
                 titulo="Reporte Eliminado",
                 mensaje=f"Tu reporte '{report.titulo}' ha sido eliminado del sistema.",
@@ -109,7 +75,7 @@ class NotificationService:
         # Crear notificación para el usuario
         if report.usuario:
             tipo_notif = 'success' if new_status == 'resuelto' else 'info'
-            self.create_notification(
+            notif_service.create_notification(
                 usuario=report.usuario,
                 titulo="Cambio de Estado",
                 mensaje=f"El estado de tu reporte '{report.titulo}' cambió de {old_status} a {new_status}.",

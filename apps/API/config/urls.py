@@ -29,7 +29,10 @@ urlpatterns = [
     path('api/v1/delete-account/', delete_account, name='delete-account'),
 
     # Ruta de reportes /api/reports/
-    path('api/reports/', include('reports.urls')), 
+    path('api/reports/', include('reports.urls')),
+    
+    # Ruta de notificaciones /api/notifications/
+    path('api/notifications/', include('notifications.urls')),
 
     # Rutas para admin users
     path('api/users/', admin_list_users, name='admin-list-users'),
