@@ -13,6 +13,10 @@ from .views.seguimiento_views import (
     is_following_report_view,
     followed_reports_view
 )
+from .views.voto_views import (
+    votar_reporte,
+    listar_votos_reporte
+)
 
 urlpatterns = [
     # ==================== REPORTES/DENUNCIAS ====================
@@ -28,4 +32,8 @@ urlpatterns = [
     path('<int:report_id>/unfollow/', unfollow_report_view, name='unfollow-report'),
     path('<int:report_id>/is-following/', is_following_report_view, name='is-following-report'),
     path('followed/', followed_reports_view, name='followed-reports'),
+
+    # ==================== VOTOS DE REPORTES ====================
+    path('<int:report_id>/vote/', votar_reporte, name='vote-report'),
+    path('<int:report_id>/votes/', listar_votos_reporte, name='list-report-votes'),
 ]
