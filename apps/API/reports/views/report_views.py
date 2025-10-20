@@ -182,6 +182,23 @@ class ReportListView(APIView):
                 'tipo_denuncia', 'ciudad', 'estado'
             ).prefetch_related('archivos')
             
+            # ==================== FILTRO POR URGENCIA ====================
+            urgencia = request.GET.get('urgencia')
+            if urgencia:
+                try:
+                    urgencia_int = int(urgencia)
+                    if urgencia_int in [1, 2, 3]:
+                        reports = reports.filter(urgencia=urgencia_int)
+                        logger.info(f"Filtro aplicado: urgencia={urgencia_int}")
+                    else:
+                        return Response({
+                            'error': 'Valor de urgencia inválido. Debe ser 1 (Baja), 2 (Media) o 3 (Alta)'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                except ValueError:
+                    return Response({
+                        'error': 'El parámetro urgencia debe ser un número'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            
             logger.info(f"Reportes encontrados: {reports.count()}")
             
             serializer = ReportSerializer(reports, many=True)

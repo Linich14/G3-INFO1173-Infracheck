@@ -5,6 +5,7 @@ from .denuncia_estado import DenunciaEstado
 from .report_archivos import ReportArchivo
 from .seguimiento_reporte import SeguimientoReporte
 from .voto_reporte import VotoReporte
+from .report_history import ReportHistory
 
 # Imports para mantener compatibilidad con migraciones antiguas
 from proyectos.models import ProyectoModel, ProyectoArchivosModel
@@ -17,6 +18,9 @@ __all__ = [
     'TipoDenuncia', 
     'DenunciaEstado',
     'ReportArchivo',
+    'SeguimientoReporte',
+    'VotoReporte',
+    'ReportHistory',
     'ProyectoModel',
     'ProyectoArchivosModel',
     'Notification',
