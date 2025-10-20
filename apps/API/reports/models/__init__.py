@@ -3,6 +3,7 @@ from .ciudad import Ciudad
 from .tipo_denuncia import TipoDenuncia
 from .denuncia_estado import DenunciaEstado
 from .report_archivos import ReportArchivo
+from .seguimiento_reporte import SeguimientoReporte
 
 # Imports para mantener compatibilidad con migraciones antiguas
 from proyectos.models import ProyectoModel, ProyectoArchivosModel
