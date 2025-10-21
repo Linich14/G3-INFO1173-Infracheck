@@ -3,23 +3,28 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 import os
 import uuid
-
+from datetime import datetime
 
 def upload_to_report_files(instance, filename):
-    """Genera la ruta de subida para archivos de reportes"""
-    # Limpiar el nombre del archivo
-    name, ext = os.path.splitext(filename)
-    name = name[:50]  # Limitar longitud
+    """Genera la ruta de subida para archivos de reportes con nombre único"""
+    # Obtener la fecha actual en formato DD-MM-YYYY
+    fecha_actual = datetime.now().strftime('%d-%m-%Y')
     
-    # Generar nombre único
-    unique_filename = f"{uuid.uuid4().hex[:8]}_{name}{ext}"
+    # Obtener el ID del reporte
+    reporte_id = instance.reporte.id if instance.reporte else 'temp'
     
-    # Estructura: reportes/año/mes/dia/reporte_id/archivo
-    fecha = instance.reporte.fecha_creacion if hasattr(instance, 'reporte') and instance.reporte else None
-    if fecha:
-        return f"reportes/{fecha.year}/{fecha.month:02d}/{fecha.day:02d}/reporte_{instance.reporte.id}/{unique_filename}"
-    else:
-        return f"reportes/temp/{unique_filename}"
+    # Extraer la extensión del archivo original
+    _, ext = os.path.splitext(filename)
+    
+    # Generar un ID único para el archivo
+    archivo_id = uuid.uuid4().hex
+    
+    # Crear el nuevo nombre: {uuid}.{extension}
+    nuevo_nombre = f"{archivo_id}{ext}"
+    
+    # Estructura: reports/20-10-2025/123/abc123def456.jpg
+    return f"reports/{fecha_actual}/{reporte_id}/{nuevo_nombre}"
+
 
 
 class ReportArchivoManager(models.Manager):
