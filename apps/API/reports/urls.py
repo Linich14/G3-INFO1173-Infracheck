@@ -13,6 +13,10 @@ from .views.voto_views import (
     votar_reporte,
     listar_votos_reporte
 )
+from .views.comentario_views import (
+    crear_comentario_reporte,
+    listar_comentarios_reporte
+)
 
 urlpatterns = [
     # CRUD de reportes con clases APIView
@@ -39,4 +43,8 @@ urlpatterns = [
     # ==================== VOTOS DE REPORTES ====================
     path('<int:report_id>/vote/', votar_reporte, name='vote-report'),
     path('<int:report_id>/votes/', listar_votos_reporte, name='list-report-votes'),
+
+    # ==================== COMENTARIOS DE REPORTES ====================
+    path('<int:report_id>/comments/', crear_comentario_reporte, name='create-comment'),
+    path('<int:report_id>/comments/list/', listar_comentarios_reporte, name='list-report-comments'),
 ]

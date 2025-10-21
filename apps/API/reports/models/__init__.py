@@ -5,6 +5,7 @@ from .denuncia_estado import DenunciaEstado
 from .report_archivos import ReportArchivo
 from .seguimiento_reporte import SeguimientoReporte
 from .voto_reporte import VotoReporte
+from .comentario_reporte import ComentarioReporte
 from .report_history import ReportHistory
 
 # Imports para mantener compatibilidad con migraciones antiguas
