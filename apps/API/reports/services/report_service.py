@@ -1,512 +1,401 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from django.db import transaction
-from django.db.models import Count, Max
+from django.db.models import Count, Max, QuerySet, Q
 from django.core.exceptions import ValidationError as DjangoValidationError
 from datetime import datetime, timedelta
+import base64
+import json
+import mimetypes
+import os
 
 from reports.models import ReportModel, DenunciaEstado, TipoDenuncia, Ciudad
+from reports.models.report_archivos import ReportArchivo
 from reports.exceptions import ReportNotFoundException, ReportValidationException
 from .validation_service import validation_service
 from .notification_service import notification_service
 from domain.entities.usuario import Usuario
 from django.utils import timezone
-from django.apps import apps
+from django.contrib.gis.geos import Point
 
-import uuid
-import os
-from django.core.files.storage import default_storage
-from django.conf import settings
-from reports.models.report_archivos import ReportArchivo
-
-
-# Obtener el modelo correctamente
-ReportArchivo = apps.get_model('reports', 'ReportArchivo')
 
 class ReportService:
     """Servicio con toda la lógica de negocio de reportes"""
     
-    def __init__(self):
-        self.storage = default_storage
-        self.base_media_path = getattr(settings, 'MEDIA_ROOT', 'media/')
+    # Configuración para validación de archivos (solo imágenes y videos)
+    ALLOWED_EXTENSIONS = {
+        'imagen': ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'],
+        'video': ['mp4', 'avi', 'mov', 'mkv', 'webm']
+    }
     
+    MAX_FILE_SIZES = {
+        'imagen': 5 * 1024 * 1024,      # 5MB
+        'video': 100 * 1024 * 1024,     # 100MB
+    }
+    
+    # Nuevos límites: 5 imágenes + 1 video
+    MAX_IMAGES_PER_REPORT = 5
+    MAX_VIDEOS_PER_REPORT = 1
+    
+    @staticmethod
+    def validate_file(file) -> Dict[str, Any]:
+        """Valida un archivo subido (solo imágenes y videos)"""
+        # Validar que el archivo existe
+        if not file or not hasattr(file, 'name') or not file.name:
+            return {
+                'valid': False,
+                'error': 'No se proporcionó un archivo válido'
+            }
+        
+        # Obtener extensión
+        name, ext = os.path.splitext(file.name)
+        extension = ext.lstrip('.').lower()
+        
+        if not extension:
+            return {
+                'valid': False,
+                'error': 'El archivo debe tener una extensión válida'
+            }
+        
+        # Determinar tipo de archivo
+        tipo_archivo = None
+        for tipo, extensiones in ReportService.ALLOWED_EXTENSIONS.items():
+            if extension in extensiones:
+                tipo_archivo = tipo
+                break
+        
+        if not tipo_archivo:
+            allowed = []
+            for exts in ReportService.ALLOWED_EXTENSIONS.values():
+                allowed.extend(exts)
+            return {
+                'valid': False,
+                'error': f'Extensión no permitida. Solo se permiten imágenes y videos: {", ".join(allowed)}'
+            }
+        
+        # Validar tamaño
+        max_size = ReportService.MAX_FILE_SIZES[tipo_archivo]
+        if file.size > max_size:
+            size_mb = max_size / (1024 * 1024)
+            return {
+                'valid': False,
+                'error': f'El archivo {tipo_archivo} excede el tamaño máximo de {size_mb:.1f}MB'
+            }
+        
+        return {
+            'valid': True,
+            'tipo_archivo': tipo_archivo,
+            'extension': extension
+        }
+    
+    @staticmethod
+    def validate_files_limits(files: List, reporte_id: int = None) -> Dict[str, Any]:
+        """Valida los límites de archivos para un reporte"""
+        # Contar archivos por tipo en el request
+        imagenes_nuevas = 0
+        videos_nuevos = 0
+        
+        for file in files:
+            validation = ReportService.validate_file(file)
+            if validation['valid']:
+                if validation['tipo_archivo'] == 'imagen':
+                    imagenes_nuevas += 1
+                elif validation['tipo_archivo'] == 'video':
+                    videos_nuevos += 1
+        
+        # Si es un reporte existente, contar archivos actuales
+        imagenes_actuales = 0
+        videos_actuales = 0
+        
+        if reporte_id:
+            conteo = ReportArchivo.objects.filter(
+                reporte_id=reporte_id, 
+                activo=True
+            ).aggregate(
+                imagenes=Count('id', filter=Q(tipo_archivo='imagen')),
+                videos=Count('id', filter=Q(tipo_archivo='video'))
+            )
+            imagenes_actuales = conteo.get('imagenes', 0)
+            videos_actuales = conteo.get('videos', 0)
+        
+        # Validar límites
+        total_imagenes = imagenes_actuales + imagenes_nuevas
+        total_videos = videos_actuales + videos_nuevos
+        
+        if total_imagenes > ReportService.MAX_IMAGES_PER_REPORT:
+            return {
+                'valid': False,
+                'error': f'Máximo {ReportService.MAX_IMAGES_PER_REPORT} imágenes por reporte. Actualmente: {imagenes_actuales}, intentando agregar: {imagenes_nuevas}'
+            }
+        
+        if total_videos > ReportService.MAX_VIDEOS_PER_REPORT:
+            return {
+                'valid': False,
+                'error': f'Máximo {ReportService.MAX_VIDEOS_PER_REPORT} video por reporte. Actualmente: {videos_actuales}, intentando agregar: {videos_nuevos}'
+            }
+        
+        return {
+            'valid': True,
+            'imagenes_totales': total_imagenes,
+            'videos_totales': total_videos
+        }
+    
+    @staticmethod
+    def _serialize_report(report: ReportModel) -> Dict[str, Any]:
+        """Serializa un reporte con solo los campos especificados para archivos"""
+        coordinates = report.get_coordinates()
+        
+        # Obtener archivos usando la nueva relación
+        archivos_data = []
+        archivos = report.get_archivos_activos()
+        
+        for archivo in archivos:
+            archivos_data.append({
+                'id': archivo.id,
+                'nombre': archivo.nombre_original,
+                'url': archivo.url,
+                'tipo': archivo.tipo_archivo,
+                'mime_type': archivo.mime_type,
+                'es_principal': archivo.es_principal,
+                'orden': archivo.orden
+            })
+        
+        # Obtener estadísticas de archivos
+        stats = report.contar_archivos()
+        
+        return {
+            'id': report.id,
+            'titulo': report.titulo,
+            'descripcion': report.descripcion,
+            'direccion': report.direccion,
+            'ubicacion': {
+                'latitud': coordinates['latitud'],
+                'longitud': coordinates['longitud']
+            },
+            'urgencia': {
+                'valor': report.urgencia,
+                'etiqueta': report.get_urgencia_display()
+            },
+            'visible': report.visible,
+            'fecha_creacion': report.fecha_creacion.isoformat(),
+            'fecha_actualizacion': report.fecha_actualizacion.isoformat() if report.fecha_actualizacion else None,
+            'usuario': {
+                'id': report.usuario.usua_id,
+                'nombre': getattr(report.usuario, 'nombre', ''),
+                'email': getattr(report.usuario, 'email', '')
+            },
+            'estado': {
+                'id': report.denuncia_estado.id,
+                'nombre': report.denuncia_estado.nombre
+            },
+            'tipo_denuncia': {
+                'id': report.tipo_denuncia.id,
+                'nombre': report.tipo_denuncia.nombre
+            },
+            'ciudad': {
+                'id': report.ciudad.id,
+                'nombre': report.ciudad.nombre
+            },
+            'archivos': archivos_data,
+            'estadisticas': {
+                'total_archivos': stats.get('total', 0),
+                'imagenes': stats.get('imagenes', 0),
+                'videos': stats.get('videos', 0),
+                'dias_desde_creacion': report.get_days_since_creation(),
+                'puede_agregar_imagenes': stats.get('imagenes', 0) < ReportService.MAX_IMAGES_PER_REPORT,
+                'puede_agregar_videos': stats.get('videos', 0) < ReportService.MAX_VIDEOS_PER_REPORT
+            }
+        }
+    
+    @staticmethod
     @transaction.atomic
-    def create_report(
-        self,
+    def create_report_with_files(
         titulo: str,
         descripcion: str,
-        ubicacion: str,
+        direccion: str,
+        latitud: float,
+        longitud: float,
         urgencia: int,
         usuario_id: int,
-        denuncia_estado_id: int,
         tipo_denuncia_id: int,
-        ciudad_id: int
+        ciudad_id: int,
+        archivos: List = None,
+        visible: bool = True
     ) -> ReportModel:
-        """Crea un nuevo reporte"""
+        """Crea un reporte con archivos usando las nuevas restricciones"""
         
-        # Preparar datos
-        data = {
-            'titulo': titulo,
-            'descripcion': descripcion,
-            'ubicacion': ubicacion,
-            'urgencia': urgencia,
-            'usuario_id': usuario_id,
-            'denuncia_estado_id': denuncia_estado_id,
-            'tipo_denuncia_id': tipo_denuncia_id,
-            'ciudad_id': ciudad_id
-        }
+        # Crear el punto geográfico
+        ubicacion = Point(longitud, latitud)
         
-        # Validaciones
-        self._validate_report_creation(data)
-        
-        # Limpiar datos
-        titulo = titulo.strip()
-        descripcion = descripcion.strip()
-        ubicacion = ubicacion.strip()
-        
-        # Obtener instancias de los objetos relacionados
-        try:
-            usuario = Usuario.objects.get(usua_id=usuario_id)
-            denuncia_estado = DenunciaEstado.objects.get(id=denuncia_estado_id)
-            tipo_denuncia = TipoDenuncia.objects.get(id=tipo_denuncia_id)
-            ciudad = Ciudad.objects.get(id=ciudad_id)
-        except Exception as e:
-            raise ReportValidationException({"error": f"Error al obtener relaciones: {str(e)}"})
-        
-        # Crear reporte
+        # Crear el reporte
         report = ReportModel(
             titulo=titulo,
             descripcion=descripcion,
+            direccion=direccion,
             ubicacion=ubicacion,
             urgencia=urgencia,
-            usuario=usuario,
-            denuncia_estado=denuncia_estado,
-            tipo_denuncia=tipo_denuncia,
-            ciudad=ciudad,
-            visible=True
+            visible=visible,
+            usuario_id=usuario_id,
+            tipo_denuncia_id=tipo_denuncia_id,
+            ciudad_id=ciudad_id,
+            denuncia_estado_id=1  # Estado inicial
         )
         
-        # Validar modelo
-        try:
-            report.full_clean()
-        except DjangoValidationError as e:
-            raise ReportValidationException(e.message_dict)
-        
-        # Guardar
+        # Validar y guardar el reporte
+        report.clean()
         report.save()
         
-        # Notificaciones
-        notification_service.notify_report_created(report)
-        if report.urgencia == 3:
-            notification_service.notify_urgent_report(report)
-        
-        return report
-    
-    @transaction.atomic
-    def update_report(self, report_id: int, **kwargs) -> ReportModel:
-        """Actualiza un reporte existente"""
-        report = self._get_report_or_raise(report_id)
-        
-        # Validar datos si se proporcionan
-        if kwargs:
-            errors = validation_service.validate_report_data(kwargs)
-            fk_errors = validation_service.validate_foreign_keys(kwargs)
-            errors.update(fk_errors)
+        # Procesar archivos si los hay
+        if archivos:
+            # Validar límites de archivos
+            limits_validation = ReportService.validate_files_limits(archivos)
+            if not limits_validation['valid']:
+                report.delete()
+                raise ValidationError(limits_validation['error'])
             
-            if errors:
-                raise ReportValidationException(errors)
-        
-        # Actualizar campos
-        changed = False
-        for field, value in kwargs.items():
-            if field.endswith('_id') and hasattr(report, field.replace('_id', '')):
-                # Manejar foreign keys
-                if field == 'denuncia_estado_id':
-                    new_estado = DenunciaEstado.objects.get(id=value)
-                    if report.denuncia_estado != new_estado:
-                        report.denuncia_estado = new_estado
-                        changed = True
-                elif field == 'tipo_denuncia_id':
-                    new_tipo = TipoDenuncia.objects.get(id=value)
-                    if report.tipo_denuncia != new_tipo:
-                        report.tipo_denuncia = new_tipo
-                        changed = True
-            elif hasattr(report, field):
-                current_value = getattr(report, field)
-                if isinstance(value, str):
-                    value = value.strip()
-                if current_value != value:
-                    setattr(report, field, value)
-                    changed = True
-        
-        if changed:
-            report.save()
-            notification_service.notify_report_updated(report)
-        
-        return report
-    
-    @transaction.atomic
-    def delete_report(self, report_id: int) -> Dict:
-        """Elimina un reporte"""
-        report = self._get_report_or_raise(report_id)
-        
-        # Eliminar archivos asociados primero
-        self.delete_report_files(report_id)
-        
-        notification_service.notify_report_deleted(report)
-        report.delete()
-        
-        return {
-            "message": "Reporte eliminado exitosamente",
-            "id": report_id,
-            "deleted_at": datetime.now().isoformat()
-        }
-    
-    # Métodos de consulta
-    def get_all_reports(self) -> List[ReportModel]:
-        """Obtiene todos los reportes visibles"""
-        return list(
-            ReportModel.objects
-            .select_related('usuario', 'denuncia_estado', 'tipo_denuncia', 'ciudad')
-            .filter(visible=True)
-            .all()
-        )
-    
-    def get_report_by_id(self, report_id: int) -> Optional[ReportModel]:
-        """Obtiene un reporte por ID"""
-        try:
-            return ReportModel.objects.select_related(
-                'usuario', 'denuncia_estado', 'tipo_denuncia', 'ciudad'
-            ).get(id=report_id)
-        except ReportModel.DoesNotExist:
-            return None
-    
-    def get_reports_by_user(self, usuario_id: int) -> List[ReportModel]:
-        """Obtiene reportes de un usuario"""
-        return list(
-            ReportModel.objects
-            .select_related('denuncia_estado', 'tipo_denuncia', 'ciudad')
-            .filter(usuario__usua_id=usuario_id, visible=True)
-        )
-    
-    def get_urgent_reports(self) -> List[ReportModel]:
-        """Obtiene reportes urgentes"""
-        return list(
-            ReportModel.objects
-            .select_related('usuario', 'denuncia_estado', 'tipo_denuncia', 'ciudad')
-            .filter(urgencia=3, visible=True)
-        )
-    
-    def get_recent_reports(self, days: int = 7) -> List[ReportModel]:
-        """Obtiene reportes recientes"""
-        cutoff = timezone.now() - timedelta(days=days)
-        return list(
-            ReportModel.objects
-            .select_related('usuario', 'denuncia_estado', 'tipo_denuncia', 'ciudad')
-            .filter(fecha_creacion__gte=cutoff, visible=True)
-        )
-    
-    def get_statistics(self) -> Dict:
-        """Estadísticas de reportes"""
-        total = ReportModel.objects.count()
-        visible = ReportModel.objects.filter(visible=True).count()
-        urgent = ReportModel.objects.filter(urgencia=3, visible=True).count()
-        
-        urgency_counts = dict(
-            ReportModel.objects
-            .values('urgencia')
-            .annotate(count=Count('id'))
-            .values_list('urgencia', 'count')
-        )
-        
-        return {
-            "total": total,
-            "visible": visible,
-            "hidden": total - visible,
-            "urgent": urgent,
-            "by_urgency": {
-                "baja": urgency_counts.get(1, 0),
-                "media": urgency_counts.get(2, 0),
-                "alta": urgency_counts.get(3, 0),
-            },
-            "recent_7days": len(self.get_recent_reports(7)),
-            "recent_30days": len(self.get_recent_reports(30)),
-        }
-    
-    # Métodos privados
-    def _validate_report_creation(self, data: Dict):
-        """Validaciones para creación de reporte"""
-        # Validaciones de datos
-        errors = validation_service.validate_report_data(data)
-        
-        # Validaciones de FK
-        fk_errors = validation_service.validate_foreign_keys(data)
-        errors.update(fk_errors)
-        
-        # Verificar duplicados
-        if validation_service.check_duplicate_report(
-            data['usuario_id'], data['titulo'], data['ubicacion']
-        ):
-            errors['duplicado'] = "Ya existe un reporte similar reciente"
-        
-        if errors:
-            raise ReportValidationException(errors)
-    
-    def _get_report_or_raise(self, report_id: int) -> ReportModel:
-        """Obtiene reporte o lanza excepción"""
-        report = self.get_report_by_id(report_id)
-        if not report:
-            raise ReportNotFoundException(report_id)
-        return report
-    
-    # Métodos con archivos
-    @transaction.atomic
-    def create_report_with_files(self, data, imagenes=None, video=None):
-        """Crear reporte con archivos multimedia"""
-        # Validar límites antes de crear
-        if imagenes and len(imagenes) > 10:
-            raise ValueError("Máximo 10 imágenes permitidas")
-        
-        if video and imagenes and len(imagenes) == 10:
-            raise ValueError("No se puede agregar video si ya hay 10 imágenes")
-        
-        # Crear el reporte primero
-        reporte = ReportModel.objects.create(**data)
-        
-        try:
-            # Procesar imágenes
-            if imagenes:
-                self._save_images(reporte, imagenes)
+            archivos_creados = []
+            primer_imagen_agregada = False
             
-            # Procesar video
-            if video:
-                self._save_video(reporte, video)
+            for i, archivo in enumerate(archivos):
+                # Validar archivo
+                validation = ReportService.validate_file(archivo)
+                if not validation['valid']:
+                    # Si hay error, eliminar el reporte y archivos creados
+                    report.delete()
+                    raise ValidationError(validation['error'])
                 
-            return reporte
-            
-        except Exception as e:
-            # Si hay error, eliminar el reporte creado y sus archivos
-            self.delete_report_files(reporte.id)
-            reporte.delete()
-            raise e
-    
-    def _save_images(self, reporte, imagenes):
-        """Guardar múltiples imágenes con la estructura de carpetas especificada"""
-        fecha_str = datetime.now().strftime("%d-%m-%Y")
-        
-        for i, imagen in enumerate(imagenes):
-            # Obtener extensión sin el punto
-            extension = os.path.splitext(imagen.name)[1].lower().replace('.', '')
-            nombre_archivo = f"foto_{str(i+1).zfill(3)}.{extension}"
-            
-            # Crear estructura de carpetas: uploads/01-11-2024/id_report/images/
-            carpeta_destino = f"uploads/{fecha_str}/id_{reporte.id}/images"
-            
-            # Crear directorio si no existe
-            directorio_completo = os.path.join(self.base_media_path, carpeta_destino)
-            os.makedirs(directorio_completo, exist_ok=True)
-            
-            # Guardar archivo físicamente
-            ruta_archivo_completa = os.path.join(directorio_completo, nombre_archivo)
-            with open(ruta_archivo_completa, 'wb+') as destino:
-                for chunk in imagen.chunks():
-                    destino.write(chunk)
-            
-            # Crear registro en la base de datos
-            ReportArchivo.objects.create(
-                denu=reporte,
-                dear_nombre=nombre_archivo,
-                dear_extension=extension,
-                dear_es_principal=(i == 0),  # La primera imagen es principal
-                dear_orden=i
-            )
-    
-    def _save_video(self, reporte, video):
-        """Guardar video con la estructura de carpetas especificada"""
-        fecha_str = datetime.now().strftime("%d-%m-%Y")
-        
-        # Obtener extensión sin el punto
-        extension = os.path.splitext(video.name)[1].lower().replace('.', '')
-        nombre_archivo = f"video_001.{extension}"
-        
-        # Crear estructura de carpetas: uploads/01-11-2024/id_report/videos/
-        carpeta_destino = f"uploads/{fecha_str}/id_{reporte.id}/videos"
-        
-        # Crear directorio si no existe
-        directorio_completo = os.path.join(self.base_media_path, carpeta_destino)
-        os.makedirs(directorio_completo, exist_ok=True)
-        
-        # Guardar archivo físicamente
-        ruta_archivo_completa = os.path.join(directorio_completo, nombre_archivo)
-        with open(ruta_archivo_completa, 'wb+') as destino:
-            for chunk in video.chunks():
-                destino.write(chunk)
-        
-        # Crear registro en la base de datos
-        ReportArchivo.objects.create(
-            denu=reporte,
-            dear_nombre=nombre_archivo,
-            dear_extension=extension,
-            dear_es_principal=True,  # El video siempre es principal
-            dear_orden=0
-        )
-    
-    def _save_images_with_order(self, reporte, imagenes, orden_inicial):
-        """Guardar imágenes con orden específico"""
-        fecha_str = datetime.now().strftime("%d-%m-%Y")
-        
-        for i, imagen in enumerate(imagenes):
-            # Obtener extensión sin el punto
-            extension = os.path.splitext(imagen.name)[1].lower().replace('.', '')
-            numero_archivo = orden_inicial + i + 1
-            nombre_archivo = f"foto_{str(numero_archivo).zfill(3)}.{extension}"
-            
-            # Crear estructura de carpetas
-            carpeta_destino = f"uploads/{fecha_str}/id_{reporte.id}/images"
-            
-            # Crear directorio si no existe
-            directorio_completo = os.path.join(self.base_media_path, carpeta_destino)
-            os.makedirs(directorio_completo, exist_ok=True)
-            
-            # Guardar archivo físicamente
-            ruta_archivo_completa = os.path.join(directorio_completo, nombre_archivo)
-            with open(ruta_archivo_completa, 'wb+') as destino:
-                for chunk in imagen.chunks():
-                    destino.write(chunk)
-            
-            # Crear registro en la base de datos
-            ReportArchivo.objects.create(
-                denu=reporte,
-                dear_nombre=nombre_archivo,
-                dear_extension=extension,
-                dear_es_principal=False,  # Las imágenes adicionales no son principales
-                dear_orden=orden_inicial + i
-            )
-    
-    def get_report_files(self, reporte_id):
-        """Obtener archivos de un reporte específico"""
-        # Usamos objeto.pk como forma universal de referirse a la clave primaria
-        return ReportArchivo.objects.filter(denu_id=reporte_id).order_by('dear_orden')
-    
-    def get_report_images(self, reporte_id):
-        """Obtener solo imágenes de un reporte"""
-        extensiones_imagen = ['jpg', 'jpeg', 'png', 'webp']
-        return ReportArchivo.objects.filter(
-            denu_id=reporte_id,
-            dear_extension__in=extensiones_imagen
-        ).order_by('dear_orden')
-    
-    def get_report_video(self, reporte_id):
-        """Obtener video de un reporte"""
-        extensiones_video = ['mp4', 'avi', 'mov', 'mkv', 'webm']
-        return ReportArchivo.objects.filter(
-            denu_id=reporte_id,
-            dear_extension__in=extensiones_video
-        ).first()
-    
-    def delete_report_files(self, reporte_id):
-        """Eliminar todos los archivos de un reporte"""
-        archivos = ReportArchivo.objects.filter(denu_id=reporte_id)
-        
-        for archivo in archivos:
-            # Construir la ruta del archivo basada en los datos del registro
-            fecha_str = datetime.now().strftime("%d-%m-%Y")
-            
-            # Determinar si es imagen o video
-            extensiones_video = ['mp4', 'avi', 'mov', 'mkv', 'webm']
-            if archivo.dear_extension in extensiones_video:
-                tipo_carpeta = 'videos'
-            else:
-                tipo_carpeta = 'images'
-            
-            ruta_archivo = os.path.join(
-                self.base_media_path, 
-                'uploads', 
-                fecha_str, 
-                f'id_{reporte_id}', 
-                tipo_carpeta, 
-                archivo.dear_nombre
-            )
-            
-            # Eliminar archivo físico si existe
-            if os.path.exists(ruta_archivo):
-                try:
-                    os.remove(ruta_archivo)
-                except OSError:
-                    pass  # Continuar aunque no se pueda eliminar el archivo
-        
-        # Eliminar registros de la base de datos
-        archivos.delete()
-    
-    def update_report_files(self, reporte, nuevas_imagenes=None, nuevo_video=None):
-        """Actualizar archivos de un reporte existente"""
-        
-        # Validar límites antes de procesar
-        imagenes_actuales = self.get_report_images(reporte.id).count()
-        
-        if nuevas_imagenes:
-            total_imagenes = imagenes_actuales + len(nuevas_imagenes)
-            if total_imagenes > 10:
-                raise ValueError(f"El total de imágenes ({total_imagenes}) excede el límite de 10")
-        
-        # Agregar nuevas imágenes
-        if nuevas_imagenes:
-            # Obtener el próximo orden disponible
-            ultimo_orden = ReportArchivo.objects.filter(
-                denu_id=reporte.id
-            ).aggregate(
-                max_orden=Max('dear_orden')
-            )['max_orden'] or -1
-            
-            self._save_images_with_order(reporte, nuevas_imagenes, ultimo_orden + 1)
-        
-        # Reemplazar video si se proporciona uno nuevo
-        if nuevo_video:
-            # Eliminar video anterior
-            video_anterior = self.get_report_video(reporte.id)
-            if video_anterior:
-                fecha_str = datetime.now().strftime("%d-%m-%Y")
-                ruta_archivo = os.path.join(
-                    self.base_media_path, 
-                    'uploads', 
-                    fecha_str, 
-                    f'id_{reporte.id}', 
-                    'videos', 
-                    video_anterior.dear_nombre
+                # Determinar si es principal (primera imagen)
+                es_principal = (validation['tipo_archivo'] == 'imagen' and not primer_imagen_agregada)
+                if es_principal:
+                    primer_imagen_agregada = True
+                
+                # Crear ReportArchivo
+                report_archivo = ReportArchivo(
+                    reporte=report,
+                    archivo=archivo,
+                    nombre_original=archivo.name,
+                    tipo_archivo=validation['tipo_archivo'],
+                    extension=validation['extension'],
+                    tamaño_bytes=archivo.size,
+                    orden=i,
+                    es_principal=es_principal
                 )
                 
-                if os.path.exists(ruta_archivo):
-                    try:
-                        os.remove(ruta_archivo)
-                    except OSError:
-                        pass
-                video_anterior.delete()
-            
-            # Guardar nuevo video
-            self._save_video(reporte, nuevo_video)
+                report_archivo.save()
+                archivos_creados.append(report_archivo)
+        
+        return report
     
-    def set_image_as_principal(self, archivo_id):
-        """Establecer una imagen como principal"""
-        try:
-            archivo = ReportArchivo.objects.get(dear_id=archivo_id)
+    @staticmethod
+    def get_reports_with_cursor_pagination(
+        cursor: Optional[str] = None,
+        limit: int = 10,
+        filters: Optional[Dict] = None
+    ) -> Dict[str, Any]:
+        """Obtiene reportes con paginación usando la nueva estructura"""
+        # Construir queryset base
+        queryset = ReportModel.objects.select_related(
+            'usuario', 'denuncia_estado', 'tipo_denuncia', 'ciudad'
+        ).prefetch_related('archivos')
+        
+        # Aplicar filtros si existen
+        if filters:
+            queryset = ReportService._apply_filters(queryset, filters)
+        
+        # Aplicar ordenamiento
+        queryset = queryset.order_by('-id')
+        
+        # Decodificar cursor si existe
+        cursor_data = None
+        if cursor:
+            try:
+                cursor_json = base64.b64decode(cursor).decode('utf-8')
+                cursor_data = json.loads(cursor_json)
+            except (ValueError, json.JSONDecodeError):
+                cursor_data = None
+        
+        # Aplicar filtro de cursor
+        if cursor_data and 'id' in cursor_data:
+            if cursor_data.get('direction') == 'next':
+                queryset = queryset.filter(id__lt=cursor_data['id'])
+            elif cursor_data.get('direction') == 'prev':
+                queryset = queryset.filter(id__gt=cursor_data['id']).order_by('id')
+        
+        # Obtener un registro extra para verificar si hay más datos
+        reports = list(queryset[:limit + 1])
+        
+        # Verificar si hay más datos
+        has_more = len(reports) > limit
+        if has_more:
+            reports = reports[:limit]
+        
+        # Generar cursors
+        next_cursor = None
+        prev_cursor = None
+        
+        if reports:
+            if has_more:
+                next_cursor_data = {
+                    'id': reports[-1].id,
+                    'direction': 'next'
+                }
+                next_cursor = base64.b64encode(
+                    json.dumps(next_cursor_data).encode('utf-8')
+                ).decode('utf-8')
             
-            # Verificar que es una imagen
-            extensiones_imagen = ['jpg', 'jpeg', 'png', 'webp']
-            if archivo.dear_extension not in extensiones_imagen:
-                raise ValueError("Solo las imágenes pueden ser principales")
-            
-            # Quitar principal de otras imágenes del mismo reporte
-            ReportArchivo.objects.filter(
-                denu_id=archivo.denu.id,
-                dear_extension__in=extensiones_imagen
-            ).update(dear_es_principal=False)
-            
-            # Establecer como principal
-            archivo.dear_es_principal = True
-            archivo.save()
-            
-            return True
-        except ReportArchivo.DoesNotExist:
-            return False
+            prev_cursor_data = {
+                'id': reports[0].id,
+                'direction': 'prev'
+            }
+            prev_cursor = base64.b64encode(
+                json.dumps(prev_cursor_data).encode('utf-8')
+            ).decode('utf-8')
+        
+        # Serializar datos
+        serialized_reports = []
+        for report in reports:
+            serialized_reports.append(ReportService._serialize_report(report))
+        
+        return {
+            'success': True,
+            'data': serialized_reports,
+            'pagination': {
+                'nextCursor': next_cursor,
+                'prevCursor': prev_cursor,
+                'hasMore': has_more,
+                'count': len(serialized_reports)
+            }
+        }
+    
+    @staticmethod
+    def _apply_filters(queryset: QuerySet, filters: Dict) -> QuerySet:
+        """Aplica filtros al queryset"""
+        if 'visible' in filters:
+            queryset = queryset.filter(visible=filters['visible'])
+        
+        if 'urgencia' in filters:
+            queryset = queryset.filter(urgencia=filters['urgencia'])
+        
+        if 'estado' in filters:
+            queryset = queryset.filter(denuncia_estado_id=filters['estado'])
+        
+        if 'tipo' in filters:
+            queryset = queryset.filter(tipo_denuncia_id=filters['tipo'])
+        
+        if 'ciudad' in filters:
+            queryset = queryset.filter(ciudad_id=filters['ciudad'])
+        
+        if 'usuario_id' in filters:
+            queryset = queryset.filter(usuario_id=filters['usuario_id'])
+        
+        if 'search' in filters:
+            search_term = filters['search']
+            queryset = queryset.filter(
+                Q(titulo__icontains=search_term) |
+                Q(descripcion__icontains=search_term) |
+                Q(direccion__icontains=search_term)
+            )
+        
+        return queryset
 
 
 # Instancia global del servicio

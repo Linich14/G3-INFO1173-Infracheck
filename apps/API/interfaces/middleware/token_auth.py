@@ -31,6 +31,8 @@ class TokenAuthenticationMiddleware(MiddlewareMixin):
             '/api/v1/verify-reset-code/',
             '/api/v1/reset-password/',
             '/admin/',
+            '/api/',
+            '/media/'
         ]
         
         # Si es una ruta pública, solo verificar token sin forzar autenticación

@@ -13,6 +13,8 @@ from interfaces.api.v1.refresh import refresh_token_view
 from interfaces.api.v1.change_password import change_password_view
 from django.urls import include
 from interfaces.api.v1.admin_users import admin_list_users, admin_update_user_status, admin_search_users
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -42,3 +44,7 @@ urlpatterns = [
     path('api/users/search/', admin_search_users, name='admin-search-users'),
     re_path(r'^api/users/(?P<user_id>\d+)/status/$', admin_update_user_status, name='admin-update-user-status'),
 ]
+
+# Agregar al final para servir archivos media en desarrollo
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

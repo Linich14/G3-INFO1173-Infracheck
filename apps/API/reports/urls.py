@@ -1,11 +1,7 @@
 from django.urls import path
-from .views.report_views import (
-    ReportCreateView,
-    ReportListView,
-    ReportDetailView,
-    ReportUpdateView,
-    ReportDeleteView,
-    ReportImageDeleteView,
+from reports.views.report_views import (
+    ReportCreateView, ReportListView, ReportDetailView, ReportUpdateView, ReportDeleteView,
+    ReportMediaUploadView, ReportMediaListView, ReportMediaDeleteView, get_reports
 )
 from .views.seguimiento_views import (
     follow_report_view,
@@ -19,14 +15,21 @@ from .views.voto_views import (
 )
 
 urlpatterns = [
-    # ==================== REPORTES/DENUNCIAS ====================
-    path('', ReportListView.as_view(), name='report-list'),
-    path('create/', ReportCreateView.as_view(), name='report-create'),
-    path('<int:report_id>/', ReportDetailView.as_view(), name='report-detail'),
-    path('<int:report_id>/update/', ReportUpdateView.as_view(), name='report-update'),
-    path('<int:report_id>/delete/', ReportDeleteView.as_view(), name='report-delete'),
-    path('<int:report_id>/images/<int:image_id>/delete/', ReportImageDeleteView.as_view(), name='report-image-delete'),
-
+    # CRUD de reportes con clases APIView
+    path('', ReportListView.as_view(), name='report_list'),
+    path('create/', ReportCreateView.as_view(), name='report_create'),
+    path('<int:report_id>/', ReportDetailView.as_view(), name='report_detail'),
+    path('<int:report_id>/update/', ReportUpdateView.as_view(), name='report_update'),
+    path('<int:report_id>/delete/', ReportDeleteView.as_view(), name='report_delete'),
+    
+    # Manejo de archivos/imágenes
+    path('<int:report_id>/media/', ReportMediaListView.as_view(), name='report_media_list'),
+    path('<int:report_id>/media/upload/', ReportMediaUploadView.as_view(), name='report_media_upload'),
+    path('<int:report_id>/media/<int:archivo_id>/delete/', ReportMediaDeleteView.as_view(), name='report_media_delete'),
+    
+    # Vista con paginación (usando decorador para funciones específicas)
+    path('paginated/', get_reports, name='get_reports_paginated'),
+    
     # ==================== SEGUIMIENTO DE REPORTES ====================
     path('<int:report_id>/follow/', follow_report_view, name='follow-report'),
     path('<int:report_id>/unfollow/', unfollow_report_view, name='unfollow-report'),
