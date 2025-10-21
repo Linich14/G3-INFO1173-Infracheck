@@ -38,6 +38,9 @@ urlpatterns = [
 
     # Ruta de proyectos /api/proyectos/
     path('api/proyectos/', include('proyectos.urls')),
+    
+    # Ruta de auditoría /api/audit/
+    path('api/audit/', include('audit.urls')),
 
     # Rutas para admin users
     path('api/users/', admin_list_users, name='admin-list-users'),
