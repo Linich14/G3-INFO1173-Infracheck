@@ -1,0 +1,90 @@
+@startuml Casos_Uso_Autenticacion
+!theme plain
+skinparam packageStyle rectangle
+
+title Diagrama de Casos de Uso - Módulo de Autenticación
+caption Sistema InfraCheck
+
+' =====================================================
+' ACTORES (Posicionados a los lados)
+' =====================================================
+
+left to right direction
+
+actor "Usuario Común" as usuario #LightBlue
+
+' =====================================================
+' CASOS DE USO
+' =====================================================
+
+package "Autenticación Básica" {
+  usecase (Registrar Usuario) as UC1
+  usecase (Iniciar Sesión) as UC2
+  usecase (Cerrar Sesión) as UC3
+  usecase (Verificar Token) as UC4
+}
+
+package "Recuperar Contraseña" {
+  usecase (Solicitar Reset) as UC5
+  usecase (Verificar Código) as UC6
+  usecase (Cambiar Contraseña) as UC7
+}
+
+package "Gestión de Perfil" {
+  usecase (Ver Perfil) as UC8
+  usecase (Actualizar Perfil) as UC9
+  usecase (Eliminar Cuenta) as UC10
+}
+
+package "Administración" {
+  usecase (Listar Usuarios) as UC11
+  usecase (Cambiar Rol) as UC12
+  usecase (Habilitar/Deshabilitar) as UC13
+}
+
+actor "Usuario Municipal" as municipal #Orange
+actor "Administrador" as admin #Red
+
+' =====================================================
+' RELACIONES
+' =====================================================
+
+' Usuario Común - Puede registrarse + servicios básicos
+usuario --> UC1
+usuario --> UC2
+usuario --> UC3
+usuario --> UC5
+usuario --> UC6
+usuario --> UC7
+usuario --> UC8
+usuario --> UC9
+usuario --> UC10
+
+' Usuario Municipal - Solo servicios básicos desde la derecha (NO puede registrarse)
+UC2 <-- municipal
+UC3 <-- municipal
+UC5 <-- municipal
+UC6 <-- municipal
+UC7 <-- municipal
+UC8 <-- municipal
+UC9 <-- municipal
+UC10 <-- municipal
+
+' Admin - Crea usuarios municipales y gestiona (desde la derecha)
+UC11 <-- admin
+UC12 <-- admin
+UC13 <-- admin
+
+' =====================================================
+' NOTAS
+' =====================================================
+
+note right of UC1
+  POST /api/v1/register
+end note
+
+note right of UC2
+  POST /api/v1/login
+end note
+
+@enduml

@@ -1,0 +1,335 @@
+@startuml InfraCheck_ER_Diagram
+!theme plain
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 120
+left to right direction
+
+title Diagrama Entidad-Relación - InfraCheck
+caption Sistema de Reportes de Infraestructura Urbana
+
+' =====================================================
+' MÓDULO DE AUTENTICACIÓN Y USUARIOS
+' =====================================================
+
+package "Autenticación y Gestión de Usuarios" #LightBlue {
+  entity "RolUsuario" as rol_usuario {
+    * rous_id : INTEGER <<PK>>
+    --
+    * rous_nombre : VARCHAR(50) <<UK>>
+  }
+  
+  entity "Usuario" as usuario {
+    * usua_id : INTEGER <<PK>>
+    --
+    * usua_rut : VARCHAR(12) <<UK>>
+    * usua_nickname : VARCHAR(50) <<UK>>
+    * usua_email : VARCHAR(255)
+    * usua_pass : VARCHAR(128)
+    usua_nombre : VARCHAR(50)
+    usua_apellido : VARCHAR(50)
+    * usua_telefono : BIGINT
+    * usua_estado : INTEGER
+    * usua_creado : DATETIME
+    usua_actualizado : DATETIME
+    --
+    * rous_id : INTEGER <<FK>>
+  }
+
+  entity "SesionToken" as sesion_token {
+    * token_id : INTEGER <<PK>>
+    --
+    * token_valor : VARCHAR(255) <<UK>>
+    * token_creado_en : DATETIME
+    * token_expira_en : DATETIME
+    * token_activo : BOOLEAN
+    --
+    * usua_id : INTEGER <<FK>>
+  }
+
+  entity "RecuperarUsuario" as recuperar_usuario {
+    * reus_id : INTEGER <<PK>>
+    --
+    * reus_token : VARCHAR(6)
+    * reus_expira_en : DATETIME
+    * reus_creado_en : DATETIME
+    * reus_usado : BOOLEAN
+    --
+    * usua_id : INTEGER <<FK>>
+  }
+  
+  rol_usuario ||--o{ usuario
+  usuario ||--o{ sesion_token
+  usuario ||--o{ recuperar_usuario
+}
+
+' =====================================================
+' MÓDULO DE REPORTES Y DENUNCIAS
+' =====================================================
+
+package "Reportes y Denuncias" #LightYellow {
+  entity "Reporte" as reporte {
+    * id : INTEGER <<PK>>
+    --
+    * titulo : VARCHAR(200)
+    * descripcion : TEXT(1000)
+    * ubicacion : VARCHAR(255)
+    * latitud : DECIMAL(10,7)
+    * longitud : DECIMAL(10,7)
+    * urgencia : INTEGER
+    * visible : BOOLEAN
+    * fecha_creacion : DATETIME
+    fecha_actualizacion : DATETIME
+    --
+    * usuario : INTEGER <<FK>>
+    * denuncia_estado : INTEGER <<FK>>
+    * tipo_denuncia : INTEGER <<FK>>
+    * ciudad : INTEGER <<FK>>
+  }
+
+  entity "TipoDenuncia" as tipo_denuncia {
+    * id : INTEGER <<PK>>
+    --
+    * nombre : VARCHAR(100)
+  }
+
+  entity "DenunciaEstado" as denuncia_estado {
+    * id : INTEGER <<PK>>
+    --
+    * nombre : VARCHAR(50)
+  }
+
+  entity "Ciudad" as ciudad {
+    * id : INTEGER <<PK>>
+    --
+    * nombre : VARCHAR(100)
+  }
+  
+  tipo_denuncia ||--o{ reporte
+  denuncia_estado ||--o{ reporte
+  ciudad ||--o{ reporte
+}
+
+' =====================================================
+' MÓDULO DE INTERACCIONES
+' =====================================================
+
+package "Interacciones de Usuario" #LightGreen {
+  entity "SeguimientoReporte" as seguimiento_reporte {
+    * id : INTEGER <<PK>>
+    --
+    * fecha_seguimiento : DATETIME
+    * usuario : INTEGER <<FK>>
+    * reporte : INTEGER <<FK>>
+  }
+
+  entity "VotoReporte" as voto_reporte {
+    * id : INTEGER <<PK>>
+    --
+    * fecha_voto : DATETIME
+    * usuario : INTEGER <<FK>>
+    * reporte : INTEGER <<FK>>
+  }
+
+  entity "ComentarioReporte" as comentario_reporte {
+    * id : INTEGER <<PK>>
+    --
+    * comentario : TEXT
+    * fecha_comentario : DATETIME
+    * usuario : INTEGER <<FK>>
+    * reporte : INTEGER <<FK>>
+  }
+  
+  ' Relaciones internas
+  seguimiento_reporte }o--|| usuario : "usuario sigue"
+  voto_reporte }o--|| usuario : "usuario vota"
+  comentario_reporte }o--|| usuario : "usuario comenta"
+}
+
+' =====================================================
+' MÓDULO DE PROYECTOS
+' =====================================================
+
+package "Proyectos Municipales" #LightCoral {
+  entity "Proyecto" as proyecto {
+    * proy_id : INTEGER <<PK>>
+    --
+    * proy_titulo : VARCHAR(50)
+    * proy_descripcion : TEXT
+    * proy_estado : INTEGER
+    * proy_visible : INTEGER
+    * proy_lugar : VARCHAR(255)
+    * proy_prioridad : INTEGER
+    proy_fecha_inicio_estimada : DATE
+    * proy_tipo_denuncia : VARCHAR(100)
+    * proy_creado : DATETIME
+    * proy_actualizado : DATETIME
+    --
+    * denu_id : INTEGER <<FK>>
+  }
+
+  entity "ProyectoArchivos" as proyecto_archivos {
+    * proar_id : INTEGER <<PK>>
+    --
+    * proar_tipo : VARCHAR(50)
+    * proar_contenido_tipo : VARCHAR(100)
+    * proar_mime : VARCHAR(100)
+    * proar_nombre_archivo : VARCHAR(255)
+    * proar_ruta : VARCHAR(500)
+    * proar_visible : INTEGER
+    * proar_creado : DATETIME
+    * proar_actualizado : DATETIME
+    --
+    * proy_id : INTEGER <<FK>>
+  }
+  
+  proyecto ||--o{ proyecto_archivos
+}
+
+' =====================================================
+' MÓDULO DE NOTIFICACIONES
+' =====================================================
+
+package "Notificaciones" #Lavender {
+  entity "Notificacion" as notificacion {
+    * id : INTEGER <<PK>>
+    --
+    * titulo : VARCHAR(200)
+    * mensaje : TEXT
+    * tipo : VARCHAR(10)
+    * leida : BOOLEAN
+    * fecha_creacion : DATETIME
+    fecha_lectura : DATETIME
+    --
+    * usuario_id : INTEGER <<FK>>
+    denuncia : INTEGER <<FK>>
+  }
+}
+
+' =====================================================
+' RELACIONES ENTRE MÓDULOS
+' =====================================================
+
+' Usuario crea reportes
+usuario ||--o{ reporte : "crea"
+
+' Reporte tiene interacciones (relaciones separadas para evitar solapamiento)
+reporte ||--o{ seguimiento_reporte : "seguido por"
+reporte ||--o{ voto_reporte : "votado por"
+reporte ||--o{ comentario_reporte : "comentado por"
+
+' Otras relaciones de usuario
+usuario ||--o{ notificacion : "recibe"
+
+' Reporte genera proyecto y notificaciones
+reporte ||--o{ proyecto : "origina"
+reporte ||--o{ notificacion : "genera"
+
+' =====================================================
+' NOTAS Y ACLARACIONES
+' =====================================================
+
+note right of usuario
+  **Soft Delete**
+  usua_estado:
+  0 = Deshabilitado
+  1 = Habilitado
+  
+  Contraseña hasheada
+  con PBKDF2
+end note
+
+note right of sesion_token
+  **JWT Custom**
+  Token aleatorio de 64 chars
+  Expiración: 24 horas
+  Se invalidan en logout
+end note
+
+note right of recuperar_usuario
+  **Reset Password**
+  Código de 6 dígitos
+  Expiración: 10 minutos
+  Un solo uso
+end note
+
+note right of reporte
+  **Soft Delete**
+  visible = false
+  
+  Urgencia:
+  1 = Baja
+  2 = Media
+  3 = Alta
+  
+  Coordenadas GPS
+end note
+
+note right of proyecto
+  **Estados**
+  1 = Planificación
+  2 = En Progreso
+  3 = Completado
+  4 = Cancelado
+  5 = Pendiente
+  6 = Aprobado
+  7 = Rechazado
+  
+  Prioridad:
+  1 = Normal
+  2 = Importante
+  3 = Muy Importante
+end note
+
+note right of notificacion
+  **Tipos**
+  info, success,
+  warning, error
+  
+  Índices en:
+  - usuario + leida
+  - fecha_creacion
+end note
+
+note right of seguimiento_reporte
+  **Seguimiento**
+  Usuario puede seguir
+  hasta 15 reportes
+  
+  Registra fecha exacta
+  cuando comenzó a seguir
+  
+  Unique constraint:
+  usuario + reporte
+  
+  Índices en:
+  - usuario + fecha
+  - reporte
+end note
+
+' =====================================================
+' CARDINALIDADES
+' =====================================================
+
+note bottom of usuario
+  **1 Usuario**
+  - Tiene 1 Rol
+  - Puede tener N Tokens
+  - Puede tener N Solicitudes Reset
+  - Crea N Reportes
+  - Recibe N Notificaciones
+  - Puede seguir hasta 15 Reportes
+end note
+
+note bottom of reporte
+  **1 Reporte**
+  - Creado por 1 Usuario
+  - Tiene 1 Estado
+  - Tiene 1 Tipo
+  - Ubicado en 1 Ciudad
+  - Puede generar N Proyectos
+  - Puede generar N Notificaciones
+  - Puede ser seguido por N Usuarios
+end note
+
+@enduml
