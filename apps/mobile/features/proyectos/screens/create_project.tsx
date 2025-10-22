@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 // ==================== INTERFACES Y TIPOS ====================
@@ -28,7 +29,7 @@ interface Denuncia {
  */
 interface CreateProjectProps {
   denunciaSeleccionada?: Denuncia;
-  onBack: () => void;
+  onBack?: () => void; // Ahora es opcional
   onProjectCreated?: (project: any) => void;
 }
 
@@ -104,6 +105,23 @@ export default function CreateProjectScreen({
   onBack,
   onProjectCreated,
 }: CreateProjectProps) {
+  // ==================== FUNCIÓN DE NAVEGACIÓN ====================
+
+  /**
+   * Maneja la navegación hacia atrás de forma inteligente
+   * - Si onBack está definido, lo usa (modo componente embebido)
+   * - Si no, navega de vuelta al home principal
+   * Esto asegura que siempre vuelvas al punto de origen correcto
+   */
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      // Navegar directamente al home para evitar ir a lista de proyectos
+      router.push('/(tabs)/home');
+    }
+  };
+
   // ==================== ESTADO DEL COMPONENTE ====================
 
   /**
@@ -229,7 +247,7 @@ export default function CreateProjectScreen({
           text: 'OK',
           onPress: () => {
             onProjectCreated?.(nuevoProyecto); // Notifica al padre
-            onBack(); // Regresa a la pantalla anterior
+            handleBack(); // Regresa a la pantalla anterior
           },
         },
       ]
@@ -249,7 +267,7 @@ export default function CreateProjectScreen({
       <View className="flex-1 bg-black px-4 pt-10">
         {/* Header de la pantalla de selección */}
         <View className="mb-6 flex-row items-center">
-          <TouchableOpacity className="rounded-xl bg-blue-500 p-2" onPress={onBack}>
+          <TouchableOpacity className="rounded-xl bg-[#537CF2] p-2" onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="ml-4 text-xl font-bold text-white">Seleccionar Denuncia</Text>
@@ -269,7 +287,7 @@ export default function CreateProjectScreen({
           {/* Botón para continuar - solo visible si hay selección */}
           {denunciaSelected && (
             <TouchableOpacity
-              className="mb-4 rounded-xl bg-green-600 p-4"
+              className="mb-4 rounded-xl bg-[#537CF2] p-4"
               onPress={() => setShowDenunciaSelector(false)}>
               <Text className="text-center font-bold text-white">
                 Continuar con denuncia seleccionada
@@ -285,7 +303,7 @@ export default function CreateProjectScreen({
               <TouchableOpacity
                 key={denuncia.id}
                 className={`mb-4 rounded-xl p-4 ${
-                  isSelected ? 'border-2 border-blue-500 bg-blue-900' : 'bg-neutral-900'
+                  isSelected ? 'border-2 border-[#537CF2] bg-[#537CF2]/20' : 'bg-[#1D212D]'
                 }`}
                 onPress={() => handleSelectDenuncia(denuncia)}>
                 {/* Header de la denuncia con título y votos */}
@@ -353,7 +371,7 @@ export default function CreateProjectScreen({
     <View className="flex-1 bg-black px-4 pt-10">
       {/* Header del formulario */}
       <View className="mb-6 flex-row items-center">
-        <TouchableOpacity className="rounded-xl bg-blue-500 p-2" onPress={onBack}>
+        <TouchableOpacity className="rounded-xl bg-[#537CF2] p-2" onPress={handleBack}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text className="ml-4 text-xl font-bold text-white">Crear Proyecto</Text>
@@ -363,7 +381,7 @@ export default function CreateProjectScreen({
         {/* SECCIÓN: Resumen de denuncias seleccionadas */}
         {/* Denuncia Seleccionada */}
         {denunciaSelected && (
-          <View className="mb-6 rounded-xl bg-neutral-900 p-4">
+          <View className="mb-6 rounded-xl bg-[#13161E] p-4">
             <View className="mb-3 flex-row items-center justify-between">
               <Text className="text-lg font-bold text-blue-400">Denuncia Seleccionada</Text>
               {/* Botón para modificar la selección */}
@@ -387,14 +405,14 @@ export default function CreateProjectScreen({
         {/* SECCIÓN: Formulario principal del proyecto */}
 
         {/* Formulario de Proyecto */}
-        <View className="mb-6 rounded-xl bg-neutral-900 p-4">
+        <View className="mb-6 rounded-xl bg-[#13161E] p-4">
           <Text className="mb-4 text-lg font-bold text-blue-400">Información del Proyecto</Text>
 
           {/* CAMPO: Nombre del Proyecto (Obligatorio) */}
           <View className="mb-4">
             <Text className="mb-2 text-gray-400">Nombre del Proyecto *</Text>
             <TextInput
-              className="rounded-lg bg-neutral-800 p-3 text-white"
+              className="rounded-lg bg-[#1D212D] p-3 text-white"
               placeholder="Ej: Reparación de bache en Av. Alemania"
               placeholderTextColor="#9CA3AF"
               value={formData.nombreProyecto}
@@ -406,7 +424,7 @@ export default function CreateProjectScreen({
           <View className="mb-4">
             <Text className="mb-2 text-gray-400">Descripción del Proyecto *</Text>
             <TextInput
-              className="rounded-lg bg-neutral-800 p-3 text-white"
+              className="rounded-lg bg-[#1D212D] p-3 text-white"
               placeholder="Describe detalladamente el proyecto y cómo resolverá la denuncia..."
               placeholderTextColor="#9CA3AF"
               value={formData.descripcion}
@@ -431,7 +449,7 @@ export default function CreateProjectScreen({
                         : prioridad === 'Media'
                           ? 'bg-yellow-600' // Amarillo para media prioridad
                           : 'bg-blue-600' // Azul para baja prioridad
-                      : 'bg-neutral-800' // Gris para no seleccionado
+                      : 'bg-[#1D212D]' // Gris para no seleccionado
                   }`}
                   onPress={() =>
                     setFormData((prev) => ({
@@ -449,7 +467,7 @@ export default function CreateProjectScreen({
           <View className="mb-4">
             <Text className="mb-2 text-gray-400">Fecha de Inicio Estimada</Text>
             <TouchableOpacity
-              className="flex-row items-center justify-between rounded-lg bg-neutral-800 p-3"
+              className="flex-row items-center justify-between rounded-lg bg-[#1D212D] p-3"
               onPress={showDatepicker}>
               <Text className={`${formData.fechaInicioEstimada ? 'text-white' : 'text-gray-400'}`}>
                 {formatDate(formData.fechaInicioEstimada)}
@@ -476,13 +494,13 @@ export default function CreateProjectScreen({
         {/* Botones de Acción */}
         <View className="mb-6 flex-row">
           {/* Botón Cancelar - Regresa sin guardar cambios */}
-          <TouchableOpacity className="mr-3 flex-1 rounded-lg bg-gray-600 p-4" onPress={onBack}>
+          <TouchableOpacity className="mr-3 flex-1 rounded-lg bg-[#1D212D] p-4" onPress={handleBack}>
             <Text className="text-center font-semibold text-white">Cancelar</Text>
           </TouchableOpacity>
 
           {/* Botón Crear Proyecto - Ejecuta validaciones y crea el proyecto */}
           <TouchableOpacity
-            className="flex-1 rounded-lg bg-green-600 p-4"
+            className="flex-1 rounded-lg bg-[#537CF2] p-4"
             onPress={handleCreateProject}>
             <Text className="text-center font-semibold text-white">Crear Proyecto</Text>
           </TouchableOpacity>

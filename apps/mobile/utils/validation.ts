@@ -42,3 +42,14 @@ export function validateRegisterData(data: RegisterData) {
   if (!/^\d{8}$/.test(data.phone.replace('+569', ''))) errors.push({ field: 'phone', message: 'Teléfono inválido' });
   return { isValid: errors.length === 0, errors };
 }
+
+// Validar identifier para password reset (RUT o email)
+export function isValidIdentifier(identifier: string): { isValid: boolean; type: 'rut' | 'email' | null } {
+  if (isValidRut(identifier)) {
+    return { isValid: true, type: 'rut' };
+  }
+  if (isValidEmail(identifier)) {
+    return { isValid: true, type: 'email' };
+  }
+  return { isValid: false, type: null };
+}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ReportsView from './AssociatedReports.tsx';
+import { router } from 'expo-router';
+import ReportsView from './AssociatedReports';
 import ReportProblem from './report_problem';
 
 interface ProjectDetailsProps {
@@ -15,12 +16,25 @@ interface ProjectDetailsProps {
         votosAFavor?: number;
         tipoDenuncia?: string;
     };
-    onBack: () => void;
+    onBack?: () => void; // Ahora es opcional
 }
 
 export default function ProjectDetails({ project, onBack }: ProjectDetailsProps) {
     const [showReports, setShowReports] = useState(false);
     const [showReportProblem, setShowReportProblem] = useState(false);
+
+    /**
+     * Maneja la navegación hacia atrás
+     * Si onBack está definido, lo usa (modo componente embebido)
+     * Si no, usa router.back() (modo ruta independiente)
+     */
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
+        } else {
+            router.back();
+        }
+    };
 
     const handleShowReports = () => {
         setShowReports(true);
@@ -66,7 +80,7 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
         <View className="flex-1 bg-black px-4 pt-10">
             {/* Header */}
             <View className="mb-6 flex-row items-center">
-                <TouchableOpacity className="rounded-xl bg-blue-500 p-2" onPress={onBack}>
+                <TouchableOpacity className="rounded-xl bg-[#537CF2] p-2" onPress={handleBack}>
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
                 <Text className="ml-4 text-xl font-bold text-white">Detalles del Proyecto</Text>
@@ -74,7 +88,7 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Información Principal */}
-                <View className="mb-6 rounded-xl bg-neutral-900 p-6">
+                <View className="mb-6 rounded-xl bg-[#13161E] p-6">
                     <View className="mb-4 flex-row items-center">
                         <Ionicons name="location" size={24} color="#60A5FA" />
                         <Text className="ml-3 text-xl font-bold text-white">{project.lugar}</Text>
@@ -139,7 +153,7 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
                     )}
 
                     {/* Descripción */}
-                    <View className="mb-6 rounded-xl bg-neutral-900 p-6">
+                    <View className="mb-6 rounded-xl bg-[#13161E] p-6">
                         <Text className="mb-3 text-lg font-bold text-blue-400">Descripción</Text>
                         <Text className="leading-6 text-gray-300">
                             Este proyecto se encuentra ubicado en {project.lugar} y actualmente
@@ -151,18 +165,18 @@ export default function ProjectDetails({ project, onBack }: ProjectDetailsProps)
                 </View>
 
                 {/* Acciones */}
-                <View className="mb-6 rounded-xl bg-neutral-900 p-6">
+                <View className="mb-6 rounded-xl bg-[#13161E] p-6">
                     <Text className="mb-4 text-lg font-bold text-blue-400">Acciones</Text>
 
                     <TouchableOpacity
-                        className="mb-3 flex-row items-center rounded-lg bg-blue-600 p-4"
+                        className="mb-3 flex-row items-center rounded-lg bg-[#537CF2] p-4"
                         onPress={handleShowReports}>
                         <Ionicons name="document-text" size={20} color="white" />
                         <Text className="ml-3 font-semibold text-white">Reportes asociados</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        className="flex-row items-center rounded-lg bg-red-600 p-4"
+                        className="flex-row items-center rounded-lg bg-[#537CF2] p-4"
                         onPress={handleShowReportProblem}>
                         <Ionicons name="alert-circle" size={20} color="white" />
                         <Text className="ml-3 font-semibold text-white">Reportar Problema</Text>

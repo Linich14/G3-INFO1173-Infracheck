@@ -1,0 +1,157 @@
+@startuml Diagrama_Componentes
+!theme plain
+
+title Diagrama de Componentes - Sistema InfraCheck
+caption Arquitectura del Sistema
+
+' =====================================================
+' CAPAS DE PRESENTACIÓN
+' =====================================================
+
+package "Capa de Presentación" #LightBlue {
+  [Aplicación Móvil\nReact Native] as MobileApp
+  [Expo Router] as ExpoRouter
+  [MapLibre GL] as MapLibre
+  
+  MobileApp --> ExpoRouter
+  MobileApp --> MapLibre
+}
+
+' =====================================================
+' CAPA DE API
+' =====================================================
+
+package "API REST - Django" #LightYellow {
+  
+  package "Interfaces" {
+    [API v1\nEndpoints] as APIv1
+    [Serializers] as Serializers
+    [Validators] as Validators
+    [Middleware] as Middleware
+  }
+  
+  package "Application Layer" {
+    [Use Cases] as UseCases
+    [Services] as AppServices
+    [DTOs] as DTOs
+  }
+  
+  package "Domain Layer" {
+    [Entities] as Entities
+    [Value Objects] as ValueObjects
+    [Domain Services] as DomainServices
+    [Repositories Interface] as RepoInterface
+  }
+  
+  package "Infrastructure Layer" {
+    [Repository Impl] as RepoImpl
+    [Database Config] as DBConfig
+    [External Services] as ExternalServices
+  }
+  
+  APIv1 --> Serializers
+  APIv1 --> Validators
+  APIv1 --> UseCases
+  APIv1 ..> Middleware
+  
+  UseCases --> AppServices
+  UseCases --> DTOs
+  UseCases --> Entities
+  
+  AppServices --> DomainServices
+  AppServices --> RepoInterface
+  
+  RepoInterface <|.. RepoImpl
+  RepoImpl --> DBConfig
+}
+
+' =====================================================
+' MÓDULOS FUNCIONALES
+' =====================================================
+
+package "Módulos del Sistema" #LightGreen {
+  [Módulo Autenticación] as AuthModule
+  [Módulo Reportes] as ReportsModule
+  [Módulo Proyectos] as ProjectsModule
+  [Módulo Notificaciones] as NotificationsModule
+}
+
+APIv1 --> AuthModule
+APIv1 --> ReportsModule
+APIv1 --> ProjectsModule
+APIv1 --> NotificationsModule
+
+' =====================================================
+' CAPA DE DATOS
+' =====================================================
+
+package "Capa de Datos" #LightCoral {
+  database "PostgreSQL" as DB {
+    [Usuarios]
+    [Reportes]
+    [Proyectos]
+    [Notificaciones]
+    [Archivos]
+  }
+  
+  [Sistema de Archivos] as FileSystem
+}
+
+DBConfig --> DB
+RepoImpl --> DB
+ExternalServices --> FileSystem
+
+' =====================================================
+' SERVICIOS EXTERNOS
+' =====================================================
+
+cloud "Servicios Externos" #Lavender {
+  [MapTiler API] as MapTiler
+  [Servicio Email] as EmailService
+}
+
+ExternalServices --> MapTiler
+ExternalServices --> EmailService
+
+' =====================================================
+' CONEXIONES PRINCIPALES
+' =====================================================
+
+MobileApp --> APIv1 : HTTP/REST
+
+' =====================================================
+' NOTAS
+' =====================================================
+
+note right of MobileApp
+  **Tecnologías:**
+  - React Native 0.79.5
+  - Expo Router
+  - NativeWind (Tailwind)
+  - TypeScript
+end note
+
+note right of APIv1
+  **Endpoints principales:**
+  - /api/v1/auth
+  - /api/v1/reports
+  - /api/v1/proyectos
+  - /api/v1/notifications
+end note
+
+note right of DB
+  **Base de Datos:**
+  - PostgreSQL
+  - 14 tablas principales
+  - Relaciones complejas
+end note
+
+note bottom of "Domain Layer"
+  **Arquitectura Hexagonal:**
+  - Domain: Lógica de negocio pura
+  - Application: Casos de uso
+  - Infrastructure: Implementaciones
+  - Interfaces: Puntos de entrada
+end note
+
+@enduml

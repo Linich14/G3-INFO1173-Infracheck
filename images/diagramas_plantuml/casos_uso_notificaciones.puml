@@ -1,0 +1,114 @@
+@startuml Casos_Uso_Notificaciones
+!theme plain
+skinparam packageStyle rectangle
+
+title Diagrama de Casos de Uso - Módulo de Notificaciones
+caption Sistema InfraCheck
+
+' =====================================================
+' ACTORES
+' =====================================================
+
+actor "Usuario" as usuario #LightBlue
+actor "Administrador" as admin #Red
+actor "Sistema" as sistema #Gray
+
+' =====================================================
+' CASOS DE USO
+' =====================================================
+
+package "Gestión Personal" {
+  usecase (Ver Notificaciones) as UC1
+  usecase (Marcar como Leída) as UC2
+  usecase (Marcar Todas Leídas) as UC3
+  usecase (Contar No Leídas) as UC4
+}
+
+package "Preferencias" {
+  usecase (Configurar Preferencias) as UC5
+  usecase (Activar/Desactivar Tipos) as UC6
+}
+
+package "Administración" {
+  usecase (Ver Todas) as UC7
+  usecase (Crear Notificación Masiva) as UC8
+  usecase (Reporte de Notificaciones) as UC9
+}
+
+package "Generación Automática" {
+  usecase (Notificar Cambio Reporte) as UC10
+  usecase (Notificar Cambio Proyecto) as UC11
+  usecase (Notificar Comentario) as UC12
+  usecase (Notificar Voto) as UC13
+}
+
+' =====================================================
+' RELACIONES
+' =====================================================
+
+' Usuario - Gestión personal
+usuario --> UC1
+usuario --> UC2
+usuario --> UC3
+usuario --> UC5
+
+' Usuario - Configuración
+usuario --> UC5
+usuario --> UC6
+
+' Admin - Administración
+admin --> UC7
+admin --> UC8
+admin --> UC9
+
+' Admin también puede ver sus propias notificaciones
+admin --> UC1
+admin --> UC2
+admin --> UC3
+
+' Sistema - Generación automática
+sistema --> UC10
+sistema --> UC11
+sistema --> UC12
+sistema --> UC13
+
+' Notificaciones llegan a usuarios
+UC10 --> usuario : envía
+UC11 --> usuario : envía
+UC12 --> usuario : envía
+UC13 --> usuario : envía
+
+' =====================================================
+' NOTAS
+' =====================================================
+
+note right of UC1
+  GET /api/v1/notifications
+  Filtros: leídas, tipo, fecha
+  Paginación disponible
+end note
+
+note right of UC8
+  POST /api/v1/admin/notifications
+  Envío masivo a grupos
+  Filtrado por rol/ubicación
+end note
+
+note right of UC10
+  **Triggers automáticos:**
+  - Nuevo reporte
+  - Cambio estado
+  - Asignación proyecto
+end note
+
+note bottom of usuario
+  **Tipos de notificación:**
+  info, success, warning, error
+  
+  **Preferencias:**
+  - Frecuencia de envío
+  - Tipos habilitados
+  - Canales (in-app, email, push)
+end note
+
+@enduml

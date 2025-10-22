@@ -27,7 +27,12 @@ class TokenAuthenticationMiddleware(MiddlewareMixin):
             '/api/v1/register/',
             '/api/v1/login/',
             '/api/v1/verify-token/',
+            '/api/v1/request-password-reset/',
+            '/api/v1/verify-reset-code/',
+            '/api/v1/reset-password/',
             '/admin/',
+            '/api/',
+            '/media/'
         ]
         
         # Si es una ruta pública, solo verificar token sin forzar autenticación
@@ -48,9 +53,18 @@ class TokenAuthenticationMiddleware(MiddlewareMixin):
                 
                 # Verificar si el token es válido
                 if sesion_token.is_valid():
-                    request.auth_user = sesion_token.usua_id
-                    request.auth_token = sesion_token
-                    logger.debug(f"Usuario autenticado: {sesion_token.usua_id.usua_nickname}")
+                    # Verificar si el usuario está habilitado (soft delete)
+                    if sesion_token.usua_id.usua_estado == 0:
+                        logger.debug(f"Usuario deshabilitado intentó autenticarse: {sesion_token.usua_id.usua_nickname}")
+                        # Si no es ruta pública, retornar error
+                        if not is_public_path:
+                            return JsonResponse({
+                                'errors': ['Cuenta deshabilitada. Contacta soporte para reactivar.']
+                            }, status=403)
+                    else:
+                        request.auth_user = sesion_token.usua_id
+                        request.auth_token = sesion_token
+                        logger.debug(f"Usuario autenticado: {sesion_token.usua_id.usua_nickname}")
                 else:
                     # Token expirado - eliminarlo
                     sesion_token.delete()

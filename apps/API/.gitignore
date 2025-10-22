@@ -5,3 +5,8 @@
 .venv/
 venv
 __pycache__/
+
+
+uploads/
+reportes/
+media/

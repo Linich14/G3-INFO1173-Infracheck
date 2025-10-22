@@ -5,10 +5,18 @@
         "jsx": "react-jsx",
         "baseUrl": ".",
         "paths": {
-            "~/*": ["*"],
-            "@features/*": ["./features/*"],
-            "@assets/*": ["./assets/*"],
-            
+            "~/*": [
+                "*"
+            ],
+            "@features/*": [
+                "./features/*"
+            ],
+            "@assets/*": [
+                "./assets/*"
+            ],
+            "@shared/*": [
+                "./shared/*"
+            ],
         }
     },
     "include": [

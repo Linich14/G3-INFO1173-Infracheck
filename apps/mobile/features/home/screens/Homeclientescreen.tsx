@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Animated, Dimensions, TouchableWithoutFeedback, Easing } from "react-native";
 import { router } from "expo-router";
@@ -9,9 +9,6 @@ import ClientContent from "~/features/home/components/ClientContent";
 import FloatingButton from "~/features/home/components/Floatingbutton";
 import ClientDrawerMenu from "~/features/home/components/ClientDrawerMenu";
 
-const MENU_BG = "#0f172a";
-const ACCENT = "#537CF2";
-
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { logout } = useAuth();
@@ -21,6 +18,8 @@ export default function HomeScreen() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
+  const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
+  const [filteredReports, setFilteredReports] = useState<Report[]>([]);
 
   // Estado con reportes iniciales (mock)
   const [reports, setReports] = useState<Report[]>([
@@ -45,6 +44,7 @@ export default function HomeScreen() {
           timeAgo: '1d',
         },
       ],
+      categoria: 'Infraestructura',
     },
     {
       id: '2',
@@ -54,6 +54,7 @@ export default function HomeScreen() {
       image: { uri: 'https://picsum.photos/seed/semaforo/800/500' },
       upvotes: 91,
       comments: [],
+      categoria: 'Señalización',
     },
     {
       id: '3',
@@ -63,6 +64,7 @@ export default function HomeScreen() {
       image: { uri: 'https://picsum.photos/seed/bache/800/600' },
       upvotes: 67,
       comments: [],
+      categoria: 'Infraestructura',
     },
     {
       id: '4',
@@ -72,13 +74,28 @@ export default function HomeScreen() {
       image: { uri: 'https://picsum.photos/seed/luz/800/600' },
       upvotes: 23,
       comments: [],
+      categoria: 'Alumbrado',
     },
   ]);
 
   // Animaciones Drawer
   const drawerX = useRef(new Animated.Value(-Dimensions.get("window").width * 0.75)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const DRAWER_W = Math.min(320, Dimensions.get("window").width * 0.75);
+  const DRAWER_W = Math.min(280, Dimensions.get("window").width * 0.65);
+
+  // Filtrar reportes por categoría
+  const filtrarReportesPorCategoria = (categoria: string | null, reportsList: Report[]): Report[] => {
+    if (!categoria) {
+      return reportsList;
+    }
+    return reportsList.filter(report => report.categoria === categoria);
+  };
+
+  // Actualizar reportes filtrados
+  useEffect(() => {
+    const reportesFiltrados = filtrarReportesPorCategoria(selectedCategoria, reports);
+    setFilteredReports(reportesFiltrados);
+  }, [reports, selectedCategoria]);
 
   const openMenu = () => {
     setOpen(true);
@@ -163,21 +180,25 @@ export default function HomeScreen() {
           title: 'Bache peligroso reportado',
           author: 'LalitoCubano',
           image: { uri: 'https://picsum.photos/seed/bache/800/600' },
+          categoria: 'Infraestructura',
         },
         {
           title: 'Semáforo reparado exitosamente',
           author: 'GeorgeS',
           image: { uri: 'https://picsum.photos/seed/semaforo/800/600' },
+          categoria: 'Señalización',
         },
         {
           title: 'Nueva área verde inaugurada',
           author: 'ElliotM',
           image: { uri: 'https://picsum.photos/seed/parque/800/600' },
+          categoria: 'Áreas Verdes',
         },
         {
           title: 'Fuga de agua en la calle principal',
           author: 'IgnacioL',
           image: { uri: 'https://picsum.photos/seed/agua/800/600' },
+          categoria: 'Servicios Públicos',
         },
       ];
 
@@ -191,6 +212,7 @@ export default function HomeScreen() {
         image: randomPublication.image,
         upvotes: Math.floor(Math.random() * 100) + 5,
         comments: [],
+        categoria: randomPublication.categoria,
       };
 
       setReports((prevReports) => [newReport, ...prevReports]);
@@ -207,7 +229,7 @@ export default function HomeScreen() {
       />
 
       <ClientContent
-        reports={reports}
+        reports={filteredReports.length > 0 || selectedCategoria ? filteredReports : reports}
         onCommentPress={openCommentsModal}
         insets={insets}
         refreshing={refreshing}
@@ -222,6 +244,8 @@ export default function HomeScreen() {
           setSelectedReport(report);
           setCommentsModalVisible(true);
         }}
+        selectedCategoria={selectedCategoria}
+        onCategoriaChange={setSelectedCategoria}
       />
 
       <FloatingButton onPress={() => router.push("/(tabs)/(map)/create_report")} />

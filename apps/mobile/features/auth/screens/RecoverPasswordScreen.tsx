@@ -1,16 +1,77 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image} from 'react-native';
+import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import EmailInput from '../components/EmailInput';
 import RutInput from '../components/RutInput';
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { requestPasswordReset } from '../services/authService';
+import { isValidIdentifier } from '~/utils/validation';
 
 const RecoverPasswordScreen: React.FC = () => {
   const router = useRouter();
   const [rut, setRut] = useState('');
   const [email, setEmail] = useState('');
   const [method, setMethod] = useState<'rut' | 'email'>('rut');
+  const [loading, setLoading] = useState(false);
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Handler para solicitar recuperación de contraseña
+  const handlePasswordReset = async () => {
+    const identifier = method === 'rut' ? rut : email;
+    
+    // Validar que el campo no esté vacío
+    if (!identifier.trim()) {
+      setFeedbackMessage('Por favor, completa el campo requerido.');
+      setIsSuccess(false);
+      setFeedbackModalVisible(true);
+      return;
+    }
+
+    // Validar formato del identifier
+    const validation = isValidIdentifier(identifier);
+    if (!validation.isValid) {
+      setFeedbackMessage(
+        method === 'rut' 
+          ? 'Por favor, ingresa un RUT válido (ej: 12.345.678-9)'
+          : 'Por favor, ingresa un email válido'
+      );
+      setIsSuccess(false);
+      setFeedbackModalVisible(true);
+      return;
+    }
+
+    // Mostrar modal de carga
+    setLoading(true);
+    setFeedbackModalVisible(true);
+    
+    try {
+      const result = await requestPasswordReset({ identifier });
+      
+      setLoading(false);
+      setIsSuccess(result.success);
+      setFeedbackMessage(result.message);
+      
+      if (result.success) {
+        // Esperar un momento antes de navegar
+        setTimeout(() => {
+          setFeedbackModalVisible(false);
+          // Navegar a la pantalla de verificación de código
+          console.log('Navegando a verificación de código con identifier:', identifier);
+          router.push({
+            pathname: '/(auth)/verify-reset-code',
+            params: { identifier }
+          });
+        }, 2000);
+      }
+    } catch (error: any) {
+      setLoading(false);
+      setIsSuccess(false);
+      setFeedbackMessage('Error de conexión. Verifica tu conexión a internet.');
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#0f172a]">
@@ -39,7 +100,12 @@ const RecoverPasswordScreen: React.FC = () => {
         />
       </View>
       {/* Formulario de recuperación */}
-      <View className='-my-10 pt-16 flex-1 bg-[#14161E]' keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView 
+        className='-my-10 pt-16 flex-1 bg-[#14161E]' 
+        keyboardShouldPersistTaps="handled" 
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         <View className="w-full px-6">
           {/* Botón atrás y título en la misma fila */}
           <View className="flex-row items-center justify-between mb-8">
@@ -101,15 +167,70 @@ const RecoverPasswordScreen: React.FC = () => {
           <View className='items-center mt-8'>
             <TouchableOpacity
               className="bg-[#537CF2] items-center justify-center w-64 py-4 rounded-[32px] shadow active:opacity-80"
-              onPress={() => {/* lógica de recuperación */}}
+              onPress={handlePasswordReset}
+              disabled={loading}
             >
-              <Text className="text-white text-lg font-bold">Recuperar</Text>
+              <Text className="text-white text-lg font-bold">
+                {loading ? 'Enviando...' : 'Recuperar'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </ScrollView>
+
+      {/* Modal de feedback */}
+      <Modal
+        visible={feedbackModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFeedbackModalVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, minWidth: 280, alignItems: 'center', maxWidth: '90%' }}>
+            {loading ? (
+              <>
+                <ActivityIndicator size="large" color="#537CF2" style={{ marginBottom: 16 }} />
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>Enviando código...</Text>
+                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>Por favor espera mientras procesamos tu solicitud</Text>
+              </>
+            ) : (
+              <>
+                <View style={{ 
+                  width: 60, 
+                  height: 60, 
+                  borderRadius: 30, 
+                  backgroundColor: isSuccess ? '#10B981' : '#EF4444',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: 16
+                }}>
+                  <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>
+                    {isSuccess ? '✓' : '✕'}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
+                  {isSuccess ? '¡Código enviado!' : 'Error'}
+                </Text>
+                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 }}>
+                  {feedbackMessage}
+                </Text>
+                {!isSuccess && (
+                  <TouchableOpacity
+                    onPress={() => setFeedbackModalVisible(false)}
+                    style={{ backgroundColor: '#537CF2', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+                  >
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Entendido</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
+
+
 
 export default RecoverPasswordScreen;

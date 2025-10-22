@@ -1,4 +1,4 @@
-import RecoverPasswordScreen from '../../features/auth/screens/RecoverPasswordScreen';
+import RecoverPasswordScreen from '~/features/auth/screens/RecoverPasswordScreen';
 
 export default function RecoverPassword() {
   return <RecoverPasswordScreen />;

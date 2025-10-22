@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Animated } from "react-native";
-import { Home, Map, Settings, UserCircle2, Shield, Users, LogOut } from "lucide-react-native";
+import { View, Text, TouchableOpacity, Animated, Image } from "react-native";
+import { Home, Map, Settings, LogOut, ChevronRight } from "lucide-react-native";
 import { router } from "expo-router";
+import { useUser } from "../../profile/hooks/useUser";
 
 const MENU_BG = "#0f172a";
 const ACCENT = "#537CF2";
@@ -15,6 +16,8 @@ interface ClientDrawerMenuProps {
 }
 
 export default function ClientDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onLogout }: ClientDrawerMenuProps) {
+  const { user, loading } = useUser();
+
   const styles = {
     item: {
       flexDirection: "row" as const,
@@ -43,8 +46,72 @@ export default function ClientDrawerMenu({ drawerX, DRAWER_W, insets, onClose, o
       }}
     >
       <View style={{ marginBottom: 16 }}>
-        <Text style={{ color: ACCENT, fontSize: 20, fontWeight: "700" }}>Menú Cliente</Text>
+        <Text style={{ color: ACCENT, fontSize: 20, fontWeight: "700" }}>Menú</Text>
       </View>
+
+      {/* Sección de perfil del usuario */}
+      <TouchableOpacity 
+        onPress={() => { 
+          onClose(); 
+          router.push('/profile'); 
+        }}
+        style={{
+          alignItems: 'center',
+          paddingVertical: 16,
+          marginBottom: 8,
+          backgroundColor: 'rgba(83, 124, 242, 0.1)',
+          borderRadius: 8,
+          marginHorizontal: 8,
+          position: 'relative'
+        }}
+      >
+        {/* Ícono indicador de que es clickeable */}
+        <View style={{
+          position: 'absolute',
+          top: 8,
+          right: 8
+        }}>
+          <ChevronRight size={16} color="#94a3b8" />
+        </View>
+        
+        <Image 
+          source={{ 
+            uri: user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'Usuario')}&background=0ea5e9&color=fff&size=60` 
+          }}
+          style={{
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            marginBottom: 8,
+            borderWidth: 2,
+            borderColor: ACCENT
+          }}
+        />
+        <Text style={{ 
+          color: '#fff', 
+          fontSize: 16, 
+          fontWeight: '600',
+          marginBottom: 4 
+        }}>
+          {loading ? 'Cargando...' : (user?.full_name || 'Usuario')}
+        </Text>
+        <Text style={{ 
+          color: '#94a3b8', 
+          fontSize: 14,
+          marginBottom: 4
+        }}>
+          {loading ? '...' : (user?.usua_email || 'email@ejemplo.com')}
+        </Text>
+        <Text style={{ 
+          color: '#94a3b8', 
+          fontSize: 12,
+          fontStyle: 'italic'
+        }}>
+          Toca para ver perfil
+        </Text>
+      </TouchableOpacity>
+
+      <View style={styles.separator} />
 
       <TouchableOpacity onPress={() => { onClose(); router.replace("/(tabs)/home"); }} style={styles.item}>
         <Home size={20} color="#fff" />
