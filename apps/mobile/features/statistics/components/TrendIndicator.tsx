@@ -19,8 +19,7 @@ export default function TrendIndicator({ value, isPositive, arrow }: TrendIndica
       <Text
         className={`text-xs font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}
       >
-        <Text>{displayArrow}</Text>
-        <Text> {value}%</Text>
+        {displayArrow} {value}%
       </Text>
     </View>
   );

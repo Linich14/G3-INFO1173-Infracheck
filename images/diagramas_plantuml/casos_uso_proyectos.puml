@@ -1,0 +1,81 @@
+@startuml Casos_Uso_Proyectos
+!theme plain
+skinparam packageStyle rectangle
+
+title Diagrama de Casos de Uso - Módulo de Proyectos
+caption Sistema InfraCheck
+
+' =====================================================
+' ACTORES (Posicionados a los lados)
+' =====================================================
+
+left to right direction
+
+actor "Usuario Municipal" as municipal #Orange
+actor "Usuario Común" as usuario #LightBlue
+
+' =====================================================
+' CASOS DE USO
+' =====================================================
+
+package "Gestión de Proyectos" {
+  usecase (Crear Proyecto) as UC1
+  usecase (Listar Proyectos) as UC2
+  usecase (Ver Detalle) as UC3
+  usecase (Actualizar Proyecto) as UC4
+  usecase (Eliminar Proyecto) as UC5
+}
+
+package "Consultas Especiales" {
+  usecase (Proyectos Urgentes) as UC6
+  usecase (Proyectos Activos) as UC7
+  usecase (Proyectos por Denuncia) as UC8
+}
+
+package "Archivos" {
+  usecase (Subir Archivos) as UC9
+  usecase (Listar Archivos) as UC10
+  usecase (Eliminar Archivo) as UC11
+}
+
+package "Estadísticas" {
+  usecase (Ver Estadísticas) as UC12
+  usecase (Reporte Avance) as UC13
+}
+
+actor "Administrador" as admin #Red
+
+' =====================================================
+' RELACIONES
+' =====================================================
+
+' Usuario Municipal - Crear proyectos desde reportes
+municipal --> UC1
+municipal --> UC2
+municipal --> UC3
+municipal --> UC4
+municipal --> UC8
+municipal --> UC9
+municipal --> UC10
+
+' Usuario Común - Solo listar y ver proyectos
+usuario --> UC2
+usuario --> UC3
+
+' Admin - Gestión completa
+UC2 <-- admin
+UC3 <-- admin
+UC4 <-- admin
+UC5 <-- admin
+UC12 <-- admin
+UC13 <-- admin
+
+' =====================================================
+' NOTAS
+' =====================================================
+
+note right of UC1
+  POST /api/v1/proyectos
+end note
+
+@enduml

@@ -13,14 +13,20 @@ La plataforma incluirá un sistema de seguimiento, historial de tiempo sin resol
 ### Diagrama de Arquitectura de Software
 ![Diagrama de Arquitectura](images/Integracion%204,%20Grupo%203%20-%20Arq.%20Software.jpg)
 
-### Diagrama de Casos de Uso
-![Diagrama de Casos de Uso](images/Integracion%204,%20Grupo%203%20-%20Caso%20de%20Uso.jpg)
+### Diagrama de Casos de Uso(AUTENTICACION)
+![Diagrama de Casos de Uso](images/diagramas_plantuml/CASOUSO_AUTENTICACION.png)
+### Diagrama de Casos de Uso (NOTIFICACIONES)
+![Diagrama de Casos de Uso](images/diagramas_plantuml/CASOUSO_NOTIFICACIONES.png)
+### Diagrama de Casos de Uso(REPORTES)
+![Diagrama de Casos de Uso](images/diagramas_plantuml/CASOUSO_REPORTES.png)
+### Diagrama de Casos de Uso(PROYECTOS)
+![Diagrama de Casos de Uso](images/diagramas_plantuml/CASOUSO_PROYECTOS.png)
 
 ### Diagrama de Componentes
-![Diagrama de Componentes](images/Integracion%204,%20Grupo%203%20-%20Componentes.jpg)
+![Diagrama de Componentes](images/diagramas_plantuml/COMPONENTES.png)
 
 ### Modelo Entidad-Relación (MER)
-![Diagrama MER](images/Integracion%204,%20Grupo%203%20-%20MER.jpg)
+![Diagrama MER](images/diagramas_plantuml/MER_INFRACHECK_PLANTUML.png)
 
 
 ## Arquitectura del Sistema

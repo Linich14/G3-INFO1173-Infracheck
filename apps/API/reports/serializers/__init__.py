@@ -19,5 +19,5 @@ __all__ = [
     'ReportDetailSerializer',
     'CiudadSerializer',
     'TipoDenunciaSerializer',
-    'DenunciaEstadoSerializer'
+    'DenunciaEstadoSerializer',
 ]

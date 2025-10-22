@@ -1,0 +1,80 @@
+@startuml Casos_Uso_Reportes
+!theme plain
+skinparam packageStyle rectangle
+
+title Diagrama de Casos de Uso - Módulo de Reportes
+caption Sistema InfraCheck
+
+' =====================================================
+' ACTORES
+' =====================================================
+
+actor "Usuario Común" as usuario #LightBlue
+actor "Usuario Municipal" as municipal #Orange
+actor "Administrador" as admin #Red
+
+' =====================================================
+' CASOS DE USO PRINCIPALES
+' =====================================================
+
+package "Gestión de Reportes" {
+  usecase (Crear Reporte) as UC1
+  usecase (Listar Reportes) as UC2
+  usecase (Ver Detalle) as UC3
+  usecase (Actualizar Reporte) as UC4
+  usecase (Eliminar Reporte) as UC5
+}
+
+package "Multimedia" {
+  usecase (Subir Archivos) as UC6
+  usecase (Listar Archivos) as UC7
+  usecase (Eliminar Archivo) as UC8
+}
+
+package "Interacciones" {
+  usecase (Seguir Reporte) as UC9
+  usecase (Dejar de Seguir) as UC10
+  usecase (Votar Reporte) as UC11
+  usecase (Comentar) as UC12
+}
+
+package "Auditoría" {
+  usecase (Ver Historial) as UC13
+}
+
+' =====================================================
+' RELACIONES SIMPLIFICADAS
+' =====================================================
+
+' Usuario Común - Crear, ver y actualizar reportes
+usuario --> UC1
+usuario --> UC2
+usuario --> UC3
+usuario --> UC4
+usuario --> UC6
+usuario --> UC7
+usuario --> UC9
+usuario --> UC10
+usuario --> UC11
+usuario --> UC12
+
+' Usuario Municipal - Solo ver reportes
+municipal --> UC2
+municipal --> UC3
+municipal --> UC7
+
+' Admin - Gestión y auditoría
+admin --> UC2
+admin --> UC3
+admin --> UC5
+admin --> UC13
+
+' =====================================================
+' NOTAS INFORMATIVAS
+' =====================================================
+
+note right of UC1
+  POST /api/v1/reports
+end note
+
+@enduml

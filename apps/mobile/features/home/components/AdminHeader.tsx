@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { AlignJustify, UserCircle2 } from "lucide-react-native";
 import { router } from "expo-router";
+import { NotificationBell } from "~/components/NotificationBell";
 
 interface AdminHeaderProps {
   onMenuPress: () => void;
@@ -26,6 +27,7 @@ export default function AdminHeader({ onMenuPress, title = "Panel - Admin" }: Ad
       </View>
 
       <View className="flex-row items-center gap-6">
+        <NotificationBell />
         <TouchableOpacity
           onPress={() => router.push('/profile')}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}

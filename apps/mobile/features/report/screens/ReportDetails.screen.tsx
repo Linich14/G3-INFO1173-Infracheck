@@ -1,122 +1,38 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ReportDetails } from '../types';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-
-// Mock de datos
-const mockReports: ReportDetails[] = [
-    {
-        id: '1',
-        titulo: 'Calle en mal estado',
-        descripcion:
-            'La calle presenta múltiples baches y grietas que dificultan el tránsito vehicular y peatonal. La situación se ha agravado después de las últimas lluvias, creando charcos de agua que permanecen durante días.',
-        tipoDenuncia: 'Infraestructura',
-        ubicacion: {
-            latitud: -38.7359,
-            longitud: -72.5904,
-            direccion: 'Av. Alemania 1234, Temuco',
-        },
-        nivelUrgencia: 'Alto',
-        fecha: '2024-09-13T10:30:00Z',
-        imagenes: [
-            'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-            'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400',
-        ],
-        video: 'https://example.com/video1.mp4',
-        autor: 'Juan Gomez',
-        estado: 'En proceso',
-    },
-    {
-        id: '2',
-        titulo: 'Semáforo apagado',
-        descripcion:
-            'El semáforo del cruce principal lleva 3 días sin funcionar, causando problemas de tráfico y riesgo de accidentes. Se necesita reparación urgente.',
-        tipoDenuncia: 'Seguridad Vial',
-        ubicacion: {
-            latitud: -38.7408,
-            longitud: -72.5987,
-            direccion: 'Cruce Av. Balmaceda con Bulnes, Temuco',
-        },
-        nivelUrgencia: 'Crítico',
-        fecha: '2024-09-14T08:15:00Z',
-        imagenes: ['https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400'],
-        video: '',
-        autor: 'Ana Pérez',
-        estado: 'Nuevo',
-    },
-    {
-        id: '3',
-        titulo: 'Basura acumulada',
-        descripcion:
-            'Se ha acumulado basura en la esquina durante más de una semana. El mal olor y la presencia de roedores está afectando a los vecinos del sector.',
-        tipoDenuncia: 'Limpieza',
-        ubicacion: {
-            latitud: -38.7325,
-            longitud: -72.6021,
-            direccion: 'Calle Portales 567, Temuco',
-        },
-        nivelUrgencia: 'Medio',
-        fecha: '2024-09-12T16:45:00Z',
-        imagenes: [
-            'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400',
-            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-            'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400',
-        ],
-        video: 'https://example.com/video3.mp4',
-        autor: 'Carlos Mendez',
-        estado: 'En proceso',
-    },
-];
-
-function formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-CL', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
-function getUrgencyColor(nivel: string): string {
-    switch (nivel.toLowerCase()) {
-        case 'crítico':
-            return '#ef4444'; // red-500
-        case 'alto':
-            return '#f97316'; // orange-500
-        case 'medio':
-            return '#eab308'; // yellow-500
-        case 'bajo':
-            return '#22c55e'; // green-500
-        default:
-            return '#6b7280'; // gray-500
-    }
-}
+import { useReportDetail } from '../hooks/useReportDetails';
 
 export default function ReportDetailsScreen() {
     const params = useLocalSearchParams();
     const router = useRouter();
     const reportId = typeof params.id === 'string' ? params.id : params.id?.[0] || '';
-    
-    // Estados para el carrusel
+
+    // Usar el hook específico para details
+    const { report, loading, error, refetch } = useReportDetail(reportId);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const { width: screenWidth } = Dimensions.get('window');
 
-    // Buscar el reporte en el mock
-    const report = mockReports.find((r) => r.id === reportId);
+    if (loading) {
+        return (
+            <SafeAreaView className="flex-1 bg-[#0A0E1A]">
+                <View className="flex-1 items-center justify-center">
+                    <Text className="text-white">Cargando reporte...</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
-    if (!report) {
+    if (error || !report) {
         return (
             <SafeAreaView className="flex-1 bg-[#0A0E1A]">
                 <View className="flex-1 items-center justify-center px-4">
                     <Ionicons name="document-text-outline" size={64} color="#6b7280" />
                     <Text className="mt-4 text-xl font-semibold text-white">
-                        Reporte no encontrado
+                        {error || 'Reporte no encontrado'}
                     </Text>
-                    <Text className="mt-2 text-gray-400">ID: {reportId}</Text>
+                    <TouchableOpacity
+                        onPress={refetch}
+                        className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2">
+                        <Text className="text-white">Reintentar</Text>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
         );
@@ -127,12 +43,12 @@ export default function ReportDetailsScreen() {
             {/* Header */}
             <View className="bg-secondary px-4 py-3 shadow-lg">
                 <View className="flex-row items-center justify-between">
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         onPress={() => router.back()}
                         className="flex-row items-center">
                         <Ionicons name="arrow-back" size={24} color="white" />
                     </TouchableOpacity>
-                    <Text className="text-2xl font-bold text-white flex-1 text-center mr-6">
+                    <Text className="mr-6 flex-1 text-center text-2xl font-bold text-white">
                         Detalle del Reporte
                     </Text>
                 </View>
@@ -142,7 +58,6 @@ export default function ReportDetailsScreen() {
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 20 }}>
-                
                 {/* Carrusel de imágenes */}
                 {report.imagenes.length > 0 && (
                     <View className="relative bg-black">
@@ -151,13 +66,15 @@ export default function ReportDetailsScreen() {
                             pagingEnabled
                             showsHorizontalScrollIndicator={false}
                             onMomentumScrollEnd={(event) => {
-                                const newIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
+                                const newIndex = Math.round(
+                                    event.nativeEvent.contentOffset.x / screenWidth
+                                );
                                 setCurrentImageIndex(newIndex);
                             }}
                             className="h-64">
                             {report.imagenes.map((imagen, index) => (
-                                <TouchableOpacity 
-                                    key={index} 
+                                <TouchableOpacity
+                                    key={index}
                                     style={{ width: screenWidth }}
                                     activeOpacity={0.9}>
                                     <Image
@@ -167,33 +84,41 @@ export default function ReportDetailsScreen() {
                                     />
                                     {/* Overlay con gradiente */}
                                     <View className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 py-6">
-                                        <View className="flex-row justify-between items-end">
+                                        <View className="flex-row items-end justify-between">
                                             <View className="flex-1">
-                                                <View className="flex-row items-center mb-1">
-                                                    <Ionicons name="images-outline" size={16} color="#537CF2" />
-                                                    <Text className="ml-2 text-sm text-white font-medium">
+                                                <View className="mb-1 flex-row items-center">
+                                                    <Ionicons
+                                                        name="images-outline"
+                                                        size={16}
+                                                        color="#537CF2"
+                                                    />
+                                                    <Text className="ml-2 text-sm font-medium text-white">
                                                         Evidencia fotográfica
                                                     </Text>
                                                 </View>
                                             </View>
-                                            <View className="bg-black/50 rounded-full px-3 py-1">
-                                                <Text className="text-sm text-white font-medium">
+                                            <View className="rounded-full bg-black/50 px-3 py-1">
+                                                <Text className="text-sm font-medium text-white">
                                                     {index + 1}/{report.imagenes.length}
                                                 </Text>
                                             </View>
                                         </View>
                                     </View>
-                                    
+
                                     {/* Icono de expandir */}
                                     <View className="absolute right-4 top-4">
-                                        <View className="bg-black/50 rounded-full p-2">
-                                            <Ionicons name="expand-outline" size={20} color="white" />
+                                        <View className="rounded-full bg-black/50 p-2">
+                                            <Ionicons
+                                                name="expand-outline"
+                                                size={20}
+                                                color="white"
+                                            />
                                         </View>
                                     </View>
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
-                        
+
                         {/* Indicadores de paginación mejorados */}
                         {report.imagenes.length > 1 && (
                             <View className="absolute bottom-4 left-4">
@@ -202,9 +127,9 @@ export default function ReportDetailsScreen() {
                                         <TouchableOpacity key={index}>
                                             <View
                                                 className={`h-1 rounded-full transition-all duration-300 ${
-                                                    index === currentImageIndex 
-                                                        ? 'bg-[#537CF2] w-8' 
-                                                        : 'bg-white/60 w-4'
+                                                    index === currentImageIndex
+                                                        ? 'w-8 bg-[#537CF2]'
+                                                        : 'w-4 bg-white/60'
                                                 }`}
                                             />
                                         </TouchableOpacity>
@@ -305,8 +230,6 @@ export default function ReportDetailsScreen() {
                     </TouchableOpacity>
                 </View>
 
-
-
                 {/* Video */}
                 {report.video && (
                     <View className="mx-4 mt-4 rounded-xl bg-secondary p-4">
@@ -380,5 +303,3 @@ export default function ReportDetailsScreen() {
         </SafeAreaView>
     );
 }
-
-

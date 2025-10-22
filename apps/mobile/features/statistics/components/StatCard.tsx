@@ -38,8 +38,7 @@ export default function StatCard({
                 trend.isPositive ? 'text-green-400' : 'text-red-400'
               }`}
             >
-              <Text>{trend.arrow}</Text>
-              <Text> {trend.value}%</Text>
+              {trend.arrow} {trend.value}%
             </Text>
           </View>
         )}

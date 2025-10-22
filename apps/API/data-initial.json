@@ -1,0 +1,23 @@
+[
+    {
+        "model": "domain.entities.rol_usuario",
+        "pk": 1,
+        "fields": {
+            "rous_nombre": "Administrador"
+        }
+    },
+    {
+        "model": "domain.entities.rol_usuario",
+        "pk": 2,
+        "fields": {
+            "rous_nombre": "Municipal"
+        }
+    },
+    {
+        "model": "domain.entities.rol_usuario",
+        "pk": 3,
+        "fields": {
+            "rous_nombre": "Usuario Normal"
+        }
+    }
+]

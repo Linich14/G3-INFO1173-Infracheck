@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '~/constants/config';
+import { secureStorage, initializeSecureStorage } from '~/services/secureStorage';
 
 const TOKEN_KEY = 'auth_token';
 const TOKEN_EXPIRY_KEY = 'auth_token_expiry';
@@ -8,6 +9,28 @@ const USER_ROLE_NAME_KEY = 'user_role_name';
 
 // Variable para controlar llamadas simultáneas a isAuthenticated
 let isAuthenticating = false;
+
+// Función para migrar tokens existentes al almacenamiento seguro
+export const migrateToSecureStorage = async (): Promise<void> => {
+  try {
+    // Verificar si ya hay un token en el almacenamiento seguro
+    const secureToken = await secureStorage.getItem(TOKEN_KEY);
+    if (secureToken) {
+      return;
+    }
+
+    // Intentar obtener token del almacenamiento normal
+    const legacyToken = await AsyncStorage.getItem(TOKEN_KEY);
+    const expiryDate = await AsyncStorage.getItem(TOKEN_EXPIRY_KEY);
+
+    if (legacyToken && expiryDate) {
+      // Guardar en almacenamiento seguro
+      await secureStorage.setItem(TOKEN_KEY, legacyToken);
+    }
+  } catch (error) {
+    console.error('Error migrating to secure storage:', error);
+  }
+};
 
 export interface LoginData {
   rut: string;
@@ -62,51 +85,93 @@ export interface ResetPasswordResponse {
   message: string;
 }
 
-// Guardar token y fecha de expiración en almacenamiento local
+// Guardar token y fecha de expiración de forma segura
 export const saveToken = async (token: string, expiresAt: string): Promise<void> => {
   try {
-    await AsyncStorage.multiSet([
-      [TOKEN_KEY, token],
-      [TOKEN_EXPIRY_KEY, expiresAt]
-    ]);
+    // Intentar usar almacenamiento seguro primero
+    await secureStorage.setItem(TOKEN_KEY, token);
+    // Guardar fecha de expiración (no necesita ser encriptada)
+    await AsyncStorage.setItem(TOKEN_EXPIRY_KEY, expiresAt);
   } catch (error) {
-    console.error('Error saving token:', error);
+    console.error('Error saving token securely:', error);
+    // Fallback a AsyncStorage normal
+    try {
+      await AsyncStorage.multiSet([
+        [TOKEN_KEY, token],
+        [TOKEN_EXPIRY_KEY, expiresAt]
+      ]);
+    } catch (fallbackError) {
+      console.error('Fallback storage also failed:', fallbackError);
+    }
   }
 };
 
 // Obtener token del almacenamiento local
+// Obtener token del almacenamiento seguro
 export const getToken = async (): Promise<string | null> => {
   try {
-    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    // Intentar obtener el token del almacenamiento seguro primero
+    const token = await secureStorage.getItem(TOKEN_KEY);
     const expiryDate = await AsyncStorage.getItem(TOKEN_EXPIRY_KEY);
-    
-    if (!token || !expiryDate) {
-      return null;
+
+    if (token && expiryDate) {
+      // Verificar si el token ha expirado
+      const now = new Date();
+      const expiry = new Date(expiryDate);
+
+      if (now >= expiry) {
+        // Token expirado, limpiarlo
+        await removeToken();
+        return null;
+      }
+
+      return token;
     }
 
-    // Verificar si el token ha expirado
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    
-    if (now >= expiry) {
-      // Token expirado, limpiarlo
-      await removeToken();
-      return null;
-    }
-
-    return token;
-  } catch (error) {
-    console.error('Error getting token:', error);
     return null;
-  }
-};
+  } catch (error) {
+    console.error('Error getting token securely:', error);
+    // Fallback a AsyncStorage normal
+    try {
+      const token = await AsyncStorage.getItem(TOKEN_KEY);
+      const expiryDate = await AsyncStorage.getItem(TOKEN_EXPIRY_KEY);
 
-// Eliminar token y fecha de expiración (logout)
+      if (!token || !expiryDate) {
+        return null;
+      }
+
+      // Verificar si el token ha expirado
+      const now = new Date();
+      const expiry = new Date(expiryDate);
+
+      if (now >= expiry) {
+        await removeToken();
+        return null;
+      }
+
+      return token;
+    } catch (fallbackError) {
+      console.error('Fallback storage also failed:', fallbackError);
+      return null;
+    }
+  }
+};// Eliminar token y fecha de expiración (logout)
+// Eliminar token y fecha de expiración de forma segura (logout)
 export const removeToken = async (): Promise<void> => {
   try {
-    await AsyncStorage.multiRemove([TOKEN_KEY, TOKEN_EXPIRY_KEY, USER_ROLE_ID_KEY, USER_ROLE_NAME_KEY]);
+    // Intentar usar almacenamiento seguro primero
+    await secureStorage.removeItem(TOKEN_KEY);
+
+    // Eliminar otros datos relacionados
+    await AsyncStorage.multiRemove([TOKEN_EXPIRY_KEY, USER_ROLE_ID_KEY, USER_ROLE_NAME_KEY]);
   } catch (error) {
-    console.error('Error removing token and role:', error);
+    console.error('Error removing token securely:', error);
+    // Fallback a AsyncStorage normal
+    try {
+      await AsyncStorage.multiRemove([TOKEN_KEY, TOKEN_EXPIRY_KEY, USER_ROLE_ID_KEY, USER_ROLE_NAME_KEY]);
+    } catch (fallbackError) {
+      console.error('Fallback removal also failed:', fallbackError);
+    }
   }
 };
 
@@ -194,9 +259,6 @@ export const isAuthenticated = async (): Promise<boolean> => {
 // Login con backend
 export async function loginUser(data: LoginData): Promise<AuthResponse> {
   try {
-    // Debug: Log what we're sending to the backend
-    console.log('Sending login data:', data);
-    
     const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/login/`, {
       method: 'POST',
       headers: {
@@ -206,10 +268,6 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
     });
 
     const result = await response.json();
-    
-    // Debug: Log the response to understand what the backend is returning
-    console.log('Backend response status:', response.status);
-    console.log('Backend response data:', result);
 
     // El backend envía token cuando el login es exitoso, no un campo 'success'
     if (response.ok && result.token) {
@@ -238,17 +296,13 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
         },
       };
     } else {
-      // Debug: Log detailed error information
-      console.log('Login failed. Response status:', response.status);
-      console.log('Login failed. Response data:', result);
-      
       return {
         success: false,
         message: result.message || result.error || 'Verifica tus credenciales.',
       };
     }
   } catch (error: any) {
-    console.error('Login network/parsing error:', error);
+    console.error('Login error:', error.message);
     return {
       success: false,
       message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
@@ -287,7 +341,6 @@ export const refreshToken = async (): Promise<boolean> => {
       return false;
     }
 
-    console.log('🔄 Intentando refrescar token...');
     const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/refresh/`, {
       method: 'POST',
       headers: {
@@ -296,21 +349,16 @@ export const refreshToken = async (): Promise<boolean> => {
       },
     });
 
-    console.log('🔄 Refresh response status:', response.status);
     if (response.ok) {
       const result = await response.json();
-      console.log('🔄 Refresh response data:', result);
-      
       if (result.token && result.expires_at) {
         await saveToken(result.token, result.expires_at);
-        console.log('✅ Token refrescado exitosamente');
         return true;
       }
     }
-    console.log('❌ Falló el refresh del token');
     return false;
   } catch (error) {
-    console.error('❌ Error refrescando token:', error);
+    console.error('Error refreshing token:', error);
     return false;
   }
 };
@@ -318,7 +366,7 @@ export const refreshToken = async (): Promise<boolean> => {
 // Función para hacer requests autenticadas
 export const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = await getToken();
-  
+
   if (!token) {
     throw new Error('No authenticated token available');
   }
@@ -330,15 +378,6 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
 
   headers['Authorization'] = `Bearer ${token}`;
 
-  // 🔍 DEBUG: Log detallado del token y headers
-  console.log('🔑 authenticatedFetch DEBUG:');
-  console.log('  - URL:', url);
-  console.log('  - Method:', options.method || 'GET');
-  console.log('  - Token presente:', !!token);
-  console.log('  - Token length:', token?.length || 0);
-  console.log('  - Token preview:', token ? token.substring(0, 50) + '...' : 'N/A');
-  console.log('  - Authorization header:', headers['Authorization'] ? 'Bearer [SET]' : 'NOT SET');
-
   let response = await fetch(url, {
     ...options,
     headers,
@@ -346,42 +385,35 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
 
   // Si el token es inválido o expirado (401 Unauthorized), intentar refrescar
   if (response.status === 401) {
-    console.log('🔄 Token expired, attempting refresh...');
     const refreshSuccess = await refreshToken();
-    
+
     if (refreshSuccess) {
-      console.log('✅ Token refreshed successfully, retrying request...');
       // Re-obtener el nuevo token
       const newToken = await getToken();
       if (newToken) {
         headers['Authorization'] = `Bearer ${newToken}`;
-        
+
         // Reintentar la petición con el nuevo token
         response = await fetch(url, {
           ...options,
           headers,
         });
-        
+
         // Si aún falla después del refresh, entonces cerrar sesión
         if (response.status === 401) {
-          console.log('❌ Token still invalid after refresh, logging out...');
           await removeToken();
           throw new Error('Session expired. Please log in again.');
         }
       } else {
-        console.log('❌ Failed to get new token after refresh, logging out...');
         await removeToken();
         throw new Error('Session expired. Please log in again.');
       }
     } else {
-      console.log('❌ Token refresh failed, logging out...');
       await removeToken();
       throw new Error('Session expired. Please log in again.');
     }
   }
 
-  // No procesar respuestas 403 aquí para evitar "Already read"
-  // Dejamos que el código llamador maneje los errores específicos
   return response;
 };
 
