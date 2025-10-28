@@ -3,6 +3,7 @@ import '../global.css';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '~/contexts/AuthContext';
+import { UserProvider } from '~/contexts/UserContext';
 import { View, ActivityIndicator } from 'react-native';
 import { useNavigationBreadcrumb } from '~/hooks/useNavigationBreadcrumb';
 
@@ -57,7 +58,9 @@ function RootLayoutNav() {
 export default function Layout() {
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <UserProvider>
+        <RootLayoutNav />
+      </UserProvider>
     </AuthProvider>
   );
 }

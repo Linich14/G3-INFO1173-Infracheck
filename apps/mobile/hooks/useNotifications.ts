@@ -7,7 +7,9 @@ import {
   NotificationsResponse,
 } from '~/services/notificationService';
 
-export const useNotifications = () => {
+const POLLING_INTERVAL = 30000; // 30 segundos
+
+export const useNotifications = (enablePolling: boolean = true) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
@@ -25,8 +27,6 @@ export const useNotifications = () => {
     } catch (err: any) {
       const errorMessage = err.message || 'Error al cargar las notificaciones';
       
-      // Si es error de autenticación, no mostrarlo en el estado de error
-      // para que no aparezca un mensaje de error permanente
       if (errorMessage.includes('Session expired') || errorMessage.includes('permisos')) {
         console.warn('Usuario no autenticado, las notificaciones no están disponibles');
         setNotifications([]);
@@ -37,6 +37,15 @@ export const useNotifications = () => {
       }
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const response: NotificationsResponse = await getNotifications(true);
+      setUnreadCount(response.unread_count);
+    } catch (err: any) {
+      console.error('Error fetching unread count:', err);
     }
   }, []);
 
@@ -81,6 +90,20 @@ export const useNotifications = () => {
     return fetchNotifications(false);
   }, [fetchNotifications]);
 
+  // Polling para actualizar contador en tiempo real
+  useEffect(() => {
+    if (!enablePolling) return;
+
+    fetchUnreadCount();
+    
+    const intervalId = setInterval(() => {
+      fetchUnreadCount();
+    }, POLLING_INTERVAL);
+
+    return () => clearInterval(intervalId);
+  }, [fetchUnreadCount, enablePolling]);
+
+  // Carga inicial
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
@@ -91,6 +114,7 @@ export const useNotifications = () => {
     loading,
     error,
     fetchNotifications,
+    fetchUnreadCount,
     markAsRead,
     markAllAsRead,
     refreshNotifications,

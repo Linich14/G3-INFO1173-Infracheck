@@ -15,4 +15,20 @@ export class ReportService {
             throw error;
         }
     }
+
+    /**
+     * Obtener reportes que el usuario sigue - GET /reports/followed/
+     */
+    static async getFollowedReports(page: number = 1, limit: number = 20): Promise<{ count: number; results: any[] }> {
+        try {
+            const response = await api.get('/api/reports/followed/', {
+                params: { page, limit }
+            });
+
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching followed reports:', error);
+            throw error;
+        }
+    }
 }

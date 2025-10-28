@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, Animated, Image } from "react-native";
 import { Home, Map, Settings, LogOut, ChevronRight } from "lucide-react-native";
 import { router } from "expo-router";
+import { useUser } from "../../profile/hooks/useUser";
 
 const MENU_BG = "#0f172a";
 const ACCENT = "#537CF2";
@@ -15,6 +16,8 @@ interface AuthDrawerMenuProps {
 }
 
 export default function AuthDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onLogout }: AuthDrawerMenuProps) {
+  const { user, loading } = useUser();
+
   return (
     <Animated.View
       style={{
@@ -61,7 +64,9 @@ export default function AuthDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onL
         </View>
         
         <Image 
-          source={{ uri: 'https://ui-avatars.com/api/?name=Maria+Gonzalez&background=0ea5e9&color=fff&size=60' }}
+          source={{ 
+            uri: user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'Autoridad')}&background=0ea5e9&color=fff&size=60` 
+          }}
           style={{
             width: 60,
             height: 60,
@@ -77,14 +82,14 @@ export default function AuthDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onL
           fontWeight: '600',
           marginBottom: 4 
         }}>
-          María González
+          {loading ? 'Cargando...' : (user?.full_name || 'Usuario Autoridad')}
         </Text>
         <Text style={{ 
           color: '#94a3b8', 
           fontSize: 14,
           marginBottom: 4
         }}>
-          maria.autoridad@example.com
+          {loading ? '' : (user?.usua_email || 'autoridad@infracheck.com')}
         </Text>
         <Text style={{ 
           color: '#94a3b8', 

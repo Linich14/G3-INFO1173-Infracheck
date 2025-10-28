@@ -174,3 +174,37 @@ export const changePassword = async (passwordData: ChangePasswordData): Promise<
     };
   }
 };
+
+/**
+ * Servicio para obtener estadísticas del usuario
+ */
+export const getUserStats = async (userId?: number): Promise<{ reportCount: number; upVotes: number }> => {
+  try {
+    const endpoint = userId 
+      ? `${API_CONFIG.BASE_URL}/api/v1/users/${userId}/stats/`
+      : `${API_CONFIG.BASE_URL}/api/v1/profile/stats/`;
+
+    const response = await authenticatedFetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const stats = await response.json();
+    return {
+      reportCount: stats.report_count || 0,
+      upVotes: stats.up_votes || 0,
+    };
+  } catch (error: any) {
+    console.error('Error fetching user stats:', error);
+    return {
+      reportCount: 0,
+      upVotes: 0,
+    };
+  }
+};

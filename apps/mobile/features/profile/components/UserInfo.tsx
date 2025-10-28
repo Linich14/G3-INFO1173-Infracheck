@@ -1,21 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
-import { Mail, CreditCard, Phone, Camera } from 'lucide-react-native';
+import { Mail, CreditCard, Phone, Camera, QrCode } from 'lucide-react-native';
 import { ContactField } from './ContactField';
 import { EditEmailModal } from './EditEmailModal';
 import { EditPhoneModal } from './EditPhoneModal';
+import { QRSection } from './QRSection';
+import { UserStats } from './UserStats';
 import { UserInfoProps } from '../types';
 import { useUser } from '../hooks/useUser';
+import { getUserStats } from '../services/profileService';
 
 export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
   const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [stats, setStats] = useState({ reportCount: 0, upVotes: 0 });
   const { updateUser, refreshUser } = useUser();
+
+  // Cargar estadísticas del usuario
+  useEffect(() => {
+    const loadStats = async () => {
+      const userStats = await getUserStats();
+      setStats(userStats);
+    };
+    loadStats();
+  }, []);
 
   // Función helper para formatear el teléfono
   const formatPhone = (phone: number) => {
     const phoneStr = phone.toString();
-    // Formato chileno: +56 9 XXXX XXXX
     if (phoneStr.length === 11 && phoneStr.startsWith('569')) {
       return `+56 9 ${phoneStr.slice(3, 7)} ${phoneStr.slice(7)}`;
     }
@@ -45,10 +58,9 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
     try {
       const success = await updateUser({ usua_email: newEmail });
       if (success) {
-        // Recargar el perfil para sincronizar los datos
         await refreshUser();
         Alert.alert(
-          '✅ Email actualizado', 
+          'Email actualizado', 
           'Tu email ha sido actualizado correctamente',
           [{ text: 'OK' }]
         );
@@ -56,7 +68,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         Alert.alert('Error', 'No se pudo actualizar el email');
       }
       return success;
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'No se pudo actualizar el email');
       return false;
     }
@@ -67,10 +79,9 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
     try {
       const success = await updateUser({ usua_telefono: newPhone });
       if (success) {
-        // Recargar el perfil para sincronizar los datos
         await refreshUser();
         Alert.alert(
-          '✅ Teléfono actualizado', 
+          'Teléfono actualizado', 
           'Tu teléfono ha sido actualizado correctamente',
           [{ text: 'OK' }]
         );
@@ -78,7 +89,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         Alert.alert('Error', 'No se pudo actualizar el teléfono');
       }
       return success;
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'No se pudo actualizar el teléfono');
       return false;
     }
@@ -86,7 +97,6 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
 
   return (
     <View className="flex-1 px-3.5 w-full">
-      {/* User Avatar with Edit Button */}
       <View className="self-center mt-8 relative">
         <View className="w-[108px] h-[108px] bg-[#537CF2] rounded-full justify-center items-center shadow-lg">
           {user.avatar ? (
@@ -102,7 +112,6 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
           )}
         </View>
         
-        {/* Camera Button */}
         <TouchableOpacity
           onPress={handleChangePhoto}
           className="absolute bottom-0 right-0 w-8 h-8 bg-[#537CF2] rounded-full justify-center items-center border-2 border-[#090A0D]"
@@ -112,7 +121,6 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </TouchableOpacity>
       </View>
 
-      {/* User Name */}
       <View className="justify-center items-center px-4 mt-6">
         <Text className="text-3xl font-medium text-white text-center leading-9">
           {user.full_name}
@@ -122,9 +130,19 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </Text>
       </View>
 
-      {/* Contact Information with Edit Buttons */}
+      <View className="flex-row justify-center items-center gap-4 mt-4">
+        <TouchableOpacity
+          onPress={() => setShowQR(true)}
+          className="bg-[#13161E] p-3 rounded-xl"
+          activeOpacity={0.8}
+        >
+          <QrCode size={24} color="#537CF2" />
+        </TouchableOpacity>
+      </View>
+
+      <UserStats reportCount={stats.reportCount} upVotes={stats.upVotes} />
+
       <View className="px-3.5 py-5 mt-3 w-full">
-        {/* Email with Edit Button */}
         <TouchableOpacity onPress={() => setIsEmailModalVisible(true)} activeOpacity={0.7}>
           <ContactField
             icon={<Mail size={24} color="#f6fa00ff" />}
@@ -134,14 +152,12 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
           />
         </TouchableOpacity>
 
-        {/* RUT (no editable) */}
         <ContactField
           icon={<CreditCard size={24} color="#3cff00ff" />}
           value={user.usua_rut}
           className="mb-4"
         />
 
-        {/* Phone with Edit Button */}
         <TouchableOpacity onPress={() => setIsPhoneModalVisible(true)} activeOpacity={0.7}>
           <ContactField
             icon={<Phone size={24} color="#ff6b00ff" />}
@@ -152,7 +168,6 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Modals */}
       <EditEmailModal
         isVisible={isEmailModalVisible}
         currentEmail={user.usua_email}
@@ -166,6 +181,14 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         onClose={() => setIsPhoneModalVisible(false)}
         onSave={handleSavePhone}
       />
+
+      {showQR && (
+        <QRSection 
+          visible={showQR} 
+          onClose={() => setShowQR(false)} 
+          userId={user.usua_id}
+        />
+      )}
     </View>
   );
 };
