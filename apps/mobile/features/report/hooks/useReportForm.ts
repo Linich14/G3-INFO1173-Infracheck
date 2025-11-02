@@ -1,266 +1,171 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Alert } from 'react-native';
+import { useState } from 'react';
 import { ReportFormData, ReportFormErrors } from '../types';
-import { localizacion as Localizacion } from '../../map/types';
-import { useImagePicker } from './useCamera';
-
-const initialFormData: ReportFormData = {
-    titulo: '',
-    descripcion: '',
-    tipoDenuncia: '',
-    ubicacion: { latitud: 0, longitud: 0, direccion: '' },
-    nivelUrgencia: '',
-    idCiudad: '',
-    imagenes: [],
-    video: null,
-};
+import { validateReportData, createReport } from '../services/reportService';
+import { useCamera } from './useCamera';
 
 export const useReportForm = () => {
-    const [formData, setFormData] = useState<ReportFormData>(initialFormData);
-    const [errors, setErrors] = useState<ReportFormErrors>({});
-    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState<ReportFormData>({
+        titulo: '',
+        descripcion: '',
+        direccion: '',
+        latitud: 0,
+        longitud: 0,
+        urgencia: '', // Asegurarse de que inicia vacío
+        tipoDenuncia: '',
+        ciudad: '',
+        visible: true,
+        imagenes: [],
+        video: undefined,
+    });
 
-    // Hook para manejo de imágenes y videos
+    const [errors, setErrors] = useState<ReportFormErrors>({});
+    const [showMapModal, setShowMapModal] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const {
         selectedImages,
         selectedVideo,
-        mediaStats,
-        takePhoto: cameraPhoto,
-        takeVideo: cameraVideo,
-        pickFromGallery: galleryImages,
-        pickVideoFromGallery: galleryVideo,
-        removeImage: deleteImage,
-        removeVideo: deleteVideo,
-        removeAllMedia,
-    } = useImagePicker();
-
-    // Sincronizar datos del hook de cámara con el formulario
-    const syncFormDataWithMedia = useCallback(() => {
-        if (formData.imagenes !== selectedImages) {
-            setFormData((prev) => ({ ...prev, imagenes: selectedImages }));
-        }
-        if (formData.video !== selectedVideo) {
-            setFormData((prev) => ({ ...prev, video: selectedVideo }));
-        }
-    }, [selectedImages, selectedVideo, formData.imagenes, formData.video]);
-
-    // Actualizar campo específico
-    const updateField = useCallback(
-        (field: keyof ReportFormData, value: any) => {
-            setFormData((prev) => ({ ...prev, [field]: value }));
-            // Limpiar error del campo al modificarlo
-            if (errors[field as keyof ReportFormErrors]) {
-                setErrors((prev) => ({ ...prev, [field]: undefined }));
-            }
-        },
-        [errors]
-    );
-
-    // Validar formulario
-    const validateForm = useCallback((): boolean => {
-        syncFormDataWithMedia(); // Sincronizar antes de validar
-
-        const newErrors: ReportFormErrors = {};
-
-        if (!formData.titulo.trim()) {
-            newErrors.titulo = 'El título es requerido';
-        } else if (formData.titulo.length < 5) {
-            newErrors.titulo = 'El título debe tener al menos 5 caracteres';
-        }
-
-        if (!formData.descripcion.trim()) {
-            newErrors.descripcion = 'La descripción es requerida';
-        } else if (formData.descripcion.length < 10) {
-            newErrors.descripcion = 'La descripción debe tener al menos 10 caracteres';
-        }
-
-        if (!formData.tipoDenuncia) {
-            newErrors.tipoDenuncia = 'Selecciona un tipo de denuncia';
-        }
-
-        if (!formData.nivelUrgencia) {
-            newErrors.nivelUrgencia = 'Selecciona el nivel de urgencia';
-        }
-
-        if (!formData.idCiudad) {
-            newErrors.idCiudad = 'Selecciona una ciudad';
-        }
-
-        if (formData.ubicacion.latitud === 0) {
-            newErrors.ubicacion = 'Selecciona la ubicación del problema';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    }, [formData, syncFormDataWithMedia]);
-
-    // Wrapper functions para mantener la interfaz consistente
-    const takePhoto = useCallback(async () => {
-        await cameraPhoto();
-        syncFormDataWithMedia();
-    }, [cameraPhoto, syncFormDataWithMedia]);
-
-    const takeVideo = useCallback(async () => {
-        await cameraVideo();
-        syncFormDataWithMedia();
-    }, [cameraVideo, syncFormDataWithMedia]);
-
-    const pickFromGallery = useCallback(async () => {
-        await galleryImages();
-        syncFormDataWithMedia();
-    }, [galleryImages, syncFormDataWithMedia]);
-
-    const pickVideoFromGallery = useCallback(async () => {
-        await galleryVideo();
-        syncFormDataWithMedia();
-    }, [galleryVideo, syncFormDataWithMedia]);
-
-    const removeImage = useCallback(
-        (index: number) => {
-            deleteImage(index);
-            syncFormDataWithMedia();
-        },
-        [deleteImage, syncFormDataWithMedia]
-    );
-
-    const removeVideo = useCallback(() => {
-        deleteVideo();
-        syncFormDataWithMedia();
-    }, [deleteVideo, syncFormDataWithMedia]);
-
-    // Seleccionar ubicación en el mapa
-    const selectLocation = useCallback(
-        (location: { latitude: number; longitude: number; address?: string }) => {
-            const newUbicacion: Localizacion = {
-                latitud: location.latitude,
-                longitud: location.longitude,
-                direccion: location.address || '',
-            };
-            updateField('ubicacion', newUbicacion);
-        },
-        [updateField]
-    );
-
-    // Resetear formulario
-    const resetForm = useCallback(() => {
-        setFormData(initialFormData);
-        setErrors({});
-        removeAllMedia();
-    }, [removeAllMedia]);
-
-    // Enviar formulario
-    const submitForm = useCallback(
-        async (onSuccess?: (data: ReportFormData) => void): Promise<boolean> => {
-            syncFormDataWithMedia();
-
-            // Log de datos antes de validar
-            console.log('DATOS DEL FORMULARIO ANTES DE VALIDAR:');
-            console.log('- Título:', formData.titulo);
-            console.log('- Descripción:', formData.descripcion);
-            console.log('- Tipo Denuncia:', formData.tipoDenuncia);
-            console.log('- Nivel Urgencia:', formData.nivelUrgencia);
-            console.log('- Ciudad ID:', formData.idCiudad);
-            console.log('- Ubicación:', formData.ubicacion);
-            console.log('- Imágenes seleccionadas:', selectedImages.length);
-            console.log('- Video seleccionado:', selectedVideo ? 'Sí' : 'No');
-
-            if (!validateForm()) {
-                console.log('VALIDACIÓN FALLIDA');
-                console.log('Errores encontrados:', errors);
-                Alert.alert('Error', 'Por favor completa todos los campos requeridos');
-                return false;
-            }
-
-            try {
-                setLoading(true);
-
-                // Crear data final con medios sincronizados
-                const finalData: ReportFormData = {
-                    ...formData,
-                    imagenes: selectedImages,
-                    video: selectedVideo,
-                };
-
-                // Log de datos finales que se enviarían
-                console.log('DATOS FINALES A ENVIAR:');
-                console.log('=====================================');
-                console.log(JSON.stringify(finalData, null, 2));
-                console.log('=====================================');
-
-                // Log detallado de cada campo
-                console.log('DETALLES DEL REPORTE:');
-                console.log(`Título: "${finalData.titulo}"`);
-                console.log(`Descripción: "${finalData.descripcion}"`);
-                console.log(`Categoría: ${finalData.tipoDenuncia}`);
-                console.log(`Urgencia: ${finalData.nivelUrgencia}`);
-                console.log(
-                    `Ubicación: Lat ${finalData.ubicacion.latitud}, Lng ${finalData.ubicacion.longitud}`
-                );
-                console.log(`Dirección: ${finalData.ubicacion.direccion || 'No especificada'}`);
-                console.log(`Total imágenes: ${finalData.imagenes.length}`);
-                console.log(`Video incluido: ${finalData.video ? 'Sí' : 'No'}`);
-
-                // Log de URIs de medios
-                if (finalData.imagenes.length > 0) {
-                    console.log('IMÁGENES:');
-                    finalData.imagenes.forEach((uri, index) => {
-                        console.log(`  ${index + 1}. ${uri}`);
-                    });
-                }
-
-                if (finalData.video) {
-                    console.log('VIDEO:');
-                    console.log(`  ${finalData.video}`);
-                }
-
-                // Simular envío a API
-                console.log('Enviando reporte...');
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-
-                console.log('REPORTE ENVIADO EXITOSAMENTE');
-                Alert.alert('Éxito', 'Reporte enviado correctamente');
-                onSuccess?.(finalData);
-                resetForm();
-                return true;
-            } catch (error) {
-                console.log('ERROR AL ENVIAR REPORTE:');
-                console.error(error);
-                Alert.alert('Error', 'No se pudo enviar el reporte');
-                return false;
-            } finally {
-                setLoading(false);
-            }
-        },
-        [formData, selectedImages, selectedVideo, validateForm, resetForm, syncFormDataWithMedia]
-    );
-
-    // Sincronizar automáticamente cuando cambien los medios
-    useEffect(() => {
-        syncFormDataWithMedia();
-    }, [selectedImages, selectedVideo, syncFormDataWithMedia]);
-
-    return {
-        // Estado
-        formData: {
-            ...formData,
-            imagenes: selectedImages, // Usar siempre los datos del hook de cámara
-            video: selectedVideo,
-        },
-        errors,
-        loading,
-        mediaStats,
-
-        // Acciones
-        updateField,
+        showImageModal,
+        showVideoModal,
+        setShowImageModal,
+        setShowVideoModal,
         takePhoto,
-        takeVideo,
-        pickFromGallery,
+        pickImageFromGallery,
+        recordVideo,
         pickVideoFromGallery,
         removeImage,
         removeVideo,
-        selectLocation,
-        resetForm,
-        submitForm,
+        openImageModal,
+        openVideoModal,
+        resetMedia,
+        getMediaStats,
+    } = useCamera();
+
+    const updateField = (field: keyof ReportFormData, value: any) => {
+        console.log(`Updating field ${field} with value:`, value, typeof value); // Debug log
+
+        setFormData((prev) => ({ ...prev, [field]: value }));
+
+        // Limpiar error del campo si existe
+        if (errors[field as keyof ReportFormErrors]) {
+            setErrors((prev) => ({ ...prev, [field]: undefined }));
+        }
+    };
+
+    const syncFormDataWithMedia = () => {
+        setFormData((prev) => ({
+            ...prev,
+            imagenes: selectedImages,
+            video: selectedVideo,
+        }));
+    };
+
+    const validateForm = (): boolean => {
+        const dataToValidate = {
+            ...formData,
+            imagenes: selectedImages,
+            video: selectedVideo,
+        };
+
+        console.log('Validating form data:', dataToValidate); // Debug log
+
+        const validationErrors = validateReportData(dataToValidate);
+        setErrors(validationErrors);
+        return Object.keys(validationErrors).length === 0;
+    };
+
+    const handlePreview = () => {
+        syncFormDataWithMedia();
+        if (validateForm()) {
+            setShowPreview(true);
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({
+            titulo: '',
+            descripcion: '',
+            direccion: '',
+            latitud: 0,
+            longitud: 0,
+            urgencia: '',
+            tipoDenuncia: '',
+            ciudad: '',
+            visible: true,
+            imagenes: [],
+            video: undefined,
+        });
+        setErrors({});
+        resetMedia();
+    };
+
+    const handleSubmit = async () => {
+        syncFormDataWithMedia();
+
+        const finalData = {
+            ...formData,
+            imagenes: selectedImages,
+            video: selectedVideo,
+        };
+
+        console.log('Final data to submit:', finalData); // Debug log
+
+        if (!validateForm()) {
+            return { success: false, message: 'Por favor, complete todos los campos requeridos.' };
+        }
+
+        setIsSubmitting(true);
+        try {
+            const result = await createReport(finalData);
+
+            if (result.success) {
+                resetForm();
+                setShowPreview(false);
+            } else if (result.errors) {
+                setErrors(result.errors as ReportFormErrors);
+                setShowPreview(false);
+            }
+
+            return result;
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const getCurrentFormData = () => ({
+        ...formData,
+        imagenes: selectedImages,
+        video: selectedVideo,
+    });
+
+    return {
+        formData: getCurrentFormData(),
+        errors,
+        showMapModal,
+        showPreview,
+        isSubmitting,
+        loading: false,
+        mediaStats: getMediaStats(),
+        showImageModal,
+        showVideoModal,
+        setShowImageModal,
+        setShowVideoModal,
+        updateField,
+        setShowMapModal,
+        setShowPreview,
+        handlePreview,
+        handleSubmit,
         validateForm,
+        resetForm,
+        takePhoto,
+        pickImageFromGallery,
+        recordVideo,
+        pickVideoFromGallery,
+        removeImage,
+        removeVideo,
+        openImageModal,
+        openVideoModal,
+        getMediaStats,
     };
 };

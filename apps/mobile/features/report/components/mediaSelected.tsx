@@ -1,8 +1,19 @@
-import { View, Text, ScrollView, Image, Pressable, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, Image, Pressable, ScrollView } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { MediaStats } from '../hooks/useCamera';
 
-const MediaSection = ({
+interface MediaSectionProps {
+    selectedImages: string[];
+    selectedVideo?: string;
+    onOpenImageModal: () => void;
+    onOpenVideoModal: () => void;
+    onRemoveImage: (index: number) => void;
+    onRemoveVideo: () => void;
+    mediaStats?: MediaStats;
+}
+
+const MediaSection: React.FC<MediaSectionProps> = ({
     selectedImages,
     selectedVideo,
     onOpenImageModal,
@@ -10,128 +21,92 @@ const MediaSection = ({
     onRemoveImage,
     onRemoveVideo,
     mediaStats,
-}: {
-    selectedImages: string[];
-    selectedVideo: string | null;
-    onOpenImageModal: () => void;
-    onOpenVideoModal: () => void;
-    onRemoveImage: (index: number) => void;
-    onRemoveVideo: () => void;
-    mediaStats?: {
-        imageCount: number;
-        hasVideo: boolean;
-        canAddImages: boolean;
-        canAddVideo: boolean;
-        remainingImageSlots: number;
-    };
 }) => {
     return (
         <View className="gap-4">
-            {/* Sección de Imágenes */}
-            <View>
-                <View className="mb-3 flex-row items-center justify-between">
-                    <View className="flex-row items-center">
-                        <Ionicons name="images-outline" size={20} color="#537CF2" />
-                        <Text className="ml-2 text-lg font-semibold text-white">
-                            Imágenes ({selectedImages.length}/10)
-                        </Text>
-                    </View>
-                    <Pressable
-                        onPress={onOpenImageModal}
-                        disabled={!mediaStats?.canAddImages}
-                        className={`rounded-lg px-3 py-1 ${
-                            mediaStats?.canAddImages ? 'bg-primary' : 'bg-gray-500'
-                        }`}>
-                        <Text className="text-sm text-white">
-                            {mediaStats?.canAddImages ? 'Agregar' : 'Límite'}
-                        </Text>
-                    </Pressable>
-                </View>
+            {/* Botones para agregar medios */}
+            <View className="flex-row gap-3">
+                <Pressable
+                    onPress={onOpenImageModal}
+                    className={`flex-1 flex-row items-center justify-center rounded-lg p-3 ${
+                        mediaStats?.canAddImages ? 'bg-blue-600 active:bg-blue-700' : 'bg-gray-500'
+                    }`}
+                    disabled={!mediaStats?.canAddImages}>
+                    <MaterialCommunityIcons name="camera" size={20} color="white" />
+                    <Text className="ml-2 text-white">Imagen ({selectedImages.length}/5)</Text>
+                </Pressable>
 
-                {selectedImages.length > 0 ? (
+                <Pressable
+                    onPress={onOpenVideoModal}
+                    className={`flex-1 flex-row items-center justify-center rounded-lg p-3 ${
+                        mediaStats?.canAddVideo
+                            ? 'bg-purple-600 active:bg-purple-700'
+                            : 'bg-gray-500'
+                    }`}
+                    disabled={!mediaStats?.canAddVideo}>
+                    <MaterialCommunityIcons name="video" size={20} color="white" />
+                    <Text className="ml-2 text-white">
+                        Video {selectedVideo ? '(1/1)' : '(0/1)'}
+                    </Text>
+                </Pressable>
+            </View>
+
+            {/* Mostrar imágenes seleccionadas */}
+            {selectedImages.length > 0 && (
+                <View>
+                    <Text className="mb-2 text-white">Imágenes seleccionadas:</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <View className="flex-row gap-3">
-                            {selectedImages.map((imagen, index) => (
-                                <View key={`${imagen}-${index}`} className="relative">
-                                    <TouchableOpacity className="overflow-hidden rounded-lg">
-                                        <Image
-                                            source={{ uri: imagen }}
-                                            className="h-32 w-32"
-                                            resizeMode="cover"
-                                        />
-                                        <View className="absolute right-2 top-2 rounded-full bg-black bg-opacity-50 p-1">
-                                            <Ionicons
-                                                name="expand-outline"
-                                                size={16}
-                                                color="white"
-                                            />
-                                        </View>
-                                    </TouchableOpacity>
+                        <View className="flex-row gap-2">
+                            {selectedImages.map((uri, index) => (
+                                <View key={index} className="relative">
+                                    <Image
+                                        source={{ uri }}
+                                        className="h-20 w-20 rounded-lg"
+                                        resizeMode="cover"
+                                    />
                                     <Pressable
                                         onPress={() => onRemoveImage(index)}
-                                        className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1">
-                                        <Ionicons name="close" size={16} color="white" />
+                                        className="absolute -right-1 -top-1 h-6 w-6 items-center justify-center rounded-full bg-red-500">
+                                        <MaterialCommunityIcons
+                                            name="close"
+                                            size={16}
+                                            color="white"
+                                        />
                                     </Pressable>
                                 </View>
                             ))}
                         </View>
                     </ScrollView>
-                ) : (
-                    <Pressable
-                        onPress={onOpenImageModal}
-                        className="h-[100px] w-full items-center justify-center rounded-lg bg-secondary p-3 active:bg-slate-500">
-                        <MaterialCommunityIcons name="file-image" size={40} color="white" />
-                        <Text className="mt-2 text-sm text-white">Agregar imágenes (máx. 10)</Text>
-                    </Pressable>
-                )}
-            </View>
-
-            {/* Sección de Video */}
-            <View>
-                <View className="mb-3 flex-row items-center justify-between">
-                    <View className="flex-row items-center">
-                        <Ionicons name="videocam-outline" size={20} color="#537CF2" />
-                        <Text className="ml-2 text-lg font-semibold text-white">
-                            Video {selectedVideo ? '(1/1)' : '(0/1)'}
-                        </Text>
-                    </View>
-                    {mediaStats?.canAddVideo && (
-                        <Pressable
-                            onPress={onOpenVideoModal}
-                            className="rounded-lg bg-primary px-3 py-1">
-                            <Text className="text-sm text-white">Agregar</Text>
-                        </Pressable>
-                    )}
                 </View>
+            )}
 
-                {selectedVideo ? (
+            {/* Mostrar video seleccionado */}
+            {selectedVideo && (
+                <View>
+                    <Text className="mb-2 text-white">Video seleccionado:</Text>
                     <View className="relative">
-                        <TouchableOpacity className="rounded-lg border border-gray-400 border-opacity-30 bg-tertiary p-4">
-                            <View className="flex-row items-center justify-center">
-                                <Ionicons name="play-circle-outline" size={24} color="#537CF2" />
-                                <Text className="ml-2 font-medium text-[#537CF2]">
-                                    Reproducir video
-                                </Text>
-                            </View>
-                            <Text className="mt-2 text-center text-sm text-white">
-                                Video seleccionado
-                            </Text>
-                        </TouchableOpacity>
+                        <View className="h-20 w-32 items-center justify-center rounded-lg bg-secondary">
+                            <MaterialCommunityIcons name="video" size={30} color="white" />
+                            <Text className="mt-1 text-xs text-white">Video</Text>
+                        </View>
                         <Pressable
                             onPress={onRemoveVideo}
-                            className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1">
-                            <Ionicons name="close" size={16} color="white" />
+                            className="absolute -right-1 -top-1 h-6 w-6 items-center justify-center rounded-full bg-red-500">
+                            <MaterialCommunityIcons name="close" size={16} color="white" />
                         </Pressable>
                     </View>
-                ) : (
-                    <Pressable
-                        onPress={onOpenVideoModal}
-                        className="h-[100px] w-full items-center justify-center rounded-lg bg-secondary p-3 active:bg-slate-500">
-                        <MaterialCommunityIcons name="video" size={40} color="white" />
-                        <Text className="mt-2 text-sm text-white">Agregar video (máx. 1)</Text>
-                    </Pressable>
-                )}
-            </View>
+                </View>
+            )}
+
+            {/* Información sobre límites */}
+            {mediaStats && (
+                <View className="rounded-lg bg-secondary/50 p-3">
+                    <Text className="text-xs text-gray-300">
+                        • Máximo 5 imágenes ({mediaStats.remainingImageSlots} restantes)
+                    </Text>
+                    <Text className="text-xs text-gray-300">• Máximo 1 video de 60 segundos</Text>
+                </View>
+            )}
         </View>
     );
 };

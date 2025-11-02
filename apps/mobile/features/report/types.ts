@@ -1,30 +1,39 @@
 import { localizacion } from '../map/types';
 
-export type ReportFormData = {
+export interface ReportFormData {
     titulo: string;
     descripcion: string;
-    idCiudad: string;
+    direccion: string;
+    latitud: number;
+    longitud: number;
+    urgencia: string;
     tipoDenuncia: string;
-    ubicacion: localizacion;
-    nivelUrgencia: string;
+    ciudad: string;
+    visible: boolean;
     imagenes: string[];
-    video: string | null;
-};
+    video?: string;
+}
 
-export type ReportFormErrors = {
+export interface ReportFormErrors {
     titulo?: string;
     descripcion?: string;
-    idCiudad?: string;
-    tipoDenuncia?: string;
+    direccion?: string;
     ubicacion?: string;
-    nivelUrgencia?: string;
-    imagenes?: string;
-    video?: string;
-};
+    urgencia?: string;
+    tipoDenuncia?: string;
+    ciudad?: string;
+}
 
-export type ReportDetails = ReportFormData & {
-    id: string;
-    estado: string;
-    autor: string;
-    fecha: string;
-};
+export interface ReportPreviewData {
+    titulo: string;
+    descripcion: string;
+    direccion: string;
+    latitud: number;
+    longitud: number;
+    urgencia: string;
+    tipoDenuncia: string;
+    ciudad: string;
+    visible: boolean;
+    imagenes: string[];
+    video?: string;
+}
