@@ -18,6 +18,8 @@ from .views.comentario_views import (
     listar_comentarios_reporte
 )
 
+from .views.geojson_views import ReportGeoJSONView, ReportGeoJSONClusterView
+
 urlpatterns = [
     # CRUD de reportes con clases APIView
     path('', ReportListView.as_view(), name='report_list'),
@@ -31,6 +33,11 @@ urlpatterns = [
     path('<int:report_id>/media/upload/', ReportMediaUploadView.as_view(), name='report_media_upload'),
     path('<int:report_id>/media/<int:archivo_id>/delete/', ReportMediaDeleteView.as_view(), name='report_media_delete'),
     
+    # Vistas GeoJSON
+    path('geojson/', ReportGeoJSONView.as_view(), name='reports-geojson'),
+    path('geojson/clusters/', ReportGeoJSONClusterView.as_view(), name='reports-geojson-clusters'),
+ 
+
     # Vista con paginación (usando decorador para funciones específicas)
     path('paginated/', get_reports, name='get_reports_paginated'),
     
