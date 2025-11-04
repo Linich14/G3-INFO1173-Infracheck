@@ -6,7 +6,7 @@ from django.contrib.auth.hashers import make_password
 from domain.entities.usuario import Usuario
 from domain.entities.rol_usuario import RolUsuario
 from domain.entities.sesion_token import SesionToken
-from reports.models.reporte import Reporte
+from reports.models.report import ReportModel
 from reports.models.tipo_denuncia import TipoDenuncia
 from reports.models.denuncia_estado import DenunciaEstado
 from proyectos.models.proyecto import Proyecto
@@ -47,8 +47,9 @@ class AuthenticationTestCase(TestCase):
             usua_email='login@example.com',
             usua_nombre='Login',
             usua_apellido='Test',
-            usua_password=make_password('SecurePass123'),
-            usua_telefono='+56912345678',
+            usua_nickname='login_user',
+            usua_pass=make_password('SecurePass123'),
+            usua_telefono=56912345678,
             rous_id=self.rol_ciudadano,
             usua_estado=1
         )
@@ -87,8 +88,9 @@ class ReportsTestCase(TestCase):
             usua_email='reporter@example.com',
             usua_nombre='Reporter',
             usua_apellido='Test',
-            usua_password=make_password('SecurePass123'),
-            usua_telefono='+56912345678',
+            usua_nickname='reporter_test',
+            usua_pass=make_password('SecurePass123'),
+            usua_telefono=56912345678,
             rous_id=self.rol,
             usua_estado=1
         )
@@ -129,12 +131,12 @@ class ReportsTestCase(TestCase):
         HTTP_AUTHORIZATION=f'Bearer {self.token.token_valor}')
         
         self.assertIn(response.status_code, [201, 200])
-        self.assertTrue(Reporte.objects.filter(titulo='Test Report').exists())
+        self.assertTrue(ReportModel.objects.filter(titulo='Test Report').exists())
     
     def test_list_reports(self):
         """Test de listado de reportes"""
         # Crear reporte de prueba
-        Reporte.objects.create(
+        ReportModel.objects.create(
             titulo='Sample Report',
             descripcion='Sample description',
             ubicacion='Sample location',
@@ -168,8 +170,9 @@ class ProjectsTestCase(TestCase):
             usua_email='authority@example.com',
             usua_nombre='Authority',
             usua_apellido='Test',
-            usua_password=make_password('SecurePass123'),
-            usua_telefono='+56912345678',
+            usua_nickname='authority_user',
+            usua_pass=make_password('SecurePass123'),
+            usua_telefono=56912345678,
             rous_id=self.rol,
             usua_estado=1
         )
@@ -202,8 +205,9 @@ class NotificationsTestCase(TestCase):
             usua_email='notif@example.com',
             usua_nombre='Notification',
             usua_apellido='Test',
-            usua_password=make_password('SecurePass123'),
-            usua_telefono='+56912345678',
+            usua_nickname='notif_user',
+            usua_pass=make_password('SecurePass123'),
+            usua_telefono=56912345678,
             rous_id=self.rol,
             usua_estado=1
         )
