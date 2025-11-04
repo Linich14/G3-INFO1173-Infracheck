@@ -1,0 +1,318 @@
+name: Django API CI/CD
+
+on:
+  push:
+    branches: [ develop, testing, main ]
+  pull_request:
+    branches: [ develop, testing, main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: infracheck_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Obtener código del repositorio
+      uses: actions/checkout@v3
+
+    - name: Configurar Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Cachear dependencias de pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Instalar dependencias de Python
+      working-directory: ./apps/API
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Configurar variables de entorno
+      run: |
+        echo "SECRET_KEY=test-secret-key-for-ci-cd-pipeline" >> $GITHUB_ENV
+        echo "DEBUG=False" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/infracheck_test" >> $GITHUB_ENV
+
+    - name: Ejecutar migraciones de base de datos
+      working-directory: ./apps/API
+      run: |
+        python manage.py makemigrations
+        python manage.py migrate
+
+    - name: Crear usuario de prueba
+      working-directory: ./apps/API
+      run: |
+        python manage.py shell -c "
+        from domain.entities.usuario import Usuario
+        from domain.entities.rol_usuario import RolUsuario
+        from django.contrib.auth.hashers import make_password
+        
+        # Crear rol admin si no existe
+        rol_admin, _ = RolUsuario.objects.get_or_create(
+            rous_id=1,
+            defaults={'rous_nombre': 'Administrador'}
+        )
+        
+        # Crear usuario de prueba
+        Usuario.objects.get_or_create(
+            usua_email='test@infracheck.cl',
+            defaults={
+                'usua_rut': '11111111-1',
+                'usua_nombre': 'Test User',
+                'usua_apellido': 'CI/CD',
+                'usua_password': make_password('TestPassword123'),
+                'usua_telefono': '+56912345678',
+                'rous_id': rol_admin,
+                'usua_estado': 1
+            }
+        )
+        print('Test user created successfully')
+        "
+
+    - name: Ejecutar tests unitarios de Django
+      working-directory: ./apps/API
+      run: |
+        python manage.py test --verbosity=2
+
+    - name: Iniciar servidor Django en segundo plano
+      working-directory: ./apps/API
+      run: |
+        python manage.py runserver 0.0.0.0:8000 &
+        sleep 5
+
+    - name: Esperar a que el servidor esté listo
+      run: |
+        timeout 30 bash -c 'until curl -f http://localhost:8000/api/v1/; do sleep 2; done' || exit 1
+
+    - name: Test de autenticación - Registro de usuario
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8000/api/v1/register \
+          -H "Content-Type: application/json" \
+          -d '{
+            "usua_rut": "22222222-2",
+            "usua_email": "newuser@infracheck.cl",
+            "usua_nombre": "New",
+            "usua_apellido": "User",
+            "usua_password": "NewPassword123",
+            "usua_telefono": "+56987654321"
+          }')
+        
+        http_code=$(echo "$response" | tail -n1)
+        body=$(echo "$response" | head -n-1)
+        
+        echo "Register Response: $body"
+        echo "HTTP Code: $http_code"
+        
+        if [ "$http_code" -ne 201 ]; then
+          echo "❌ Registration failed with code $http_code"
+          exit 1
+        fi
+        echo "✅ Registro exitoso"
+
+    - name: Test de autenticación - Inicio de sesión
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8000/api/v1/login \
+          -H "Content-Type: application/json" \
+          -d '{
+            "usua_email": "test@infracheck.cl",
+            "usua_password": "TestPassword123"
+          }')
+        
+        http_code=$(echo "$response" | tail -n1)
+        body=$(echo "$response" | head -n-1)
+        
+        echo "Login Response: $body"
+        echo "HTTP Code: $http_code"
+        
+        if [ "$http_code" -ne 200 ]; then
+          echo "❌ Login falló con código $http_code"
+          exit 1
+        fi
+        
+        # Extraer token de la respuesta
+        token=$(echo "$body" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
+        
+        if [ -z "$token" ]; then
+          echo "❌ No se recibió token en la respuesta de login"
+          exit 1
+        fi
+        
+        echo "✅ Login exitoso - Token recibido"
+        echo "TOKEN=$token" >> $GITHUB_ENV
+
+    - name: Test de endpoint autenticado - Obtener perfil de usuario
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X GET http://localhost:8000/api/v1/profile \
+          -H "Authorization: Bearer ${{ env.TOKEN }}")
+        
+        http_code=$(echo "$response" | tail -n1)
+        body=$(echo "$response" | head -n-1)
+        
+        echo "Profile Response: $body"
+        echo "HTTP Code: $http_code"
+        
+        if [ "$http_code" -ne 200 ]; then
+          echo "❌ Petición autenticada falló con código $http_code"
+          exit 1
+        fi
+        echo "✅ Petición autenticada exitosa"
+
+    - name: Test de cierre de sesión
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8000/api/v1/logout \
+          -H "Authorization: Bearer ${{ env.TOKEN }}")
+        
+        http_code=$(echo "$response" | tail -n1)
+        body=$(echo "$response" | head -n-1)
+        
+        echo "Logout Response: $body"
+        echo "HTTP Code: $http_code"
+        
+        if [ "$http_code" -ne 200 ]; then
+          echo "❌ Cierre de sesión falló con código $http_code"
+          exit 1
+        fi
+        echo "✅ Cierre de sesión exitoso"
+
+    - name: Test módulo reportes - Crear reporte
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:8000/api/v1/reports \
+          -H "Authorization: Bearer ${{ env.TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "titulo": "Test Report",
+            "descripcion": "Report created during CI/CD",
+            "ubicacion": "Test Location",
+            "latitud": -38.7359,
+            "longitud": -72.5904,
+            "urgencia": 2
+          }')
+        
+        http_code=$(echo "$response" | tail -n1)
+        body=$(echo "$response" | head -n-1)
+        
+        echo "Create Report Response: $body"
+        echo "HTTP Code: $http_code"
+        
+        if [ "$http_code" -ne 201 ]; then
+          echo "❌ Creación de reporte falló con código $http_code"
+          exit 1
+        fi
+        
+        # Extraer ID del reporte para siguientes tests
+        report_id=$(echo "$body" | grep -o '"id":[0-9]*' | head -1 | cut -d':' -f2)
+        echo "REPORT_ID=$report_id" >> $GITHUB_ENV
+        echo "✅ Reporte creado exitosamente con ID: $report_id"
+
+    - name: Test módulo reportes - Listar reportes
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X GET http://localhost:8000/api/v1/reports \
+          -H "Authorization: Bearer ${{ env.TOKEN }}")
+        
+        http_code=$(echo "$response" | tail -n1)
+        body=$(echo "$response" | head -n-1)
+        
+        echo "List Reports HTTP Code: $http_code"
+        
+        if [ "$http_code" -ne 200 ]; then
+          echo "❌ Listar reportes falló con código $http_code"
+          exit 1
+        fi
+        echo "✅ Listado de reportes exitoso"
+
+    - name: Test módulo reportes - Obtener detalle de reporte
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X GET http://localhost:8000/api/v1/reports/${{ env.REPORT_ID }} \
+          -H "Authorization: Bearer ${{ env.TOKEN }}")
+        
+        http_code=$(echo "$response" | tail -n1)
+        body=$(echo "$response" | head -n-1)
+        
+        echo "Get Report Detail Response: $body"
+        echo "HTTP Code: $http_code"
+        
+        if [ "$http_code" -ne 200 ]; then
+          echo "❌ Obtener detalle de reporte falló con código $http_code"
+          exit 1
+        fi
+        echo "✅ Detalle de reporte obtenido exitosamente"
+
+    - name: Test módulo proyectos - Listar proyectos
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X GET http://localhost:8000/api/v1/proyectos \
+          -H "Authorization: Bearer ${{ env.TOKEN }}")
+        
+        http_code=$(echo "$response" | tail -n1)
+        
+        echo "List Projects HTTP Code: $http_code"
+        
+        if [ "$http_code" -ne 200 ]; then
+          echo "❌ Listar proyectos falló con código $http_code"
+          exit 1
+        fi
+        echo "✅ Listado de proyectos exitoso"
+
+    - name: Test módulo notificaciones - Obtener notificaciones no leídas
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X GET http://localhost:8000/api/v1/notifications/unread \
+          -H "Authorization: Bearer ${{ env.TOKEN }}")
+        
+        http_code=$(echo "$response" | tail -n1)
+        
+        echo "Get Unread Notifications HTTP Code: $http_code"
+        
+        if [ "$http_code" -ne 200 ]; then
+          echo "❌ Obtener notificaciones falló con código $http_code"
+          exit 1
+        fi
+        echo "✅ Notificaciones obtenidas exitosamente"
+
+    - name: Test módulo auditoría - Obtener logs de auditoría
+      run: |
+        response=$(curl -s -w "\n%{http_code}" -X GET http://localhost:8000/api/v1/audit \
+          -H "Authorization: Bearer ${{ env.TOKEN }}")
+        
+        http_code=$(echo "$response" | tail -n1)
+        
+        echo "Código HTTP de logs de auditoría: $http_code"
+        
+        # Auditoría puede requerir permisos de admin, por lo que 200 o 403 es aceptable
+        if [ "$http_code" -ne 200 ] && [ "$http_code" -ne 403 ]; then
+          echo "⚠️  Endpoint de auditoría retornó código inesperado $http_code"
+        else
+          echo "✅ Endpoint de auditoría respondiendo correctamente"
+        fi
+
+  notify:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Notificar éxito
+      if: needs.test.result == 'success'
+      run: echo "✅ Pipeline de CI/CD completado exitosamente!"
+      
+    - name: Notificar fallo
+      if: needs.test.result == 'failure'
+      run: echo "❌ Pipeline de CI/CD falló!"
