@@ -9,8 +9,8 @@ from domain.entities.sesion_token import SesionToken
 from reports.models.report import ReportModel
 from reports.models.tipo_denuncia import TipoDenuncia
 from reports.models.denuncia_estado import DenunciaEstado
-from proyectos.models.proyecto import Proyecto
-from notifications.models.notification import Notificacion
+from proyectos.models.proyecto import ProyectoModel
+from notifications.models.notification import Notification
 import json
 
 
@@ -220,12 +220,12 @@ class NotificationsTestCase(TestCase):
         )
         
         # Crear notificación de prueba
-        Notificacion.objects.create(
-            usuario_id=self.usuario,
-            noti_tipo='info',
-            noti_mensaje='Test notification',
-            noti_leida=False,
-            noti_visible=True
+        Notification.objects.create(
+            usuario=self.usuario,
+            titulo='Test Notification',
+            tipo='info',
+            mensaje='Test notification message',
+            leida=False
         )
     
     def test_get_unread_notifications(self):
@@ -239,11 +239,11 @@ class NotificationsTestCase(TestCase):
     
     def test_mark_notification_as_read(self):
         """Test de marcar notificación como leída"""
-        notif = Notificacion.objects.filter(usuario_id=self.usuario).first()
+        notif = Notification.objects.filter(usuario=self.usuario).first()
         
-        response = self.client.patch(f'/api/v1/notifications/{notif.noti_id}/read',
+        response = self.client.patch(f'/api/v1/notifications/{notif.id}/read',
             HTTP_AUTHORIZATION=f'Bearer {self.token.token_valor}')
         
         self.assertIn(response.status_code, [200, 204])
         notif.refresh_from_db()
-        self.assertTrue(notif.noti_leida)
+        self.assertTrue(notif.leida)
