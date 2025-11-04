@@ -113,7 +113,8 @@ jobs:
 
     - name: Esperar a que el servidor esté listo
       run: |
-        timeout 30 bash -c 'until curl -f http://localhost:8000/api/v1/; do sleep 2; done' || exit 1
+        timeout 30 bash -c 'until curl -s http://localhost:8000/api/v1/login/ > /dev/null 2>&1; do sleep 2; done' || exit 1
+        echo "[OK] Servidor Django iniciado correctamente"
 
     - name: Test de autenticación - Registro de usuario
       run: |
