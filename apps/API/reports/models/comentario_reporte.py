@@ -29,8 +29,8 @@ class ComentarioReporte(models.Model):
         verbose_name = 'Comentario de Reporte'
         verbose_name_plural = 'Comentarios de Reportes'
         indexes = [
-            models.Index(fields=['usuario', 'fecha_comentario']),
-            models.Index(fields=['reporte', 'fecha_comentario']),
+            models.Index(fields=['usuario', 'fecha_comentario'], name='comentario_usuario_fecha_idx'),
+            models.Index(fields=['reporte', 'fecha_comentario'], name='comentario_reporte_fecha_idx'),
         ]
 
     def __str__(self):
