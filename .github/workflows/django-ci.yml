@@ -125,10 +125,10 @@ jobs:
         echo "HTTP Code: $http_code"
         
         if [ "$http_code" -ne 201 ]; then
-          echo "❌ Registration failed with code $http_code"
+          echo "[ERROR] Registration failed with code $http_code"
           exit 1
         fi
-        echo "✅ Registro exitoso"
+        echo "[OK] Registro exitoso"
 
     - name: Test de autenticación - Inicio de sesión
       run: |
@@ -146,7 +146,7 @@ jobs:
         echo "HTTP Code: $http_code"
         
         if [ "$http_code" -ne 200 ]; then
-          echo "❌ Login falló con código $http_code"
+          echo "[ERROR] Login falló con código $http_code"
           exit 1
         fi
         
@@ -154,11 +154,11 @@ jobs:
         token=$(echo "$body" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
         
         if [ -z "$token" ]; then
-          echo "❌ No se recibió token en la respuesta de login"
+          echo "[ERROR] No se recibió token en la respuesta de login"
           exit 1
         fi
         
-        echo "✅ Login exitoso - Token recibido"
+        echo "[OK] Login exitoso - Token recibido"
         echo "TOKEN=$token" >> $GITHUB_ENV
 
     - name: Test de endpoint autenticado - Obtener perfil de usuario
@@ -173,10 +173,10 @@ jobs:
         echo "HTTP Code: $http_code"
         
         if [ "$http_code" -ne 200 ]; then
-          echo "❌ Petición autenticada falló con código $http_code"
+          echo "[ERROR] Petición autenticada falló con código $http_code"
           exit 1
         fi
-        echo "✅ Petición autenticada exitosa"
+        echo "[OK] Petición autenticada exitosa"
 
     - name: Test de cierre de sesión
       run: |
@@ -190,10 +190,10 @@ jobs:
         echo "HTTP Code: $http_code"
         
         if [ "$http_code" -ne 200 ]; then
-          echo "❌ Cierre de sesión falló con código $http_code"
+          echo "[ERROR] Cierre de sesión falló con código $http_code"
           exit 1
         fi
-        echo "✅ Cierre de sesión exitoso"
+        echo "[OK] Cierre de sesión exitoso"
 
     - name: Test módulo reportes - Crear reporte
       run: |
@@ -216,14 +216,14 @@ jobs:
         echo "HTTP Code: $http_code"
         
         if [ "$http_code" -ne 201 ]; then
-          echo "❌ Creación de reporte falló con código $http_code"
+          echo "[ERROR] Creación de reporte falló con código $http_code"
           exit 1
         fi
         
         # Extraer ID del reporte para siguientes tests
         report_id=$(echo "$body" | grep -o '"id":[0-9]*' | head -1 | cut -d':' -f2)
         echo "REPORT_ID=$report_id" >> $GITHUB_ENV
-        echo "✅ Reporte creado exitosamente con ID: $report_id"
+        echo "[OK] Reporte creado exitosamente con ID: $report_id"
 
     - name: Test módulo reportes - Listar reportes
       run: |
@@ -236,10 +236,10 @@ jobs:
         echo "List Reports HTTP Code: $http_code"
         
         if [ "$http_code" -ne 200 ]; then
-          echo "❌ Listar reportes falló con código $http_code"
+          echo "[ERROR] Listar reportes falló con código $http_code"
           exit 1
         fi
-        echo "✅ Listado de reportes exitoso"
+        echo "[OK] Listado de reportes exitoso"
 
     - name: Test módulo reportes - Obtener detalle de reporte
       run: |
@@ -253,10 +253,10 @@ jobs:
         echo "HTTP Code: $http_code"
         
         if [ "$http_code" -ne 200 ]; then
-          echo "❌ Obtener detalle de reporte falló con código $http_code"
+          echo "[ERROR] Obtener detalle de reporte falló con código $http_code"
           exit 1
         fi
-        echo "✅ Detalle de reporte obtenido exitosamente"
+        echo "[OK] Detalle de reporte obtenido exitosamente"
 
     - name: Test módulo proyectos - Listar proyectos
       run: |
@@ -268,10 +268,10 @@ jobs:
         echo "List Projects HTTP Code: $http_code"
         
         if [ "$http_code" -ne 200 ]; then
-          echo "❌ Listar proyectos falló con código $http_code"
+          echo "[ERROR] Listar proyectos falló con código $http_code"
           exit 1
         fi
-        echo "✅ Listado de proyectos exitoso"
+        echo "[OK] Listado de proyectos exitoso"
 
     - name: Test módulo notificaciones - Obtener notificaciones no leídas
       run: |
@@ -283,10 +283,10 @@ jobs:
         echo "Get Unread Notifications HTTP Code: $http_code"
         
         if [ "$http_code" -ne 200 ]; then
-          echo "❌ Obtener notificaciones falló con código $http_code"
+          echo "[ERROR] Obtener notificaciones falló con código $http_code"
           exit 1
         fi
-        echo "✅ Notificaciones obtenidas exitosamente"
+        echo "[OK] Notificaciones obtenidas exitosamente"
 
     - name: Test módulo auditoría - Obtener logs de auditoría
       run: |
@@ -299,9 +299,9 @@ jobs:
         
         # Auditoría puede requerir permisos de admin, por lo que 200 o 403 es aceptable
         if [ "$http_code" -ne 200 ] && [ "$http_code" -ne 403 ]; then
-          echo "⚠️  Endpoint de auditoría retornó código inesperado $http_code"
+          echo "[WARNING] Endpoint de auditoría retornó código inesperado $http_code"
         else
-          echo "✅ Endpoint de auditoría respondiendo correctamente"
+          echo "[OK] Endpoint de auditoría respondiendo correctamente"
         fi
 
   notify:
@@ -311,8 +311,8 @@ jobs:
     steps:
     - name: Notificar éxito
       if: needs.test.result == 'success'
-      run: echo "✅ Pipeline de CI/CD completado exitosamente!"
+      run: echo "[OK] Pipeline de CI/CD completado exitosamente!"
       
     - name: Notificar fallo
       if: needs.test.result == 'failure'
-      run: echo "❌ Pipeline de CI/CD falló!"
+      run: echo "[ERROR] Pipeline de CI/CD falló!"
