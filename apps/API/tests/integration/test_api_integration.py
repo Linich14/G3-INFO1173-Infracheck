@@ -3,6 +3,8 @@ Tests de integración para módulos principales de InfraCheck API
 """
 from django.test import TestCase, Client
 from django.contrib.auth.hashers import make_password
+from django.utils import timezone
+from datetime import timedelta
 from domain.entities.usuario import Usuario
 from domain.entities.rol_usuario import RolUsuario
 from domain.entities.sesion_token import SesionToken
@@ -27,7 +29,7 @@ class AuthenticationTestCase(TestCase):
         
     def test_user_registration(self):
         """Test de registro de usuario"""
-        response = self.client.post('/api/v1/register', {
+        response = self.client.post('/api/v1/register/', {
             'usua_rut': '12345678-9',
             'usua_email': 'test@example.com',
             'usua_nombre': 'Test',
@@ -55,7 +57,7 @@ class AuthenticationTestCase(TestCase):
         )
         
         # Intentar login
-        response = self.client.post('/api/v1/login', {
+        response = self.client.post('/api/v1/login/', {
             'usua_email': 'login@example.com',
             'usua_password': 'SecurePass123'
         }, content_type='application/json')
@@ -97,8 +99,9 @@ class ReportsTestCase(TestCase):
         
         # Crear token de sesión
         self.token = SesionToken.objects.create(
-            usuario_id=self.usuario,
+            usua_id=self.usuario,
             token_valor='test-token-123',
+            token_expira_en=timezone.now() + timedelta(days=1),
             token_activo=True
         )
         
@@ -179,8 +182,9 @@ class ProjectsTestCase(TestCase):
         
         # Crear token
         self.token = SesionToken.objects.create(
-            usuario_id=self.usuario,
+            usua_id=self.usuario,
             token_valor='authority-token-123',
+            token_expira_en=timezone.now() + timedelta(days=1),
             token_activo=True
         )
     
@@ -214,8 +218,9 @@ class NotificationsTestCase(TestCase):
         
         # Crear token
         self.token = SesionToken.objects.create(
-            usuario_id=self.usuario,
+            usua_id=self.usuario,
             token_valor='notif-token-123',
+            token_expira_en=timezone.now() + timedelta(days=1),
             token_activo=True
         )
         
