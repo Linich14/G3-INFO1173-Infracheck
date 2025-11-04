@@ -20,7 +20,7 @@ export default function CreateNotificationScreen() {
     const [loading, setLoading] = useState(false);
     
     // Form state
-    const [usuarioId, setUsuarioId] = useState('');
+    const [usuarioIdentifier, setUsuarioIdentifier] = useState('');
     const [titulo, setTitulo] = useState('');
     const [mensaje, setMensaje] = useState('');
     const [tipo, setTipo] = useState<NotificationType>('info');
@@ -36,8 +36,8 @@ export default function CreateNotificationScreen() {
 
     const handleCreate = async () => {
         // Validaciones
-        if (!usuarioId.trim()) {
-            Alert.alert('Error', 'Debes ingresar el ID del usuario');
+        if (!usuarioIdentifier.trim()) {
+            Alert.alert('Error', 'Debes ingresar el RUT o ID del usuario');
             return;
         }
         if (!titulo.trim()) {
@@ -53,11 +53,11 @@ export default function CreateNotificationScreen() {
 
         try {
             const data = {
-                usuario_id: parseInt(usuarioId),
+                usuario_identifier: usuarioIdentifier.trim(),
                 titulo: titulo.trim(),
                 mensaje: mensaje.trim(),
                 tipo,
-                ...(denunciaId.trim() && { denuncia_id: parseInt(denunciaId) }),
+                ...(denunciaId.trim() && { reporte_id: parseInt(denunciaId) }),
             };
 
             const response = await createNotification(data);
@@ -70,7 +70,7 @@ export default function CreateNotificationScreen() {
                         {
                             text: 'Crear otra',
                             onPress: () => {
-                                setUsuarioId('');
+                                setUsuarioIdentifier('');
                                 setTitulo('');
                                 setMensaje('');
                                 setDenunciaId('');
@@ -123,19 +123,21 @@ export default function CreateNotificationScreen() {
 
                     {/* Formulario */}
                     <View className="space-y-4">
-                        {/* ID Usuario */}
+                        {/* RUT o ID Usuario */}
                         <View className="mb-4">
                             <Text className="text-white font-semibold mb-2">
-                                ID del Usuario <Text className="text-red-500">*</Text>
+                                RUT o ID del Usuario <Text className="text-red-500">*</Text>
                             </Text>
                             <TextInput
                                 className="bg-secondary text-white px-4 py-3 rounded-lg border border-gray-700"
-                                placeholder="Ej: 5"
+                                placeholder="Ej: 12345678-9 o 5"
                                 placeholderTextColor="#6b7280"
-                                value={usuarioId}
-                                onChangeText={setUsuarioId}
-                                keyboardType="numeric"
+                                value={usuarioIdentifier}
+                                onChangeText={setUsuarioIdentifier}
                             />
+                            <Text className="text-gray-500 text-xs mt-1">
+                                Puedes ingresar el RUT (con o sin guión) o el ID numérico
+                            </Text>
                         </View>
 
                         {/* Título */}
