@@ -108,3 +108,41 @@ export const markAllAsRead = async (): Promise<{ success: boolean; message: stri
     throw new Error(error.message || 'Error al marcar todas las notificaciones como leídas');
   }
 };
+
+export interface CreateNotificationData {
+  usuario_identifier: string | number;
+  titulo: string;
+  mensaje: string;
+  tipo: 'info' | 'success' | 'warning' | 'error';
+  reporte_id?: number;
+}
+
+export const createNotification = async (data: CreateNotificationData): Promise<{ success: boolean; message: string; notificacion?: any }> => {
+  try {
+    const response = await authenticatedFetch(
+      `${API_CONFIG.BASE_URL}/api/notifications/create/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error('Error creating notification:', error);
+    
+    if (error.message?.includes('Session expired')) {
+      throw error;
+    }
+    
+    throw new Error(error.message || 'Error al crear la notificación');
+  }
+};

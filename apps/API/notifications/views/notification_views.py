@@ -10,6 +10,8 @@ from notifications.serializers import (
     NotificationAdminSerializer,
     NotificationCreateSerializer
 )
+from reports.services.notification_service import notification_service
+from reports.models import ReportModel
 import logging
 
 logger = logging.getLogger('notifications')
@@ -248,15 +250,15 @@ class NotificationAdminListView(APIView):
 class NotificationCreateAdminView(APIView):
     """
     Vista para crear notificaciones desde el panel admin
-    POST /api/notifications/admin/create/ - Crea una notificación
+    POST /api/notifications/create/ - Crea una notificación
     
     Body JSON:
     {
-        "usuario_id": 5,
+        "usuario_identifier": "12345678-9" o 5,  // RUT o ID
         "titulo": "Título de la notificación",
         "mensaje": "Mensaje de la notificación",
         "tipo": "info",  // info, success, warning, error
-        "denuncia_id": 123  // opcional
+        "reporte_id": 123  // opcional
     }
     """
     
@@ -271,25 +273,50 @@ class NotificationCreateAdminView(APIView):
             
             usuario_admin = request.auth_user
             
-            # Verificar permisos de administrador
-            if not usuario_admin.usua_is_admin:
-                return Response({
-                    'success': False,
-                    'error': 'No tienes permisos de administrador'
-                }, status=status.HTTP_403_FORBIDDEN)
+            # Obtener datos
+            usuario_identifier = request.data.get('usuario_identifier')
+            titulo = request.data.get('titulo')
+            mensaje = request.data.get('mensaje')
+            tipo = request.data.get('tipo', 'info')
+            reporte_id = request.data.get('reporte_id')
             
-            # Validar datos
-            serializer = NotificationCreateSerializer(data=request.data)
-            if not serializer.is_valid():
+            # Validaciones
+            if not usuario_identifier:
                 return Response({
                     'success': False,
-                    'errors': serializer.errors
+                    'error': 'Se requiere usuario_identifier (RUT o ID)'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
-            # Crear notificación
-            notificacion = serializer.save()
+            if not titulo or not mensaje:
+                return Response({
+                    'success': False,
+                    'error': 'Se requiere título y mensaje'
+                }, status=status.HTTP_400_BAD_REQUEST)
             
-            # Serializar respuesta con el serializer completo
+            # Buscar reporte si se proporciona
+            reporte = None
+            if reporte_id:
+                try:
+                    reporte = ReportModel.objects.get(id=reporte_id)
+                except ReportModel.DoesNotExist:
+                    logger.warning(f"Reporte {reporte_id} no encontrado")
+            
+            # Crear notificación usando el servicio con RUT/ID
+            notificacion = notification_service.create_notification(
+                usuario=usuario_identifier,
+                titulo=titulo,
+                mensaje=mensaje,
+                tipo=tipo,
+                denuncia=reporte
+            )
+            
+            if not notificacion:
+                return Response({
+                    'success': False,
+                    'error': f'No se pudo crear la notificación. Usuario no encontrado: {usuario_identifier}'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Serializar respuesta
             response_serializer = NotificationSerializer(notificacion)
             
             logger.info(f"Notificación creada por admin {usuario_admin.usua_nickname}: ID={notificacion.id}")
@@ -297,7 +324,7 @@ class NotificationCreateAdminView(APIView):
             return Response({
                 'success': True,
                 'message': 'Notificación creada exitosamente',
-                'data': response_serializer.data
+                'notificacion': response_serializer.data
             }, status=status.HTTP_201_CREATED)
             
         except Exception as e:
