@@ -57,7 +57,11 @@ jobs:
       run: |
         echo "SECRET_KEY=test-secret-key-for-ci-cd-pipeline" >> $GITHUB_ENV
         echo "DEBUG=False" >> $GITHUB_ENV
-        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/infracheck_test" >> $GITHUB_ENV
+        echo "POSTGRES_DB=infracheck_test" >> $GITHUB_ENV
+        echo "POSTGRES_USER=postgres" >> $GITHUB_ENV
+        echo "POSTGRES_PASSWORD=postgres" >> $GITHUB_ENV
+        echo "POSTGRES_HOST=localhost" >> $GITHUB_ENV
+        echo "POSTGRES_PORT=5432" >> $GITHUB_ENV
 
     - name: Ejecutar migraciones de base de datos
       working-directory: ./apps/API
