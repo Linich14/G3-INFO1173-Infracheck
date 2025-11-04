@@ -2,9 +2,9 @@ name: Django API CI/CD
 
 on:
   push:
-    branches: [ develop, testing, main ]
+    branches: [ develop, development, testing, main ]
   pull_request:
-    branches: [ develop, testing, main ]
+    branches: [ develop, development, testing, main ]
 
 jobs:
   test:
