@@ -90,8 +90,9 @@ jobs:
                 'usua_rut': '11111111-1',
                 'usua_nombre': 'Test User',
                 'usua_apellido': 'CI/CD',
-                'usua_password': make_password('TestPassword123'),
-                'usua_telefono': '+56912345678',
+                'usua_nickname': 'testuser',
+                'usua_pass': make_password('TestPassword123'),
+                'usua_telefono': 56912345678,
                 'rous_id': rol_admin,
                 'usua_estado': 1
             }
