@@ -26,6 +26,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
     onShare,
     followLabel = 'Seguir',
     aspectRatio = 16 / 9,
+    isFollowed = false,
 }) => {
     const router = useRouter();
     const hasImage = !!image;
@@ -53,7 +54,11 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
                 <View className="flex-shrink-0">
                     <TouchableOpacity
-                        className="rounded-[32px] border border-white bg-[#537CF2] px-4 py-1 shadow active:opacity-80"
+                        className={`rounded-[32px] border px-4 py-1 shadow active:opacity-80 ${
+                            isFollowed 
+                                ? 'border-red-500 bg-red-500' 
+                                : 'border-white bg-[#537CF2]'
+                        }`}
                         onPress={onFollow}>
                         <Text className="text-center text-lg font-medium text-white">
                             {followLabel}

@@ -119,8 +119,8 @@ const LoginScreen: React.FC = () => {
                     showsVerticalScrollIndicator={false}
                     bounces={false} // Evita el rebote en iOS
                     className="-my-10 bg-[#14161E]">
-                    <View className="itemsy-center x-6 w-full">
-                        <View className="mb-10 flex-row items-center justify-between ">
+                    <View className="itemsy-center px-6 w-full">
+                        <View className="mb-10 flex-row items-center justify-between">
                             {/* Botón atrás */}
                             <TouchableOpacity
                                 onPress={() => router.replace('/')}
@@ -128,7 +128,7 @@ const LoginScreen: React.FC = () => {
                                 accessibilityRole="button"
                                 accessibilityLabel="Volver"
                                 activeOpacity={0.6}
-                                className="items-center justify-center rounded-[12px] bg-primary p-3 px-4">
+                                className="items-center justify-center rounded-[12px] bg-primary p-3 px-4 ml-2">
                                 <ArrowLeft size={28} color="#fff" />
                             </TouchableOpacity>
                             {/* Texto centrado */}

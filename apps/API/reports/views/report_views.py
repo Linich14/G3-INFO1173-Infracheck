@@ -294,16 +294,15 @@ class ReportDetailView(APIView):
                     'error': 'Token de autenticación inválido o expirado'
                 }, status=status.HTTP_401_UNAUTHORIZED)
             
-            # Obtener reporte específico del usuario con todas las relaciones
+            # Obtener reporte sin filtrar por usuario (permite ver reportes de otros)
             report = ReportModel.objects.select_related(
                 'usuario', 'denuncia_estado', 'tipo_denuncia', 'ciudad'
             ).prefetch_related('archivos').get(
-                id=report_id, 
-                usuario_id=usuario_id
+                id=report_id
             )
             
-            # Verificar visibilidad
-            if not report.visible and not report.belongs_to_user(usuario_id):
+            # Verificar visibilidad (solo si el reporte no es visible y no pertenece al usuario)
+            if not report.visible and report.usuario_id != usuario_id:
                 return Response({
                     'success': False,
                     'error': 'Reporte no encontrado'
