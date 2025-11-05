@@ -1,31 +1,41 @@
-import { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormReport from '../components/formReport';
+import ReportPreview from '../components/ReportPreview';
 import ModalFileOption from '../components/modalFileOption';
 import { useReportForm } from '../hooks/useReportForm';
+import { useUserContext } from '~/contexts/UserContext';
 import { router } from 'expo-router';
 import { X } from 'lucide-react-native';
 
 const CreateReportScreen = () => {
+    const { user } = useUserContext();
     const [modalVisible, setModalVisible] = useState(false);
     const [modalType, setModalType] = useState<'image' | 'video'>('image');
     const [showMapModal, setShowMapModal] = useState(false);
-
     const {
         formData,
         errors,
         loading,
         mediaStats,
+        showPreview,
+        isSubmitting,
+        showImageModal,
+        showVideoModal,
         updateField,
         takePhoto,
-        takeVideo,
-        pickFromGallery,
+        pickImageFromGallery,
+        recordVideo,
         pickVideoFromGallery,
         removeImage,
         removeVideo,
-        selectLocation,
-        submitForm,
+        openImageModal,
+        openVideoModal,
+        getMediaStats,
+        handlePreview,
+        handleSubmit,
+        setShowPreview, // Asegúrate de que esta función esté disponible en el hook
     } = useReportForm();
 
     const handleOpenImageModal = () => {
@@ -46,85 +56,199 @@ const CreateReportScreen = () => {
         if (modalType === 'image') {
             takePhoto();
         } else {
-            takeVideo();
+            recordVideo();
         }
         handleCloseModal();
     };
 
     const handleSelectFromGallery = () => {
         if (modalType === 'image') {
-            pickFromGallery();
+            pickImageFromGallery();
         } else {
             pickVideoFromGallery();
         }
         handleCloseModal();
     };
 
-    const handleSubmit = async () => {
-        await submitForm();
+    const onSelectLocation = (location: {
+        latitude: number;
+        longitude: number;
+        address?: string;
+    }) => {
+        updateField('latitud', location.latitude);
+        updateField('longitud', location.longitude);
+        if (location.address) {
+            updateField('direccion', location.address);
+        }
+        setShowMapModal(false);
     };
 
-    const handleClose = () => {
-        router.replace('/(map)/');
+    const handleSubmitForm = async () => {
+        if (!user) {
+            Alert.alert('Error', 'Debe iniciar sesión para crear un reporte');
+            return;
+        }
+
+        const result = await handleSubmit();
+
+        if (result.success) {
+            Alert.alert('Reporte Creado', 'Su reporte ha sido enviado exitosamente', [
+                { text: 'OK' },
+            ]);
+        } else {
+            Alert.alert('Error', result.message);
+        }
+    };
+
+    const handleBackPress = () => {
+        if (
+            formData.titulo ||
+            formData.descripcion ||
+            formData.imagenes.length > 0 ||
+            formData.video
+        ) {
+            Alert.alert(
+                'Descartar Cambios',
+                '¿Está seguro de que desea salir? Se perderán todos los datos ingresados.',
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Salir', style: 'destructive', onPress: () => router.back() },
+                ]
+            );
+        } else {
+            router.back();
+        }
+    };
+
+    // Función mejorada para cerrar el preview
+    const handleClosePreview = () => {
+        if (isSubmitting) {
+            Alert.alert(
+                'Reporte en proceso',
+                'El reporte se está enviando actualmente. ¿Deseas cancelar el envío?',
+                [
+                    { text: 'Continuar enviando', style: 'cancel' },
+                    {
+                        text: 'Cancelar envío',
+                        style: 'destructive',
+                        onPress: () => {
+                            // Aquí podrías cancelar la operación si el hook lo permite
+                            setShowPreview(false);
+                        },
+                    },
+                ]
+            );
+            return;
+        }
+
+        setShowPreview(false);
+    };
+
+    // Función para editar el reporte desde el preview
+    const handleEditFromPreview = () => {
+        if (isSubmitting) {
+            Alert.alert(
+                'No se puede editar',
+                'El reporte se está enviando actualmente. No se puede editar en este momento.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
+        // Cerrar el preview para volver al formulario
+        setShowPreview(false);
+
+        // Opcional: Mostrar un mensaje de confirmación
+        Alert.alert(
+            'Modo de edición',
+            'Puedes modificar los datos del reporte. Los cambios se guardarán automáticamente.',
+            [{ text: 'Entendido' }]
+        );
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-[#090A0D]" edges={['top', 'left', 'right']}>
-            <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                {/* Título "Crear Reporte" arriba */}
-                <View className="mx-4 mb-3 mt-2 flex-row items-center rounded-lg bg-secondary p-3">
-                    <View className="flex-1 items-center">
-                        <Text className="text-2xl font-bold text-primary">Crear Reporte</Text>
-                    </View>
-                </View>
+        <SafeAreaView className="flex-1 bg-background">
+            {/* Header */}
+            <View className="mx-4 flex-row items-center rounded-lg bg-tertiary px-4 py-3">
+                <Text className="flex-1 text-center text-3xl font-semibold text-primary">
+                    Nuevo Reporte
+                </Text>
+            </View>
 
-                {/* Header con botones donde estaba "Crear Reporte" */}
-                <View className="mx-4 flex-row items-center justify-between rounded-t-lg border-b border-gray-700 bg-[#13161E] px-4 py-3">
-                    {/* Botón Cerrar */}
-                    <TouchableOpacity
-                        onPress={handleClose}
-                        className="h-10 w-10 items-center justify-center rounded-full bg-white"
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                        <X size={20} color="#000" />
-                    </TouchableOpacity>
-
-                    {/* Espacio vacío para mantener el centrado */}
-                    <View />
-
-                    {/* Botón Publicar */}
-                    <TouchableOpacity
-                        onPress={handleSubmit}
-                        disabled={loading}
-                        className={`rounded-[12px] px-6 py-2 ${loading ? 'bg-gray-500' : 'bg-[#537CF2]'}`}>
-                        <Text className="font-medium text-white">
-                            {loading ? 'Publicando...' : 'Publicar'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View className="px-4">
-                    <FormReport
-                        formData={formData}
-                        errors={errors}
-                        onUpdateField={updateField}
-                        onOpenImageModal={handleOpenImageModal}
-                        onOpenVideoModal={handleOpenVideoModal}
-                        onRemoveImage={removeImage}
-                        onRemoveVideo={removeVideo}
-                        onSelectLocation={selectLocation}
-                        showMapModal={showMapModal}
-                        onSetShowMapModal={setShowMapModal}
-                        mediaStats={mediaStats}
-                    />
-                </View>
-
-                <ModalFileOption
-                    visible={modalVisible}
-                    onClose={handleCloseModal}
-                    onTakePhoto={handleTakePhoto}
-                    onSelectFromGallery={handleSelectFromGallery}
+            <ScrollView className="flex-1 px-4 py-2" showsVerticalScrollIndicator={false}>
+                <FormReport
+                    formData={formData}
+                    errors={errors}
+                    onUpdateField={updateField}
+                    onOpenImageModal={openImageModal}
+                    onOpenVideoModal={openVideoModal}
+                    onRemoveImage={removeImage}
+                    onRemoveVideo={removeVideo}
+                    onSelectLocation={onSelectLocation}
+                    showMapModal={showMapModal}
+                    onSetShowMapModal={setShowMapModal}
+                    mediaStats={getMediaStats()}
                 />
+
+                {/* Botón de previsualización */}
+                <View className="my-6">
+                    <Pressable
+                        onPress={handlePreview}
+                        className="items-center rounded-lg bg-blue-600 p-4 active:bg-blue-700"
+                        disabled={isSubmitting}>
+                        <Text className="text-lg font-semibold text-white">
+                            {isSubmitting ? 'Procesando...' : 'Vista Previa del Reporte'}
+                        </Text>
+                    </Pressable>
+                </View>
+
+                {/* Información adicional */}
+                <View className="mb-6 rounded-lg bg-tertiary/50 p-4">
+                    <Text className="mb-2 text-sm font-semibold text-white">
+                        Información Importante:
+                    </Text>
+                    <Text className="mb-1 text-xs text-gray-300">
+                        • Sus datos personales se mantendrán confidenciales
+                    </Text>
+                    <Text className="mb-1 text-xs text-gray-300">
+                        • El reporte será revisado en un plazo de 24-48 horas
+                    </Text>
+                    <Text className="mb-1 text-xs text-gray-300">
+                        • Recibirá notificaciones sobre el estado de su reporte
+                    </Text>
+                    <Text className="text-xs text-gray-300">
+                        • Para emergencias, contacte directamente a los servicios de emergencia
+                    </Text>
+                </View>
             </ScrollView>
+
+            {/* Modal para seleccionar imágenes */}
+            <ModalFileOption
+                visible={showImageModal}
+                onClose={() => setShowImageModal(false)}
+                onTakePhoto={takePhoto}
+                onSelectFromGallery={pickImageFromGallery}
+                type="image"
+            />
+
+            {/* Modal para seleccionar videos */}
+            <ModalFileOption
+                visible={showVideoModal}
+                onClose={() => setShowVideoModal(false)}
+                onRecordVideo={recordVideo}
+                onSelectVideoFromGallery={pickVideoFromGallery}
+                type="video"
+            />
+
+            {/* Modal de previsualización con funciones mejoradas */}
+            <ReportPreview
+                visible={showPreview}
+                data={formData}
+                onClose={handleClosePreview}
+                onEdit={handleEditFromPreview}
+                onConfirm={handleSubmitForm}
+                loading={isSubmitting}
+            />
         </SafeAreaView>
     );
 };

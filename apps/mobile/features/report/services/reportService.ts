@@ -1,40 +1,299 @@
-import api from '@shared/api';
-import { ReportDetails } from '../types';
+import api from '~/shared/api';
+import { isAuthenticated } from '~/features/auth/services/authService';
+import { ReportFormData } from '../types';
 
-export class ReportService {
-    /**
-     * Obtener detalle de un reporte - GET /reports/{id}/
-     */
-    static async getReportDetail(id: string): Promise<ReportDetails> {
-        try {
-            const response = await api.get(`/api/reports/${id}/`);
+export interface CreateReportResponse {
+    success: boolean;
+    message: string;
+    reportId?: string;
+    data?: any;
+    errors?: Record<string, string[]>;
+}
 
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching report detail:', error);
-            throw error;
+// Interfaz para la respuesta del detalle del reporte
+export interface ReportDetailResponse {
+    success: boolean;
+    data: {
+        id: number;
+        titulo: string;
+        descripcion: string;
+        direccion: string;
+        ubicacion: {
+            latitud: number;
+            longitud: number;
+        };
+        urgencia: {
+            valor: number;
+            etiqueta: string;
+        };
+        visible: boolean;
+        fecha_creacion: string;
+        fecha_actualizacion: string;
+        usuario: {
+            id: number;
+            nombre: string;
+            email: string;
+        };
+        estado: {
+            id: number;
+            nombre: string;
+        };
+        tipo_denuncia: {
+            id: number;
+            nombre: string;
+        };
+        ciudad: {
+            id: number;
+            nombre: string;
+        };
+        archivos: Array<{
+            id: number;
+            nombre: string;
+            url: string;
+            tipo: string;
+            mime_type: string;
+            es_principal: boolean;
+            orden: number;
+        }>;
+        estadisticas: {
+            total_archivos: number;
+            imagenes: number;
+            videos: number;
+            dias_desde_creacion: number;
+            puede_agregar_imagenes: boolean;
+            puede_agregar_videos: boolean;
+        };
+    };
+}
+
+export const createReport = async (data: ReportFormData): Promise<CreateReportResponse> => {
+    try {
+        console.log('Creating report with data:', data); // Debug log
+
+        // Verificar autenticación
+        const authenticated = await isAuthenticated();
+        if (!authenticated) {
+            return {
+                success: false,
+                message: 'Sesión expirada. Inicie sesión nuevamente.',
+            };
         }
+
+        const formData = new FormData();
+
+        // Agregar campos de texto con validación
+        formData.append('titulo', data.titulo.trim());
+        formData.append('descripcion', data.descripcion.trim());
+        formData.append('direccion', data.direccion.trim());
+        formData.append('latitud', data.latitud.toString());
+        formData.append('longitud', data.longitud.toString());
+
+        // Validar y agregar urgencia
+        if (!data.urgencia || !['1', '2', '3', '4'].includes(data.urgencia)) {
+            console.error('Invalid urgencia value:', data.urgencia);
+            return {
+                success: false,
+                message: 'Valor de urgencia inválido',
+            };
+        }
+        formData.append('urgencia', data.urgencia);
+
+        // Validar y agregar tipo_denuncia
+        if (
+            !data.tipoDenuncia ||
+            !['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].includes(
+                data.tipoDenuncia
+            )
+        ) {
+            console.error('Invalid tipoDenuncia value:', data.tipoDenuncia);
+            return {
+                success: false,
+                message: 'Tipo de denuncia inválido',
+            };
+        }
+        formData.append('tipo_denuncia', data.tipoDenuncia);
+
+        // Validar y agregar ciudad
+        if (!data.ciudad || !['1'].includes(data.ciudad)) {
+            console.error('Invalid ciudad value:', data.ciudad);
+            return {
+                success: false,
+                message: 'Ciudad inválida',
+            };
+        }
+        formData.append('ciudad', data.ciudad);
+
+        formData.append('visible', data.visible.toString());
+
+        // Log para debug
+        console.log('FormData values:', {
+            titulo: data.titulo,
+            descripcion: data.descripcion,
+            direccion: data.direccion,
+            latitud: data.latitud.toString(),
+            longitud: data.longitud.toString(),
+            urgencia: data.urgencia,
+            tipo_denuncia: data.tipoDenuncia,
+            ciudad: data.ciudad,
+            visible: data.visible.toString(),
+        });
+
+        // Agregar imágenes
+        data.imagenes.forEach((imageUri, index) => {
+            const filename = imageUri.split('/').pop() || `image_${index + 1}.jpg`;
+            const match = /\.(\w+)$/.exec(filename);
+            const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+            formData.append('imagenes', {
+                uri: imageUri,
+                name: filename,
+                type: type,
+            } as any);
+        });
+
+        // Agregar video si existe
+        if (data.video) {
+            const videoFilename = data.video.split('/').pop() || 'video.mp4';
+            const videoMatch = /\.(\w+)$/.exec(videoFilename);
+            const videoType = videoMatch ? `video/${videoMatch[1]}` : 'video/mp4';
+
+            formData.append('video', {
+                uri: data.video,
+                name: videoFilename,
+                type: videoType,
+            } as any);
+        }
+
+        const response = await api.post('/api/reports/create/', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
+        return {
+            success: true,
+            message: response.data.message || 'Reporte creado exitosamente',
+            reportId: response.data.id || response.data.report_id,
+            data: response.data,
+        };
+    } catch (error: any) {
+        console.error('Error creating report:', error);
+        console.error('Error response:', error.response?.data);
+
+        // Manejo simplificado de errores
+        if (error.response) {
+            const statusCode = error.response.status;
+            const responseData = error.response.data;
+
+            if (statusCode === 400 && responseData.errors) {
+                return {
+                    success: false,
+                    message: 'Verifique los datos del formulario',
+                    errors: responseData.errors,
+                };
+            }
+
+            if (statusCode === 401) {
+                return {
+                    success: false,
+                    message: 'Sesión expirada. Inicie sesión nuevamente.',
+                };
+            }
+
+            if (statusCode === 413) {
+                return {
+                    success: false,
+                    message: 'Los archivos son demasiado grandes',
+                };
+            }
+
+            return {
+                success: false,
+                message:
+                    responseData.detail ||
+                    responseData.message ||
+                    'Hubo un error al crear el reporte',
+            };
+        }
+
+        if (error.request || error.code === 'ECONNABORTED') {
+            return {
+                success: false,
+                message: 'Error de conexión. Verifique su internet',
+            };
+        }
+
+        return {
+            success: false,
+            message: 'Hubo un error inesperado',
+        };
+    }
+};
+
+export const validateReportData = (data: ReportFormData): Record<string, string> => {
+    const errors: Record<string, string> = {};
+
+    if (!data.titulo.trim()) {
+        errors.titulo = 'El título es obligatorio';
+    } else if (data.titulo.length > 50) {
+        errors.titulo = 'Máximo 50 caracteres';
     }
 
-    /**
-     * Obtener reportes que el usuario sigue - GET /reports/followed/
-     */
-    static async getFollowedReports(page: number = 1, limit: number = 20): Promise<{ count: number; results: any[] }> {
-        try {
-            const response = await api.get('/api/reports/followed/', {
-                params: { page, limit }
-            });
+    if (!data.descripcion.trim()) {
+        errors.descripcion = 'La descripción es obligatoria';
+    } else if (data.descripcion.length > 3000) {
+        errors.descripcion = 'Máximo 3000 caracteres';
+    }
 
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching followed reports:', error);
-            throw error;
+    if (!data.direccion.trim()) {
+        errors.direccion = 'La dirección es obligatoria';
+    } else if (data.direccion.length > 200) {
+        errors.direccion = 'Máximo 200 caracteres';
+    }
+
+    if (!data.tipoDenuncia) {
+        errors.tipoDenuncia = 'Seleccione un tipo de denuncia';
+    }
+
+    if (!data.urgencia) {
+        errors.urgencia = 'Seleccione un nivel de urgencia';
+    }
+
+    if (!data.ciudad) {
+        errors.ciudad = 'Seleccione una ciudad';
+    }
+
+    if (data.latitud === 0 || data.longitud === 0) {
+        errors.ubicacion = 'Seleccione una ubicación en el mapa';
+    }
+
+    return errors;
+};
+
+// Nueva función para obtener el detalle del reporte
+export const getReportDetail = async (reportId: string): Promise<ReportDetailResponse> => {
+    try {
+        console.log('Getting report detail for ID:', reportId);
+
+        // Verificar autenticación
+        const authenticated = await isAuthenticated();
+        if (!authenticated) {
+            throw new Error('Sesión expirada. Inicie sesión nuevamente.');
         }
+
+        const response = await api.get(`/api/reports/${reportId}/`);
+
+        return response.data;
+    } catch (error: any) {
+        console.error('Error getting report detail:', error);
+        console.error('Error response:', error.response?.data);
+
+        // Re-lanzar el error para que sea manejado por el hook
+        throw error;
     }
 
     /**
      * Dejar de seguir un reporte - POST /reports/{id}/unfollow/
-     */
     static async unfollowReport(reportId: string): Promise<{ message: string; seguidores_count: number }> {
         try {
             const response = await api.post(`/api/reports/${reportId}/unfollow/`);
@@ -44,5 +303,14 @@ export class ReportService {
             console.error('Error unfollowing report:', error);
             throw error;
         }
+};
+     */
     }
 }
+
+// Exportar como objeto para mantener compatibilidad
+export const ReportService = {
+    createReport,
+    getReportDetail,
+    validateReportData,
+};

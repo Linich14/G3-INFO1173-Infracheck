@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useReportDetail } from '../hooks/useReportDetails';
-import { getUrgencyColor } from '../../statistics/utils';
+import { useState, useCallback } from 'react';
 
-// Función auxiliar para formatear fechas
+type Props = {
+    reportId: string;
+    onBack: () => void;
+};
+
+// Funciones de utilidad
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
@@ -18,26 +21,69 @@ const formatDate = (dateString: string): string => {
     });
 };
 
-export default function ReportDetailsScreen() {
-    const params = useLocalSearchParams();
-    const router = useRouter();
-    const reportId = typeof params.id === 'string' ? params.id : params.id?.[0] || '';
+const getUrgencyColor = (urgency: string): string => {
+    switch (urgency.toLowerCase()) {
+        case 'alta':
+            return '#ef4444';
+        case 'media':
+            return '#f59e0b';
+        case 'baja':
+            return '#10b981';
+        default:
+            return '#6b7280';
+    }
+};
 
-    // Usar el hook específico para details
+export default function ReportDetailsScreen({ reportId, onBack }: Props) {
     const { report, loading, error, refetch } = useReportDetail(reportId);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const { width: screenWidth } = Dimensions.get('window');
 
-    if (loading) {
+    // Función para manejar la navegación hacia atrás de forma segura
+    const handleGoBack = useCallback(() => {
+        try {
+            onBack();
+        } catch (e) {
+            console.error('Error en navegación:', e);
+            onBack();
+        }
+    }, [onBack]);
+
+    // Validación del reportId
+    if (!reportId || reportId.trim() === '') {
         return (
             <SafeAreaView className="flex-1 bg-[#0A0E1A]">
-                <View className="flex-1 items-center justify-center">
-                    <Text className="text-white">Cargando reporte...</Text>
+                <View className="flex-1 items-center justify-center px-4">
+                    <Ionicons name="alert-circle-outline" size={64} color="#ef4444" />
+                    <Text className="mt-4 text-xl font-semibold text-white">
+                        ID de reporte requerido
+                    </Text>
+                    <Text className="mt-2 text-center text-gray-400">
+                        No se proporcionó un ID de reporte válido
+                    </Text>
+                    <TouchableOpacity
+                        onPress={handleGoBack}
+                        className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2">
+                        <Text className="text-white">Volver</Text>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
         );
     }
 
+    // Mostrar loading
+    if (loading) {
+        return (
+            <SafeAreaView className="flex-1 bg-[#0A0E1A]">
+                <View className="flex-1 items-center justify-center">
+                    <Text className="text-white">Cargando reporte...</Text>
+                    <Text className="mt-2 text-sm text-gray-400">ID: {reportId}</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    // Mostrar error
     if (error || !report) {
         return (
             <SafeAreaView className="flex-1 bg-[#0A0E1A]">
@@ -46,11 +92,21 @@ export default function ReportDetailsScreen() {
                     <Text className="mt-4 text-xl font-semibold text-white">
                         {error || 'Reporte no encontrado'}
                     </Text>
-                    <TouchableOpacity
-                        onPress={refetch}
-                        className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2">
-                        <Text className="text-white">Reintentar</Text>
-                    </TouchableOpacity>
+                    <Text className="mt-2 text-center text-gray-400">
+                        ID del reporte: {reportId}
+                    </Text>
+                    <View className="mt-4 flex-row space-x-4">
+                        <TouchableOpacity
+                            onPress={refetch}
+                            className="rounded-lg bg-[#537CF2] px-4 py-2">
+                            <Text className="text-white">Reintentar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={handleGoBack}
+                            className="rounded-lg bg-gray-600 px-4 py-2">
+                            <Text className="text-white">Volver</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </SafeAreaView>
         );
@@ -59,11 +115,9 @@ export default function ReportDetailsScreen() {
     return (
         <SafeAreaView className="flex-1 bg-background">
             {/* Header */}
-            <View className="bg-secondary px-4 py-3 shadow-lg">
+            <View className="bg-secondary px-4 py-3 ">
                 <View className="flex-row items-center justify-between">
-                    <TouchableOpacity
-                        onPress={() => router.back()}
-                        className="flex-row items-center">
+                    <TouchableOpacity onPress={handleGoBack} className="flex-row items-center">
                         <Ionicons name="arrow-back" size={24} color="white" />
                     </TouchableOpacity>
                     <Text className="mr-6 flex-1 text-center text-2xl font-bold text-white">
@@ -157,6 +211,7 @@ export default function ReportDetailsScreen() {
                         )}
                     </View>
                 )}
+
                 {/* Título del reporte */}
                 <View className="mx-4 mt-4 rounded-xl bg-gradient-to-r from-[#537CF2] to-[#6366f1] p-4 shadow-lg">
                     <Text className="text-center text-xl font-bold text-white">
@@ -238,6 +293,7 @@ export default function ReportDetailsScreen() {
                             <Text className="text-gray-400">Lat: {report.ubicacion.latitud}</Text>
                             <Text className="text-gray-400">Lng: {report.ubicacion.longitud}</Text>
                         </View>
+                        <Text className="mt-1 text-sm text-gray-400">Ciudad: {report.ciudad}</Text>
                     </View>
 
                     <TouchableOpacity className="rounded-lg bg-[#537CF2] p-3">
@@ -270,6 +326,41 @@ export default function ReportDetailsScreen() {
                     </View>
                 )}
 
+                {/* Estadísticas */}
+                <View className="mx-4 mt-4 rounded-xl bg-secondary p-4">
+                    <View className="mb-3 flex-row items-center">
+                        <Ionicons name="stats-chart-outline" size={20} color="#537CF2" />
+                        <Text className="ml-2 text-lg font-semibold text-white">Estadísticas</Text>
+                    </View>
+
+                    <View className="space-y-2">
+                        <View className="flex-row items-center justify-between border-b border-gray-600 py-2">
+                            <Text className="text-gray-300">Total de archivos</Text>
+                            <Text className="font-semibold text-white">
+                                {report.estadisticas.total_archivos}
+                            </Text>
+                        </View>
+                        <View className="flex-row items-center justify-between border-b border-gray-600 py-2">
+                            <Text className="text-gray-300">Imágenes</Text>
+                            <Text className="font-semibold text-white">
+                                {report.estadisticas.imagenes}
+                            </Text>
+                        </View>
+                        <View className="flex-row items-center justify-between border-b border-gray-600 py-2">
+                            <Text className="text-gray-300">Videos</Text>
+                            <Text className="font-semibold text-white">
+                                {report.estadisticas.videos}
+                            </Text>
+                        </View>
+                        <View className="flex-row items-center justify-between py-2">
+                            <Text className="text-gray-300">Días desde creación</Text>
+                            <Text className="font-semibold text-white">
+                                {report.estadisticas.dias_desde_creacion}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+
                 {/* Información del sistema */}
                 <View className="mx-4 mt-4 rounded-xl bg-secondary p-4">
                     <View className="mb-3 flex-row items-center">
@@ -290,9 +381,15 @@ export default function ReportDetailsScreen() {
                                 <Text className="font-medium text-yellow-500">{report.estado}</Text>
                             </View>
                         </View>
+                        <View className="flex-row items-center justify-between border-b border-gray-600 py-2">
+                            <Text className="text-gray-300">Usuario</Text>
+                            <Text className="font-semibold text-white">
+                                {report.usuario.nombre || report.usuario.email}
+                            </Text>
+                        </View>
                         <View className="flex-row items-start justify-between py-2">
                             <Text className="text-gray-300">Fecha de creación</Text>
-                            <Text className="flex-1 text-right text-white ml-4">
+                            <Text className="ml-4 flex-1 text-right text-white">
                                 {formatDate(report.fecha)}
                             </Text>
                         </View>
@@ -300,8 +397,19 @@ export default function ReportDetailsScreen() {
                 </View>
 
                 {/* Acciones */}
-                <View className="mx-4 mt-4 mb-6">
-                    <TouchableOpacity className="rounded-xl bg-[#537CF2] p-4 mb-3">
+                <View className="mx-4 mb-6 mt-4">
+                    {report.estadisticas.puede_agregar_imagenes && (
+                        <TouchableOpacity className="mb-3 rounded-xl bg-green-600 p-4">
+                            <View className="flex-row items-center justify-center">
+                                <Ionicons name="camera-outline" size={20} color="white" />
+                                <Text className="ml-2 font-semibold text-white">
+                                    Agregar imágenes
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity className="mb-3 rounded-xl bg-[#537CF2] p-4">
                         <View className="flex-row items-center justify-center">
                             <Ionicons name="create-outline" size={20} color="white" />
                             <Text className="ml-2 font-semibold text-white">
