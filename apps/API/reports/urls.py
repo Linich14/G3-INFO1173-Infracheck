@@ -16,7 +16,8 @@ from .views.voto_views import (
 from .views.comentario_views import (
     crear_comentario_reporte,
     listar_comentarios_reporte,
-    eliminar_comentario_reporte
+    eliminar_comentario_reporte,
+    restaurar_comentario_reporte
 )
 
 urlpatterns = [
@@ -49,4 +50,5 @@ urlpatterns = [
     path('<int:report_id>/comments/', crear_comentario_reporte, name='create-comment'),
     path('<int:report_id>/comments/list/', listar_comentarios_reporte, name='list-report-comments'),
     path('comments/<int:comment_id>/delete/', eliminar_comentario_reporte, name='delete-comment'),
+    path('admin/comments/<int:comment_id>/restore/', restaurar_comentario_reporte, name='restore-comment'),
 ]
