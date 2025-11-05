@@ -383,13 +383,13 @@ Revisa la consola para detalles completos.
         <UsersSearchBar 
           onSearch={handleSearch}
           loading={loading}
-          onRefresh={handleRefresh}
-          refreshing={refreshing}
         />
         <UsersList 
           users={users} 
           onToggleUserStatus={handleToggleUserStatus}
           loading={loading}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
         />
       </View>
 

@@ -1,4 +1,22 @@
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useReportDetail } from '../hooks/useReportDetails';
+import { getUrgencyColor } from '../../statistics/utils';
+
+// Función auxiliar para formatear fechas
+const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+};
 
 export default function ReportDetailsScreen() {
     const params = useLocalSearchParams();
