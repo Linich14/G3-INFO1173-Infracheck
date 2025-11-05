@@ -100,7 +100,6 @@ export default function Layout() {
                 }}
             />
 
-
             <Tabs.Screen
                 name="settings/index"
                 options={{
@@ -115,7 +114,7 @@ export default function Layout() {
 
             {/* Páginas ocultas - no aparecen en la barra de navegación */}
             <Tabs.Screen
-                name="report/[id]"
+                name="report/[idReport]"
                 options={{
                     href: null, // Oculta de la barra de navegación
                 }}

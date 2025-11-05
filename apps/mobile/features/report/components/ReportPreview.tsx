@@ -55,28 +55,58 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
         return ciudades[value as keyof typeof ciudades] || 'No seleccionado';
     };
 
+    // Función mejorada para manejar el cierre
     const handleClose = () => {
         if (loading) {
             Alert.alert(
-                'Enviando reporte',
-                'El reporte se está enviando. Por favor espera a que termine.',
-                [{ text: 'OK' }]
+                'Reporte en proceso',
+                'El reporte se está enviando. ¿Estás seguro de que deseas cancelar?',
+                [
+                    { text: 'Continuar', style: 'cancel' },
+                    {
+                        text: 'Cancelar',
+                        style: 'destructive',
+                        onPress: () => onClose(),
+                    },
+                ]
             );
             return;
         }
         onClose();
     };
 
+    // Función mejorada para manejar la edición
     const handleEdit = () => {
         if (loading) {
             Alert.alert(
-                'Enviando reporte',
-                'El reporte se está enviando. No se puede editar en este momento.',
+                'No disponible',
+                'No se puede editar mientras el reporte se está enviando.',
                 [{ text: 'OK' }]
             );
             return;
         }
+
         onEdit();
+    };
+
+    // Función para confirmar el envío
+    const handleConfirm = () => {
+        if (loading) {
+            return; // Ya está enviando
+        }
+
+        Alert.alert(
+            'Confirmar envío',
+            '¿Estás seguro de que deseas enviar este reporte? Una vez enviado no podrás modificarlo.',
+            [
+                { text: 'Revisar', style: 'cancel' },
+                {
+                    text: 'Enviar',
+                    style: 'default',
+                    onPress: () => onConfirm(),
+                },
+            ]
+        );
     };
 
     return (
@@ -86,18 +116,18 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
             presentationStyle="pageSheet"
             onRequestClose={handleClose}>
             <View className="flex-1 bg-secondary">
-                {/* Header */}
+                {/* Header mejorado */}
                 <View className="flex-row items-center justify-between bg-tertiary p-4 pt-12">
                     <Pressable
                         onPress={handleClose}
-                        className={`p-2 ${loading ? 'opacity-50' : ''}`}
+                        className={`rounded-lg p-2 ${loading ? 'opacity-50' : 'hover:bg-white/10'}`}
                         disabled={loading}>
                         <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
                     </Pressable>
                     <Text className="text-lg font-semibold text-white">Vista Previa</Text>
                     <Pressable
                         onPress={handleEdit}
-                        className={`p-2 ${loading ? 'opacity-50' : ''}`}
+                        className={`rounded-lg p-2 ${loading ? 'opacity-50' : 'hover:bg-white/10'}`}
                         disabled={loading}>
                         <MaterialCommunityIcons name="pencil" size={24} color="white" />
                     </Pressable>
@@ -209,12 +239,12 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                     )}
                 </ScrollView>
 
-                {/* Botones de acción */}
+                {/* Botones de acción mejorados */}
                 <View className="flex-row gap-3 bg-tertiary p-4">
                     <Pressable
                         onPress={handleEdit}
                         className={`flex-1 items-center rounded-lg p-3 ${
-                            loading ? 'bg-gray-500' : 'bg-gray-600'
+                            loading ? 'bg-gray-500 opacity-50' : 'bg-gray-600 active:bg-gray-700'
                         }`}
                         disabled={loading}>
                         <View className="flex-row items-center">
@@ -231,9 +261,9 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                     </Pressable>
 
                     <Pressable
-                        onPress={onConfirm}
+                        onPress={handleConfirm}
                         className={`flex-1 items-center rounded-lg p-3 ${
-                            loading ? 'bg-gray-500' : 'bg-blue-600'
+                            loading ? 'bg-gray-500 opacity-50' : 'bg-blue-600 active:bg-blue-700'
                         }`}
                         disabled={loading}>
                         <View className="flex-row items-center">

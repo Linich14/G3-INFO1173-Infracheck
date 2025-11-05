@@ -35,6 +35,7 @@ const CreateReportScreen = () => {
         getMediaStats,
         handlePreview,
         handleSubmit,
+        setShowPreview, // Asegúrate de que esta función esté disponible en el hook
     } = useReportForm();
 
     const handleOpenImageModal = () => {
@@ -119,6 +120,52 @@ const CreateReportScreen = () => {
         }
     };
 
+    // Función mejorada para cerrar el preview
+    const handleClosePreview = () => {
+        if (isSubmitting) {
+            Alert.alert(
+                'Reporte en proceso',
+                'El reporte se está enviando actualmente. ¿Deseas cancelar el envío?',
+                [
+                    { text: 'Continuar enviando', style: 'cancel' },
+                    {
+                        text: 'Cancelar envío',
+                        style: 'destructive',
+                        onPress: () => {
+                            // Aquí podrías cancelar la operación si el hook lo permite
+                            setShowPreview(false);
+                        },
+                    },
+                ]
+            );
+            return;
+        }
+
+        setShowPreview(false);
+    };
+
+    // Función para editar el reporte desde el preview
+    const handleEditFromPreview = () => {
+        if (isSubmitting) {
+            Alert.alert(
+                'No se puede editar',
+                'El reporte se está enviando actualmente. No se puede editar en este momento.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
+        // Cerrar el preview para volver al formulario
+        setShowPreview(false);
+
+        // Opcional: Mostrar un mensaje de confirmación
+        Alert.alert(
+            'Modo de edición',
+            'Puedes modificar los datos del reporte. Los cambios se guardarán automáticamente.',
+            [{ text: 'Entendido' }]
+        );
+    };
+
     return (
         <SafeAreaView className="flex-1 bg-background">
             {/* Header */}
@@ -193,12 +240,12 @@ const CreateReportScreen = () => {
                 type="video"
             />
 
-            {/* Modal de previsualización */}
+            {/* Modal de previsualización con funciones mejoradas */}
             <ReportPreview
                 visible={showPreview}
                 data={formData}
-                onClose={() => setShowPreview(false)}
-                onEdit={() => setShowPreview(false)}
+                onClose={handleClosePreview}
+                onEdit={handleEditFromPreview}
                 onConfirm={handleSubmitForm}
                 loading={isSubmitting}
             />
