@@ -22,6 +22,7 @@ class ComentarioReporte(models.Model):
     )
     comentario = models.TextField(verbose_name='Comentario', help_text='Texto del comentario')
     fecha_comentario = models.DateTimeField(auto_now_add=True, verbose_name='Fecha del comentario')
+    comment_visible = models.BooleanField(default=True, verbose_name='Comentario visible', help_text='Indica si el comentario es visible para los usuarios')
 
     class Meta:
         db_table = 'comentario_reporte'
@@ -29,8 +30,8 @@ class ComentarioReporte(models.Model):
         verbose_name = 'Comentario de Reporte'
         verbose_name_plural = 'Comentarios de Reportes'
         indexes = [
-            models.Index(fields=['usuario', 'fecha_comentario']),
-            models.Index(fields=['reporte', 'fecha_comentario']),
+            models.Index(fields=['usuario', 'fecha_comentario'], name='comentario_usuario_fecha_idx'),
+            models.Index(fields=['reporte', 'fecha_comentario'], name='comentario_reporte_fecha_idx'),
         ]
 
     def __str__(self):

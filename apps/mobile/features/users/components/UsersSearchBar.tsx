@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { Search, ArrowLeft, RefreshCw, X } from 'lucide-react-native';
+import { Search, ArrowLeft, X } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useDebounce } from '../hooks/useDebounce';
 
@@ -18,14 +18,14 @@ export default function UsersSearchBar({
   refreshing = false 
 }: UsersSearchBarProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(searchQuery, 300); // 300ms de delay
+  const [isSearching, setIsSearching] = useState(false);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Efecto para ejecutar búsqueda automática con debounce
   useEffect(() => {
-    if (onSearch) {
+    if (onSearch && isSearching) {
       onSearch(debouncedSearchQuery);
     }
-  }, [debouncedSearchQuery, onSearch]);
+  }, [debouncedSearchQuery, onSearch, isSearching]);
 
   const handleManualSearch = () => {
     if (onSearch) {
@@ -33,20 +33,20 @@ export default function UsersSearchBar({
     }
   };
 
-  const handleRefresh = () => {
-    setSearchQuery('');
-    if (onRefresh) {
-      onRefresh();
-    }
-  };
-
   const handleClearSearch = () => {
     setSearchQuery('');
+    setIsSearching(false);
   };
+
+  const handleFocus = () => {
+    setIsSearching(true);
+  };
+
   return (
-    <View className='px-5 mb-5'>
-      {/* Fila de navegación y refresh */}
-      <View className='flex-row items-center gap-4 mb-3'>
+    <View className='px-4 mb-4'>
+      {/* Barra de búsqueda con botón de atrás integrado */}
+      <View className='flex-row items-center gap-3'>
+        {/* Botón de atrás */}
         <TouchableOpacity 
           className='bg-[#537CF2] rounded-2xl p-4'
           onPress={() => router.push('/home')}
@@ -54,26 +54,13 @@ export default function UsersSearchBar({
           <ArrowLeft size={24} color='white' />
         </TouchableOpacity>
         
-        <TouchableOpacity 
-          className='bg-[#10b981] rounded-2xl p-4'
-          onPress={handleRefresh}
-          disabled={refreshing}
-        >
-          {refreshing ? (
-            <ActivityIndicator size={24} color='white' />
-          ) : (
-            <RefreshCw size={24} color='white' />
-          )}
-        </TouchableOpacity>
-      </View>
-      
-      {/* Barra de búsqueda */}
-      <View className='flex-row items-center gap-3'>
-        <View className='flex-1 flex-row items-center bg-gray-300 rounded-full px-4 py-4'>
+        {/* Barra de búsqueda con redondeado completo */}
+        <View className='flex-1 flex-row items-center bg-gray-300 rounded-full px-4 py-3.5'>
           <Search size={20} color="#6b7280" />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onFocus={handleFocus}
             placeholder="Buscar por nickname, email o RUT..."
             placeholderTextColor="#6b7280"
             className='flex-1 text-gray-800 px-3 text-base'
@@ -84,25 +71,17 @@ export default function UsersSearchBar({
             autoCapitalize="none"
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={handleClearSearch} className='ml-2'>
+            <TouchableOpacity 
+              onPress={handleClearSearch} 
+              className='ml-1'
+            >
               <X size={18} color="#6b7280" />
             </TouchableOpacity>
           )}
-        </View>
-        
-        <TouchableOpacity
-          className={`rounded-full p-4 ${
-            searchQuery.length > 0 ? 'bg-[#537CF2]' : 'bg-gray-500'
-          }`}
-          onPress={handleManualSearch}
-          disabled={loading || searchQuery.length === 0}
-        >
-          {loading ? (
-            <ActivityIndicator size={20} color='white' />
-          ) : (
-            <Search size={20} color='white' />
+          {loading && (
+            <ActivityIndicator size={18} color='#537CF2' className='ml-2' />
           )}
-        </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

@@ -1,97 +1,17 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, FlatList, TextInput, RefreshControl } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, FlatList, TextInput, RefreshControl, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ReportListItem from '../components/ReportListItem';
 import { ReportListItem as ReportListItemType, ReportsListFilters, ReportStatus, UrgencyLevel } from '../types';
-
-// Mock data - En producción vendría de la API
-const mockReports: ReportListItemType[] = [
-  {
-    id: '1',
-    titulo: 'Calle en mal estado con baches profundos',
-    descripcion: 'La calle presenta múltiples baches y grietas que dificultan el tránsito vehicular y peatonal. La situación se ha agravado después de las últimas lluvias.',
-    descripcionCorta: 'La calle presenta múltiples baches y grietas que dificultan el tránsito...',
-    autor: 'Juan Gomez',
-    fecha: '2024-10-07T10:30:00Z',
-    fechaRelativa: 'hace 2h',
-    estado: 'En proceso',
-    tipoDenuncia: 'Infraestructura Vial',
-    nivelUrgencia: 'Alto',
-    imagenPreview: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-    ubicacion: 'Av. Alemania 1234, Temuco',
-    votos: 23,
-    comentarios: 5,
-  },
-  {
-    id: '2',
-    titulo: 'Semáforo completamente apagado en intersección',
-    descripcion: 'El semáforo del cruce principal lleva 3 días sin funcionar, causando problemas de tráfico y riesgo de accidentes.',
-    descripcionCorta: 'El semáforo del cruce principal lleva 3 días sin funcionar...',
-    autor: 'Ana Pérez',
-    fecha: '2024-10-06T08:15:00Z',
-    fechaRelativa: 'ayer',
-    estado: 'Nuevo',
-    tipoDenuncia: 'Seguridad Vial',
-    nivelUrgencia: 'Crítico',
-    imagenPreview: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400',
-    ubicacion: 'Cruce Av. Balmaceda con Bulnes',
-    votos: 42,
-    comentarios: 12,
-  },
-  {
-    id: '3',
-    titulo: 'Basura acumulada en esquina residencial',
-    descripcion: 'Se ha acumulado basura en la esquina durante más de una semana. El mal olor y presencia de roedores afecta a los vecinos.',
-    descripcionCorta: 'Se ha acumulado basura en la esquina durante más de una semana...',
-    autor: 'Carlos Mendez',
-    fecha: '2024-10-05T16:45:00Z',
-    fechaRelativa: 'hace 2d',
-    estado: 'En proceso',
-    tipoDenuncia: 'Limpieza',
-    nivelUrgencia: 'Medio',
-    ubicacion: 'Calle Portales 567, Temuco',
-    votos: 18,
-    comentarios: 3,
-  },
-  {
-    id: '4',
-    titulo: 'Luminaria pública quemada en zona oscura',
-    descripcion: 'La luminaria está quemada hace 2 semanas, zona muy oscura de noche representando riesgo para peatones.',
-    descripcionCorta: 'La luminaria está quemada hace 2 semanas, zona muy oscura...',
-    autor: 'María González',
-    fecha: '2024-10-04T20:30:00Z',
-    fechaRelativa: 'hace 3d',
-    estado: 'Nuevo',
-    tipoDenuncia: 'Iluminación Pública',
-    nivelUrgencia: 'Alto',
-    ubicacion: 'Poste 142, Av. Alemania altura 800',
-    votos: 31,
-    comentarios: 7,
-  },
-  {
-    id: '5',
-    titulo: 'Vereda completamente destruida',
-    descripcion: 'La vereda está rota y presenta peligro para caminar. Impide el acceso a personas con movilidad reducida.',
-    descripcionCorta: 'La vereda está rota y presenta peligro para caminar...',
-    autor: 'Pedro Martínez',
-    fecha: '2024-10-03T14:20:00Z',
-    fechaRelativa: 'hace 4d',
-    estado: 'Resuelto',
-    tipoDenuncia: 'Accesibilidad',
-    nivelUrgencia: 'Medio',
-    ubicacion: 'Vereda norte, Av. Alemania cuadra 7',
-    votos: 15,
-    comentarios: 2,
-  },
-];
+import { useReports } from '../hooks/useReports';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function ReportsListScreen() {
+  // Estados UI locales
   const [currentPage, setCurrentPage] = useState(1);
-  const [refreshing, setRefreshing] = useState(false);
   const [filters, setFilters] = useState<ReportsListFilters>({
     searchQuery: '',
     status: 'todos',
@@ -101,14 +21,55 @@ export default function ReportsListScreen() {
     sortOrder: 'desc',
   });
 
-  // Obtener valores únicos para filtros
-  const uniqueStatuses: ReportStatus[] = ['Nuevo', 'En proceso', 'Resuelto', 'Rechazado', 'Cancelado'];
-  const uniqueTypes: string[] = Array.from(new Set(mockReports.map(r => r.tipoDenuncia)));
-  const uniqueUrgencies: UrgencyLevel[] = ['Bajo', 'Medio', 'Alto', 'Crítico'];
+  // Hook para obtener datos de la API
+  const {
+    allResults,
+    loading,
+    error,
+    setFilters: setApiFilters,
+    refresh,
+    loadMore,
+    hasMore,
+  } = useReports({ 
+    limit: 50,
+    debounceMs: 500,
+  });
 
-  // Filtrar y ordenar reportes
+  // Mapear urgencia a número para la API
+  const mapUrgencyToNumber = (urgency: UrgencyLevel | 'todos'): number | undefined => {
+    if (urgency === 'todos') return undefined;
+    const map: Record<UrgencyLevel, number> = {
+      'Bajo': 1,
+      'Medio': 2,
+      'Alto': 3,
+      'Crítico': 3, // Mapear Crítico también a 3 (Alta)
+    };
+    return map[urgency];
+  };
+
+  // Obtener valores únicos para filtros desde los datos reales
+  const uniqueStatuses: ReportStatus[] = useMemo(() => {
+    const statuses = Array.from(new Set(allResults.map(r => r.estado)));
+    return ['Nuevo', 'En proceso', 'Resuelto', 'Rechazado', 'Cancelado'].filter(s => 
+      statuses.includes(s as ReportStatus)
+    ) as ReportStatus[];
+  }, [allResults]);
+
+  const uniqueTypes: string[] = useMemo(() => 
+    Array.from(new Set(allResults.map(r => r.tipoDenuncia).filter(Boolean))),
+    [allResults]
+  );
+
+  const uniqueUrgencies: UrgencyLevel[] = useMemo(() => {
+    const urgencies = Array.from(new Set(allResults.map(r => r.nivelUrgencia)));
+    return ['Bajo', 'Medio', 'Alto', 'Crítico'].filter(u => 
+      urgencies.includes(u as UrgencyLevel)
+    ) as UrgencyLevel[];
+  }, [allResults]);
+
+  // Filtrar y ordenar reportes (client-side)
   const filteredAndSortedReports = useMemo(() => {
-    let filtered = [...mockReports];
+    let filtered = [...allResults];
 
     // Aplicar búsqueda
     if (filters.searchQuery.trim()) {
@@ -168,11 +129,9 @@ export default function ReportsListScreen() {
   const totalPages = Math.ceil(filteredAndSortedReports.length / ITEMS_PER_PAGE);
 
   // Handlers
-  const handleRefresh = () => {
-    setRefreshing(true);
-    // Aquí iría la lógica para recargar datos de la API
-    setTimeout(() => setRefreshing(false), 1000);
-  };
+  const handleRefresh = useCallback(() => {
+    refresh();
+  }, [refresh]);
 
   const handleReportPress = (report: ReportListItemType) => {
     // Navegar al detalle del reporte
@@ -187,6 +146,15 @@ export default function ReportsListScreen() {
   const handleFilterChange = (key: keyof ReportsListFilters, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
+    
+    // Actualizar filtros de API cuando sea necesario
+    if (key === 'searchQuery') {
+      setApiFilters({ search: value || undefined });
+    } else if (key === 'urgency' && value !== 'todos') {
+      setApiFilters({ urgencia: mapUrgencyToNumber(value) });
+    } else if (key === 'urgency' && value === 'todos') {
+      setApiFilters({ urgencia: undefined });
+    }
   };
 
   const clearFilters = () => {
@@ -249,7 +217,7 @@ export default function ReportsListScreen() {
         className="flex-1 px-4"
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={loading}
             onRefresh={handleRefresh}
             tintColor="#537CF2"
           />
@@ -394,7 +362,34 @@ export default function ReportsListScreen() {
             </Text>
           </View>
 
-          {paginatedReports.length > 0 ? (
+          {/* Estado de carga */}
+          {loading && allResults.length === 0 && (
+            <View className="items-center py-8">
+              <ActivityIndicator size="large" color="#537CF2" />
+              <Text className="mt-2 text-center text-gray-400">
+                Cargando reportes...
+              </Text>
+            </View>
+          )}
+
+          {/* Error state */}
+          {error && !loading && (
+            <View className="items-center py-8">
+              <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+              <Text className="mt-2 text-center text-red-400">
+                {error}
+              </Text>
+              <TouchableOpacity
+                className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2"
+                onPress={handleRefresh}
+              >
+                <Text className="text-white">Reintentar</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Lista de reportes */}
+          {!loading && !error && paginatedReports.length > 0 ? (
             <FlatList
               data={paginatedReports}
               renderItem={({ item }) => (
@@ -408,13 +403,38 @@ export default function ReportsListScreen() {
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
             />
-          ) : (
+          ) : !loading && !error ? (
             <View className="items-center py-8">
               <Ionicons name="document-text-outline" size={48} color="gray" />
               <Text className="mt-2 text-center text-gray-400">
                 No se encontraron reportes con los filtros aplicados
               </Text>
+              {hasActiveFilters() && (
+                <TouchableOpacity
+                  className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2"
+                  onPress={clearFilters}
+                >
+                  <Text className="text-white">Limpiar filtros</Text>
+                </TouchableOpacity>
+              )}
             </View>
+          ) : null}
+
+          {/* Indicador de carga al final (load more) */}
+          {loading && allResults.length > 0 && (
+            <View className="items-center py-4">
+              <ActivityIndicator size="small" color="#537CF2" />
+            </View>
+          )}
+
+          {/* Botón para cargar más (si hay más datos en el backend) */}
+          {hasMore && !loading && allResults.length > 0 && (
+            <TouchableOpacity
+              className="mt-4 items-center rounded-lg bg-[#537CF2] py-3"
+              onPress={loadMore}
+            >
+              <Text className="text-white font-semibold">Cargar más reportes</Text>
+            </TouchableOpacity>
           )}
 
           {/* Paginación */}

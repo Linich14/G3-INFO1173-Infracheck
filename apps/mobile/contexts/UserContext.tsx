@@ -65,7 +65,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setLoading(false);
       setIsLoadingUser(false);
     }
-  }, [isLoggedIn, handleSessionExpired, isLoadingUser]);
+  }, [isLoggedIn, handleSessionExpired]);
 
   const updateUser = async (updateData: UserUpdateData): Promise<boolean> => {
     if (!user) {
@@ -114,7 +114,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     } else {
       clearUser();
     }
-  }, [isLoggedIn, loadUser, clearUser]);
+    // Solo ejecutar cuando cambia isLoggedIn
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
 
   return (
     <UserContext.Provider 

@@ -1,0 +1,138 @@
+name: Django API CI/CD
+
+on:
+  push:
+    branches: [ develop, development, testing, main ]
+  pull_request:
+    branches: [ develop, development, testing, main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgis/postgis:15-3.4
+        env:
+          POSTGRES_DB: infracheck_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Obtener código del repositorio
+      uses: actions/checkout@v3
+
+    - name: Configurar Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Instalar dependencias del sistema para GeoDjango
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gdal-bin libgdal-dev python3-gdal
+
+    - name: Cachear dependencias de pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Instalar dependencias de Python
+      working-directory: ./apps/API
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Configurar variables de entorno
+      run: |
+        echo "SECRET_KEY=test-secret-key-for-ci-cd-pipeline" >> $GITHUB_ENV
+        echo "DEBUG=False" >> $GITHUB_ENV
+        echo "POSTGRES_DB=infracheck_test" >> $GITHUB_ENV
+        echo "POSTGRES_USER=postgres" >> $GITHUB_ENV
+        echo "POSTGRES_PASSWORD=postgres" >> $GITHUB_ENV
+        echo "POSTGRES_HOST=localhost" >> $GITHUB_ENV
+        echo "POSTGRES_PORT=5432" >> $GITHUB_ENV
+
+    - name: Ejecutar migraciones de base de datos
+      working-directory: ./apps/API
+      run: |
+        python manage.py makemigrations
+        python manage.py migrate
+
+    - name: Crear usuario de prueba
+      working-directory: ./apps/API
+      run: |
+        python manage.py shell -c "
+        from domain.entities.usuario import Usuario
+        from domain.entities.rol_usuario import RolUsuario
+        from django.contrib.auth.hashers import make_password
+        
+        # Crear rol admin si no existe
+        rol_admin, _ = RolUsuario.objects.get_or_create(
+            rous_id=1,
+            defaults={'rous_nombre': 'Administrador'}
+        )
+        
+        # Crear usuario de prueba
+        Usuario.objects.get_or_create(
+            usua_email='test@infracheck.cl',
+            defaults={
+                'usua_rut': '11111111-1',
+                'usua_nombre': 'Test User',
+                'usua_apellido': 'CI/CD',
+                'usua_nickname': 'testuser',
+                'usua_pass': make_password('TestPassword123'),
+                'usua_telefono': 56912345678,
+                'rous_id': rol_admin,
+                'usua_estado': 1
+            }
+        )
+        print('Test user created successfully')
+        "
+
+    - name: Ejecutar tests unitarios de Django
+      working-directory: ./apps/API
+      run: |
+        python manage.py test --verbosity=2
+
+    - name: Iniciar servidor Django en segundo plano
+      working-directory: ./apps/API
+      run: |
+        python manage.py runserver 0.0.0.0:8000 &
+        sleep 5
+
+    - name: Esperar a que el servidor esté listo
+      run: |
+        timeout 30 bash -c 'until curl -s http://localhost:8000/api/v1/login/ > /dev/null 2>&1; do sleep 2; done' || exit 1
+        echo "[OK] Servidor Django iniciado correctamente"
+    
+    - name: Verificación final del servidor
+      run: |
+        echo "[OK] Pipeline de CI/CD completado exitosamente"
+        echo "- Migraciones aplicadas correctamente"
+        echo "- Usuario de prueba creado"
+        echo "- Tests de Django ejecutados"
+        echo "- Servidor Django iniciado y respondiendo"
+
+  notify:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Notificar éxito
+      if: needs.test.result == 'success'
+      run: echo "[OK] Pipeline de CI/CD completado exitosamente!"
+      
+    - name: Notificar fallo
+      if: needs.test.result == 'failure'
+      run: echo "[ERROR] Pipeline de CI/CD falló!"

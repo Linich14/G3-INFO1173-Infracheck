@@ -291,7 +291,22 @@ export const getReportDetail = async (reportId: string): Promise<ReportDetailRes
         // Re-lanzar el error para que sea manejado por el hook
         throw error;
     }
+
+    /**
+     * Dejar de seguir un reporte - POST /reports/{id}/unfollow/
+    static async unfollowReport(reportId: string): Promise<{ message: string; seguidores_count: number }> {
+        try {
+            const response = await api.post(`/api/reports/${reportId}/unfollow/`);
+
+            return response.data;
+        } catch (error) {
+            console.error('Error unfollowing report:', error);
+            throw error;
+        }
 };
+     */
+    }
+}
 
 // Exportar como objeto para mantener compatibilidad
 export const ReportService = {
