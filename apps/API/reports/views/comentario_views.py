@@ -225,3 +225,77 @@ def eliminar_comentario_reporte(request, comment_id):
             {'errors': ['Error interno del servidor. Intente nuevamente.']},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def restaurar_comentario_reporte(request, comment_id):
+    """
+    Endpoint para restaurar un comentario eliminado (solo administradores).
+    POST /api/v1/admin/comments/{comment_id}/restore/
+
+    Solo administradores pueden restaurar comentarios.
+    Marca comment_visible=TRUE para hacer visible el comentario nuevamente.
+    """
+    try:
+        # Obtener usuario autenticado
+        usuario = getattr(request, 'auth_user', None)
+        if not usuario:
+            raise UserAuthenticationError(
+                message="Usuario no autenticado"
+            )
+
+        # Validar que sea administrador
+        es_admin = usuario.rous_id.rous_nombre.lower() == 'admin'
+        if not es_admin:
+            raise UserPermissionError(
+                message="Solo los administradores pueden restaurar comentarios"
+            )
+
+        # Obtener el comentario
+        comentario = get_object_or_404(ComentarioReporte, id=comment_id)
+
+        # Verificar si el comentario ya está visible
+        if comentario.comment_visible:
+            return Response(
+                {'message': 'El comentario ya está visible.'},
+                status=status.HTTP_200_OK
+            )
+
+        # Marcar como visible (restaurar)
+        comentario.comment_visible = True
+        comentario.save(update_fields=['comment_visible'])
+
+        logger.info(f"Comentario {comment_id} restaurado por administrador {usuario.usua_id}")
+
+        return Response(
+            {
+                'message': 'Comentario restaurado exitosamente.',
+                'comentario': {
+                    'id': comentario.id,
+                    'comentario': comentario.comentario,
+                    'fecha_comentario': comentario.fecha_comentario.isoformat(),
+                    'usuario': {
+                        'id': comentario.usuario.usua_id,
+                        'nickname': comentario.usuario.usua_nickname
+                    },
+                    'visible': comentario.comment_visible
+                }
+            },
+            status=status.HTTP_200_OK
+        )
+
+    except UserAuthenticationError as e:
+        return Response(e.get_error_response(), status=e.status_code)
+    except UserPermissionError as e:
+        return Response(e.get_error_response(), status=e.status_code)
+    except ComentarioReporte.DoesNotExist:
+        raise ReportNotFoundError(
+            message=f"El comentario con ID {comment_id} no existe"
+        )
+    except Exception as e:
+        logger.error(f"Error al restaurar comentario {comment_id}: {str(e)}")
+        return Response(
+            {'errors': ['Error interno del servidor. Intente nuevamente.']},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
