@@ -7,6 +7,13 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 
 from reports.models import ReportModel, ComentarioReporte
+from infrastructure.exceptions import (
+    ReportNotFoundError,
+    ReportPermissionError,
+    UserNotFoundError,
+    UserPermissionError,
+    UserAuthenticationError
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +29,8 @@ def crear_comentario_reporte(request, report_id):
         # Obtener usuario autenticado
         usuario = getattr(request, 'auth_user', None)
         if not usuario:
-            return Response(
-                {'errors': ['Usuario no autenticado.']},
-                status=status.HTTP_401_UNAUTHORIZED
+            raise UserAuthenticationError(
+                message="Usuario no autenticado"
             )
 
         # Obtener el reporte
@@ -33,16 +39,10 @@ def crear_comentario_reporte(request, report_id):
         # Validar que se proporcione el comentario
         comentario_texto = request.data.get('comentario', '').strip()
         if not comentario_texto:
-            return Response(
-                {'errors': ['El comentario no puede estar vacío.']},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise ValidationError("El comentario no puede estar vacío.")
 
         if len(comentario_texto) > 1000:
-            return Response(
-                {'errors': ['El comentario no puede exceder los 1000 caracteres.']},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise ValidationError("El comentario no puede exceder los 1000 caracteres.")
 
         # Crear el comentario
         comentario = ComentarioReporte.objects.create(
@@ -67,6 +67,13 @@ def crear_comentario_reporte(request, report_id):
             status=status.HTTP_201_CREATED
         )
 
+    except UserAuthenticationError as e:
+        return Response(e.get_error_response(), status=e.status_code)
+    except ValidationError as e:
+        return Response(
+            {'errors': [str(e)]},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     except Exception as e:
         logger.error(f"Error al crear comentario: {str(e)}")
         return Response(
@@ -86,9 +93,8 @@ def listar_comentarios_reporte(request, report_id):
         # Obtener usuario autenticado
         usuario = getattr(request, 'auth_user', None)
         if not usuario:
-            return Response(
-                {'errors': ['Usuario no autenticado.']},
-                status=status.HTTP_401_UNAUTHORIZED
+            raise UserAuthenticationError(
+                message="Usuario no autenticado"
             )
 
         # Obtener el reporte
@@ -101,9 +107,11 @@ def listar_comentarios_reporte(request, report_id):
         # Calcular offset
         offset = (page - 1) * limit
 
-        # Obtener comentarios con información del usuario
-        comentarios = ComentarioReporte.objects.filter(reporte=reporte)\
-            .select_related('usuario')\
+        # Obtener comentarios con información del usuario (solo visibles)
+        comentarios = ComentarioReporte.objects.filter(
+            reporte=reporte,
+            comment_visible=True
+        ).select_related('usuario')\
             .order_by('-fecha_comentario')[offset:offset + limit]
 
         # Serializar resultados
@@ -119,8 +127,11 @@ def listar_comentarios_reporte(request, report_id):
                 }
             })
 
-        # Contar total de comentarios
-        total_count = ComentarioReporte.objects.filter(reporte=reporte).count()
+        # Contar total de comentarios visibles
+        total_count = ComentarioReporte.objects.filter(
+            reporte=reporte,
+            comment_visible=True
+        ).count()
 
         return Response(
             {
@@ -130,8 +141,86 @@ def listar_comentarios_reporte(request, report_id):
             status=status.HTTP_200_OK
         )
 
+    except UserAuthenticationError as e:
+        return Response(e.get_error_response(), status=e.status_code)
     except Exception as e:
         logger.error(f"Error al obtener comentarios del reporte: {str(e)}")
+        return Response(
+            {'errors': ['Error interno del servidor. Intente nuevamente.']},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def eliminar_comentario_reporte(request, comment_id):
+    """
+    Endpoint para eliminar (ocultar) un comentario de un reporte.
+    Solo el autor del comentario o un administrador pueden eliminarlo.
+    DELETE /api/v1/comments/{comment_id}/
+
+    En lugar de eliminar físicamente, marca comment_visible=FALSE
+    """
+    try:
+        # Obtener usuario autenticado
+        usuario = getattr(request, 'auth_user', None)
+        if not usuario:
+            raise UserAuthenticationError(
+                message="Usuario no autenticado"
+            )
+
+        # Obtener el comentario
+        comentario = get_object_or_404(ComentarioReporte, id=comment_id)
+
+        # Verificar si el comentario ya está oculto
+        if not comentario.comment_visible:
+            return Response(
+                {'message': 'El comentario ya ha sido eliminado.'},
+                status=status.HTTP_200_OK
+            )
+
+        # Validar permisos: solo el autor o admin pueden eliminar
+        es_autor = comentario.usuario.usua_id == usuario.usua_id
+        es_admin = usuario.rous_id.rous_nombre.lower() == 'admin'
+
+        if not (es_autor or es_admin):
+            raise UserPermissionError(
+                message="No tienes permisos para eliminar este comentario"
+            )
+
+        # Marcar como no visible (soft delete)
+        comentario.comment_visible = False
+        comentario.save(update_fields=['comment_visible'])
+
+        logger.info(f"Comentario {comment_id} marcado como no visible por usuario {usuario.usua_id}")
+
+        return Response(
+            {
+                'message': 'Comentario eliminado exitosamente.',
+                'comentario': {
+                    'id': comentario.id,
+                    'comentario': comentario.comentario,
+                    'fecha_comentario': comentario.fecha_comentario.isoformat(),
+                    'usuario': {
+                        'id': comentario.usuario.usua_id,
+                        'nickname': comentario.usuario.usua_nickname
+                    },
+                    'visible': comentario.comment_visible
+                }
+            },
+            status=status.HTTP_200_OK
+        )
+
+    except UserAuthenticationError as e:
+        return Response(e.get_error_response(), status=e.status_code)
+    except UserPermissionError as e:
+        return Response(e.get_error_response(), status=e.status_code)
+    except ComentarioReporte.DoesNotExist:
+        raise ReportNotFoundError(
+            message=f"El comentario con ID {comment_id} no existe"
+        )
+    except Exception as e:
+        logger.error(f"Error al eliminar comentario {comment_id}: {str(e)}")
         return Response(
             {'errors': ['Error interno del servidor. Intente nuevamente.']},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
