@@ -8,6 +8,7 @@ import ClientHeader from '~/features/home/components/ClientHeader';
 import ClientContent from '~/features/home/components/ClientContent';
 import FloatingButton from '~/features/home/components/Floatingbutton';
 import ClientDrawerMenu from '~/features/home/components/ClientDrawerMenu';
+import FiltersModal from '~/features/home/components/FiltersModal';
 
 export default function HomeScreen() {
     const insets = useSafeAreaInsets();
@@ -20,6 +21,12 @@ export default function HomeScreen() {
     const [searchModalVisible, setSearchModalVisible] = useState(false);
     const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
     const [filteredReports, setFilteredReports] = useState<Report[]>([]);
+    const [filtersModalVisible, setFiltersModalVisible] = useState(false);
+    const [filters, setFilters] = useState({
+        categoria: null as string | null,
+        estado: null as string | null,
+        urgencia: 1
+    });
 
     // Estado con reportes iniciales (mock)
     const [reports, setReports] = useState<Report[]>([
@@ -154,6 +161,20 @@ export default function HomeScreen() {
         setSelectedReport(null);
     };
 
+    const handleApplyFilters = (newFilters: { categoria: string | null; estado: string | null; urgencia: number }) => {
+        setFilters(newFilters);
+        setFiltersModalVisible(false);
+        // Aquí podrías aplicar los filtros a los reportes
+    };
+
+    const handleClearFilters = () => {
+        setFilters({
+            categoria: null,
+            estado: null,
+            urgencia: 1
+        });
+    };
+
     const addComment = (content: string) => {
         if (!selectedReport) return;
 
@@ -284,9 +305,19 @@ export default function HomeScreen() {
                         insets={insets}
                         onClose={closeMenu}
                         onLogout={handleLogout}
+                        onOpenFilters={() => setFiltersModalVisible(true)}
                     />
                 </>
             )}
+
+            {/* Modal de Filtros Avanzados */}
+            <FiltersModal
+                visible={filtersModalVisible}
+                onClose={() => setFiltersModalVisible(false)}
+                onApply={handleApplyFilters}
+                onClear={handleClearFilters}
+                initialFilters={filters}
+            />
         </SafeAreaView>
     );
 }

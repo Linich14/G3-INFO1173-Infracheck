@@ -5,6 +5,7 @@ import { CommentsModal, Report } from "~/features/comments";
 import { SearchModal } from "~/features/search";
 import { X, MapPin } from "lucide-react-native";
 import CategoryFilter from "./CategoryFilter";
+import FollowedReportsList from "./FollowedReportsList";
 
 interface ClientContentProps {
   reports: Report[];
@@ -45,6 +46,9 @@ export default function ClientContent({
   const [reportUpvotes, setReportUpvotes] = useState<{ [key: string]: number }>({});
   const [locationModalVisible, setLocationModalVisible] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  
+  // Estado para pestañas
+  const [activeTab, setActiveTab] = useState<'todos' | 'seguidos'>('todos');
 
   // Inicializar upvotes locales basados en los datos originales
   React.useEffect(() => {
@@ -126,52 +130,88 @@ export default function ClientContent({
 
   return (
     <>
-      {/* Filtro de categorías */}
-      <CategoryFilter 
-        selectedCategoria={selectedCategoria}
-        onCategoriaChange={onCategoriaChange}
-      />
+      {/* Pestañas Todos / Seguidos - Diseño simple */}
+      <View className="flex-row px-4 pt-3 pb-2 gap-2 bg-[#13161E]">
+        <TouchableOpacity
+          className={`flex-1 py-2.5 rounded-full ${
+            activeTab === 'todos' ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+          }`}
+          onPress={() => setActiveTab('todos')}
+        >
+          <Text className={`text-center text-base font-semibold ${
+            activeTab === 'todos' ? 'text-white' : 'text-gray-400'
+          }`}>
+            Todos
+          </Text>
+        </TouchableOpacity>
 
-      <ScrollView
-        className="mt-4 px-4"
-        contentContainerStyle={{ gap: 16, paddingBottom: insets.bottom + 12 }}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh} 
-            tintColor="#537CF2"
-            colors={['#537CF2']}
-            progressBackgroundColor="#13161E"
-          />
-        }
-      >
-        {reports.map((report) => {
-          const isFollowed = followedReports.has(report.id);
-          const isUpvoted = upvotedReports.has(report.id);
-          const currentUpvotes = reportUpvotes[report.id] || report.upvotes;
-          
-          return (
-            <ReportCard
-              id={report.id}
-              key={report.id}
-              title={report.title}
-              author={report.author}
-              timeAgo={report.timeAgo}
-              image={report.image}
-              upvotes={currentUpvotes}
-              followLabel={isFollowed ? "Siguiendo ✓" : "Seguir"}
-              isFollowed={isFollowed}
-              isUpvoted={isUpvoted}
-              onComment={() => onCommentPress(report)}
-              onFollow={() => handleFollow(report.id)}
-              onMore={() => handleMore(report.title)}
-              onLocation={() => handleLocation(report.id)}
-              onUpvote={() => handleUpvote(report.id)}
-              onShare={() => handleShare(report.title, report.id)}
+        <TouchableOpacity
+          className={`flex-1 py-2.5 rounded-full ${
+            activeTab === 'seguidos' ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+          }`}
+          onPress={() => setActiveTab('seguidos')}
+        >
+          <Text className={`text-center text-base font-semibold ${
+            activeTab === 'seguidos' ? 'text-white' : 'text-gray-400'
+          }`}>
+            Seguidos
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Filtro de categorías solo en pestaña "Todos" */}
+      {activeTab === 'todos' && (
+        <CategoryFilter 
+          selectedCategoria={selectedCategoria}
+          onCategoriaChange={onCategoriaChange}
+        />
+      )}
+
+      {/* Contenido según pestaña activa */}
+      {activeTab === 'seguidos' ? (
+        <FollowedReportsList onSwitchToAll={() => setActiveTab('todos')} />
+      ) : (
+        <ScrollView
+          className="mt-4 px-4"
+          contentContainerStyle={{ gap: 16, paddingBottom: insets.bottom + 12 }}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh} 
+              tintColor="#537CF2"
+              colors={['#537CF2']}
+              progressBackgroundColor="#13161E"
             />
-          );
-        })}
-      </ScrollView>
+          }
+        >
+          {reports.map((report) => {
+            const isFollowed = followedReports.has(report.id);
+            const isUpvoted = upvotedReports.has(report.id);
+            const currentUpvotes = reportUpvotes[report.id] || report.upvotes;
+            
+            return (
+              <ReportCard
+                id={report.id}
+                key={report.id}
+                title={report.title}
+                author={report.author}
+                timeAgo={report.timeAgo}
+                image={report.image}
+                upvotes={currentUpvotes}
+                followLabel={isFollowed ? "Siguiendo ✓" : "Seguir"}
+                isFollowed={isFollowed}
+                isUpvoted={isUpvoted}
+                onComment={() => onCommentPress(report)}
+                onFollow={() => handleFollow(report.id)}
+                onMore={() => handleMore(report.title)}
+                onLocation={() => handleLocation(report.id)}
+                onUpvote={() => handleUpvote(report.id)}
+                onShare={() => handleShare(report.title, report.id)}
+              />
+            );
+          })}
+        </ScrollView>
+      )}
 
       {/* Modal de Ubicación */}
       <Modal

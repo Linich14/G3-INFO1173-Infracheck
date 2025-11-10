@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Animated, Image } from "react-native";
-import { Home, Map, Settings, LogOut, ChevronRight } from "lucide-react-native";
+import { Home, Map, Settings, LogOut, ChevronRight, SlidersHorizontal } from "lucide-react-native";
 import { router } from "expo-router";
 import { useUser } from "../../profile/hooks/useUser";
 
@@ -13,9 +13,10 @@ interface ClientDrawerMenuProps {
   insets: any;
   onClose: () => void;
   onLogout: () => void;
+  onOpenFilters?: () => void;
 }
 
-export default function ClientDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onLogout }: ClientDrawerMenuProps) {
+export default function ClientDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onLogout, onOpenFilters }: ClientDrawerMenuProps) {
   const { user, loading } = useUser();
 
   const styles = {
@@ -122,6 +123,13 @@ export default function ClientDrawerMenu({ drawerX, DRAWER_W, insets, onClose, o
         <Map size={20} color="#fff" />
         <Text style={styles.text}>Mapa</Text>
       </TouchableOpacity>
+
+      {onOpenFilters && (
+        <TouchableOpacity onPress={() => { onClose(); onOpenFilters(); }} style={styles.item}>
+          <SlidersHorizontal size={20} color="#fff" />
+          <Text style={styles.text}>Filtros Avanzados</Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity onPress={() => { onClose(); router.push("/(tabs)/settings"); }} style={styles.item}>
         <Settings size={20} color="#fff" />

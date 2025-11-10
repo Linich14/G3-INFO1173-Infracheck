@@ -263,10 +263,9 @@ def followed_reports_view(request):
         # Calcular offset
         offset = (page - 1) * limit
 
-        # Obtener seguimientos con reportes relacionados, solo los visibles (segu_visible=TRUE)
+        # Obtener seguimientos con reportes relacionados
         seguimientos = SeguimientoReporte.objects.filter(
-            usuario=usuario,
-            segu_visible=True
+            usuario=usuario
         ).select_related('reporte', 'reporte__usuario', 'reporte__denuncia_estado', 'reporte__tipo_denuncia', 'reporte__ciudad')\
             .order_by('-fecha_seguimiento')[offset:offset + limit]
 
@@ -294,10 +293,9 @@ def followed_reports_view(request):
                 }
             })
 
-        # Contar total solo de seguimientos visibles
+        # Contar total de seguimientos
         total_count = SeguimientoReporte.objects.filter(
-            usuario=usuario,
-            segu_visible=True
+            usuario=usuario
         ).count()
 
         return Response(
