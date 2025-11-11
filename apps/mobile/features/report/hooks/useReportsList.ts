@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getReportsList } from '../services/reportService';
 import { ReportsListResponse, ReportForHome } from '../types';
-
-// Base URL para las imágenes - ajusta según tu configuración
-const BASE_URL = 'https://your-api-domain.com'; // Cambia esto por tu dominio real
+import { API_CONFIG } from '~/constants/config'; // Importar configuración
 
 const mapReportToHomeFormat = (report: any): ReportForHome => ({
     id: report.id.toString(),
@@ -11,16 +9,43 @@ const mapReportToHomeFormat = (report: any): ReportForHome => ({
     author: report.usuario.nombre || 'Usuario Anónimo',
     timeAgo: calculateTimeAgo(report.fecha_creacion),
     image: getMainImage(report.archivos),
-    upvotes: Math.floor(Math.random() * 100) + 5, // Temporal hasta que tengas este dato
+    upvotes: Math.floor(Math.random() * 100) + 5,
     comments: [],
     categoria: report.tipo_denuncia.nombre,
 });
 
 const getMainImage = (archivos: any[]) => {
-    const mainImage = archivos.find((archivo) => archivo.es_principal && archivo.tipo === 'imagen');
-    if (mainImage) {
-        return { uri: `${BASE_URL}${mainImage.url}` };
+    console.log('Processing archivos:', archivos);
+
+    if (!archivos || archivos.length === 0) {
+        return require('@assets/Publicaciones/1.png');
     }
+
+    // Buscar imagen principal
+    const mainImage = archivos.find(
+        (archivo) => archivo.es_principal && archivo.tipo === 'imagen' && archivo.url
+    );
+
+    if (mainImage) {
+        // Construir URL completa
+        const fullUrl = mainImage.url.startsWith('http')
+            ? mainImage.url // Si ya es una URL completa
+            : `${API_CONFIG.BASE_URL}${mainImage.url}`; // Si es una ruta relativa
+
+        return { uri: fullUrl };
+    }
+
+    // Si no hay imagen principal, buscar cualquier imagen
+    const anyImage = archivos.find((archivo) => archivo.tipo === 'imagen' && archivo.url);
+
+    if (anyImage) {
+        const fullUrl = anyImage.url.startsWith('http')
+            ? anyImage.url
+            : `${API_CONFIG.BASE_URL}${anyImage.url}`;
+
+        return { uri: fullUrl };
+    }
+
     return require('@assets/Publicaciones/1.png');
 };
 
@@ -78,7 +103,6 @@ export const useReportsList = () => {
 
                 // Prevenir múltiples cargas simultáneas
                 if ((loading || isLoadingMore) && !isRefresh) {
-                    console.log('Already loading, skipping request');
                     return;
                 }
 
@@ -108,7 +132,6 @@ export const useReportsList = () => {
                 // Configurar timeout para loadMore (5 segundos)
                 if (isLoadMore) {
                     loadMoreTimeoutRef.current = setTimeout(() => {
-                        console.log('LoadMore timeout reached');
                         setLoadMoreError(
                             'No se pudieron cargar más reportes. Verifica tu conexión.'
                         );
@@ -122,8 +145,6 @@ export const useReportsList = () => {
                 // Para la primera carga, no enviar cursor
                 const requestCursor =
                     cursor && cursor !== 'null' && cursor !== 'undefined' ? cursor : undefined;
-
-                console.log('Making request with cursor:', requestCursor);
 
                 const response = await getReportsList(requestCursor, 10);
 
@@ -152,20 +173,12 @@ export const useReportsList = () => {
                             // Evitar duplicados comparando por ID
                             const existingIds = new Set(prev.map((r) => r.id));
                             const newReports = mappedReports.filter((r) => !existingIds.has(r.id));
-                            console.log('Adding new reports:', newReports.length);
                             return [...prev, ...newReports];
                         });
                         setNextCursor(response.pagination.nextCursor);
                     }
 
                     setHasNext(response.pagination.hasMore);
-                    console.log(
-                        'Updated state - hasNext:',
-                        response.pagination.hasMore,
-                        'nextCursor:',
-                        response.pagination.nextCursor
-                    );
-
                     // Limpiar errores si la carga fue exitosa
                     setError(null);
                     setLoadMoreError(null);
@@ -181,7 +194,6 @@ export const useReportsList = () => {
 
                 // Ignorar errores por abort (cancelación)
                 if (err.name === 'AbortError') {
-                    console.log('Request was aborted');
                     return;
                 }
 
@@ -189,13 +201,6 @@ export const useReportsList = () => {
                     err?.response?.data?.error ||
                     err?.message ||
                     'Error desconocido al cargar reportes';
-
-                console.error('Error loading reports:', err);
-                console.error('Error details:', {
-                    message: err?.message,
-                    response: err?.response?.data,
-                    status: err?.response?.status,
-                });
 
                 if (isLoadMore) {
                     setLoadMoreError('Error al cargar más reportes. Toca para reintentar.');
@@ -234,7 +239,6 @@ export const useReportsList = () => {
             !error &&
             !loadMoreError
         ) {
-            console.log('LoadMore triggered with cursor:', nextCursor);
             loadReports(nextCursor, false, true);
         } else {
             console.log('LoadMore blocked:', {
@@ -259,7 +263,6 @@ export const useReportsList = () => {
     ]);
 
     const refresh = useCallback(() => {
-        console.log('Refreshing reports');
         setNextCursor(null);
         setError(null);
         setLoadMoreError(null);
@@ -268,7 +271,6 @@ export const useReportsList = () => {
 
     // Retry específico para loadMore
     const retryLoadMore = useCallback(() => {
-        console.log('Retrying loadMore');
         setLoadMoreError(null);
         if (nextCursor) {
             loadReports(nextCursor, false, true);
@@ -278,7 +280,6 @@ export const useReportsList = () => {
     // Cargar reportes iniciales solo una vez
     useEffect(() => {
         if (initialLoad) {
-            console.log('Initial load triggered');
             loadReports();
         }
     }, [loadReports, initialLoad]);

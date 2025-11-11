@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ImageSourcePropType, Pressable } from 'react-native';
 import {
     UserCircle2,
@@ -29,11 +29,28 @@ const ReportCard: React.FC<ReportCardProps> = ({
     isFollowed = false,
 }) => {
     const router = useRouter();
-    const hasImage = !!image;
+    const [imageError, setImageError] = useState(false);
+    const hasImage = !!image && !imageError;
 
     const goToDetail = () => {
         router.push(`/report/${id}`);
     };
+
+    const handleImageError = () => {
+        setImageError(true);
+    };
+
+    const handleImageLoad = () => {
+        setImageError(false);
+    };
+
+    // Debug de la imagen
+    React.useEffect(() => {
+        if (image) {
+            // Se recibio la foto
+            //console.log('ReportCard image source:', image);
+        }
+    }, [image]);
 
     return (
         <View className="overflow-hidden rounded-[12px] bg-[#13161E]">
@@ -55,9 +72,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 <View className="flex-shrink-0">
                     <TouchableOpacity
                         className={`rounded-[32px] border px-4 py-1 shadow active:opacity-80 ${
-                            isFollowed 
-                                ? 'border-red-500 bg-red-500' 
-                                : 'border-white bg-[#537CF2]'
+                            isFollowed ? 'border-red-500 bg-red-500' : 'border-white bg-[#537CF2]'
                         }`}
                         onPress={onFollow}>
                         <Text className="text-center text-lg font-medium text-white">
@@ -71,21 +86,25 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 <View className="relative">
                     <Text className="pb-2 pl-4 text-2xl text-white">{title}</Text>
 
-                    {hasImage ? (
+                    {hasImage && !imageError ? (
                         <Image
                             source={image as ImageSourcePropType}
                             resizeMode="cover"
                             style={{ width: '100%', aspectRatio }}
+                            onError={handleImageError}
+                            onLoad={handleImageLoad}
                         />
                     ) : (
                         <View
                             style={{ width: '100%', aspectRatio }}
                             className="items-center justify-center bg-[#0f172a]">
-                            <Text className="text-white/40">Sin imagen</Text>
+                            <Text className="text-white/40">
+                                {imageError ? 'Error al cargar imagen' : 'Sin imagen'}
+                            </Text>
                         </View>
                     )}
 
-                    {hasImage && (
+                    {hasImage && !imageError && (
                         <View className="absolute bottom-3 right-3">
                             <TouchableOpacity
                                 className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-[#537CF2] shadow active:opacity-80"
@@ -108,7 +127,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                     )}
                 </View>
 
-                {/* Footer - Intercepta clicks en los botones */}
+                {/* Footer */}
                 <View className="flex-row items-center justify-between p-4">
                     <View className="flex-row">
                         <TouchableOpacity
