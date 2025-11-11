@@ -11,8 +11,8 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-replace-this-k
 DEBUG = True
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
-GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
+#GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
+#EOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
 
 INSTALLED_APPS = [
     'django.contrib.admin',

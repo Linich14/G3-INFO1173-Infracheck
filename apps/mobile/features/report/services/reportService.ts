@@ -1,6 +1,11 @@
 import api from '~/shared/api';
 import { isAuthenticated } from '~/features/auth/services/authService';
-import { ReportFormData, CreateReportResponse, ReportDetailResponse } from '../types';
+import {
+    ReportFormData,
+    CreateReportResponse,
+    ReportDetailResponse,
+    ReportsListResponse,
+} from '../types';
 
 export class ReportService {
     /**
@@ -142,6 +147,55 @@ export class ReportService {
         } catch (error: any) {
             console.error('Error getting report detail:', error);
             console.error('Error response:', error.response?.data);
+            throw error;
+        }
+    }
+
+    /**
+     * Obtener lista de reportes con paginación - GET /api/reports/
+     */
+    static async getReportsList(
+        cursor?: string | null,
+        limit: number = 10
+    ): Promise<ReportsListResponse> {
+        try {
+            console.log('Getting reports list:', { cursor, limit });
+
+            // Verificar autenticación
+            const authenticated = await isAuthenticated();
+            if (!authenticated) {
+                throw new Error('Sesión expirada. Inicie sesión nuevamente.');
+            }
+
+            // Construir parámetros de forma segura
+            const params: Record<string, string> = {
+                limit: limit.toString(),
+            };
+
+            // Solo agregar cursor si es válido y no es null/undefined
+            if (cursor && cursor.trim() !== '' && cursor !== 'null' && cursor !== 'undefined') {
+                params.cursor = cursor;
+            }
+
+            console.log('Request params:', params);
+
+            const response = await api.get('/api/reports/', {
+                params,
+            });
+
+            console.log('API response received:', {
+                success: response.data.success,
+                dataLength: response.data.data?.length,
+                hasMore: response.data.pagination?.hasMore,
+            });
+
+            return response.data;
+        } catch (error: any) {
+            console.error('Error getting reports list:', error);
+            console.error('Error response:', error.response?.data);
+            console.error('Error status:', error.response?.status);
+
+            // Re-lanzar el error para que lo maneje el hook
             throw error;
         }
     }
@@ -319,6 +373,7 @@ export class ReportService {
 // Exportar funciones individuales para compatibilidad con código existente
 export const createReport = ReportService.createReport.bind(ReportService);
 export const getReportDetail = ReportService.getReportDetail.bind(ReportService);
+export const getReportsList = ReportService.getReportsList.bind(ReportService);
 export const validateReportData = ReportService.validateReportData.bind(ReportService);
 export const getFollowedReports = ReportService.getFollowedReports.bind(ReportService);
 export const followReport = ReportService.followReport.bind(ReportService);

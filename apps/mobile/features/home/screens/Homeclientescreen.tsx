@@ -9,15 +9,31 @@ import ClientContent from '~/features/home/components/ClientContent';
 import FloatingButton from '~/features/home/components/Floatingbutton';
 import ClientDrawerMenu from '~/features/home/components/ClientDrawerMenu';
 import FiltersModal from '~/features/home/components/FiltersModal';
+import { useReportsList } from '~/features/report/hooks/useReportsList';
 
 export default function HomeScreen() {
     const insets = useSafeAreaInsets();
     const { logout } = useAuth();
 
+    // Usar el hook para manejar los reportes con cursor pagination
+    const {
+        reports: fetchedReports,
+        loading,
+        refreshing,
+        hasNext,
+        error,
+        loadMore,
+        refresh,
+        setReports: setFetchedReports,
+        initialLoad,
+        isLoadingMore,
+        loadMoreError,
+        retryLoadMore,
+    } = useReportsList();
+
     const [open, setOpen] = useState(false);
     const [commentsModalVisible, setCommentsModalVisible] = useState(false);
     const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-    const [refreshing, setRefreshing] = useState(false);
     const [searchModalVisible, setSearchModalVisible] = useState(false);
     const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
     const [filteredReports, setFilteredReports] = useState<Report[]>([]);
@@ -25,66 +41,8 @@ export default function HomeScreen() {
     const [filters, setFilters] = useState({
         categoria: null as string | null,
         estado: null as string | null,
-        urgencia: 1
+        urgencia: 1,
     });
-
-    // Estado con reportes iniciales (mock)
-    const [reports, setReports] = useState<Report[]>([
-        {
-            id: '22',
-            title: 'Calle en mal estado',
-            author: 'ChristianV',
-            timeAgo: '3d',
-            image: require('@assets/Publicaciones/1.png'),
-            upvotes: 254,
-            comments: [
-                {
-                    id: '1',
-                    author: 'María123',
-                    content:
-                        'Sí, he visto que está muy deteriorada esa calle. Deberían arreglarla pronto.',
-                    timeAgo: '2d',
-                },
-                {
-                    id: '2',
-                    author: 'Carlos',
-                    content: 'Completamente de acuerdo, es un peligro para los conductores.',
-                    timeAgo: '1d',
-                },
-            ],
-            categoria: 'Infraestructura',
-        },
-        {
-            id: '2',
-            title: 'Semáforo apagado',
-            author: 'María',
-            timeAgo: '5h',
-            image: { uri: 'https://picsum.photos/seed/semaforo/800/500' },
-            upvotes: 91,
-            comments: [],
-            categoria: 'Señalización',
-        },
-        {
-            id: '3',
-            title: 'Bache muy peligroso en intersección',
-            author: 'Carlos',
-            timeAgo: '2h',
-            image: { uri: 'https://picsum.photos/seed/bache/800/600' },
-            upvotes: 67,
-            comments: [],
-            categoria: 'Infraestructura',
-        },
-        {
-            id: '4',
-            title: 'Problema con alumbrado público',
-            author: 'DBurgos',
-            timeAgo: '1d',
-            image: { uri: 'https://picsum.photos/seed/luz/800/600' },
-            upvotes: 23,
-            comments: [],
-            categoria: 'Alumbrado',
-        },
-    ]);
 
     // Animaciones Drawer
     const drawerX = useRef(new Animated.Value(-Dimensions.get('window').width * 0.75)).current;
@@ -104,9 +62,16 @@ export default function HomeScreen() {
 
     // Actualizar reportes filtrados
     useEffect(() => {
-        const reportesFiltrados = filtrarReportesPorCategoria(selectedCategoria, reports);
+        const reportesFiltrados = filtrarReportesPorCategoria(selectedCategoria, fetchedReports);
         setFilteredReports(reportesFiltrados);
-    }, [reports, selectedCategoria]);
+    }, [fetchedReports, selectedCategoria]);
+
+    // Log para debug de errores
+    useEffect(() => {
+        if (error) {
+            console.error('Error in reports:', error);
+        }
+    }, [error]);
 
     const openMenu = () => {
         setOpen(true);
@@ -161,7 +126,11 @@ export default function HomeScreen() {
         setSelectedReport(null);
     };
 
-    const handleApplyFilters = (newFilters: { categoria: string | null; estado: string | null; urgencia: number }) => {
+    const handleApplyFilters = (newFilters: {
+        categoria: string | null;
+        estado: string | null;
+        urgencia: number;
+    }) => {
         setFilters(newFilters);
         setFiltersModalVisible(false);
         // Aquí podrías aplicar los filtros a los reportes
@@ -171,7 +140,7 @@ export default function HomeScreen() {
         setFilters({
             categoria: null,
             estado: null,
-            urgencia: 1
+            urgencia: 1,
         });
     };
 
@@ -185,7 +154,7 @@ export default function HomeScreen() {
             timeAgo: 'Ahora',
         };
 
-        setReports((prev) =>
+        setFetchedReports((prev) =>
             prev.map((report) =>
                 report.id === selectedReport.id
                     ? { ...report, comments: [...report.comments, newComment] }
@@ -198,58 +167,12 @@ export default function HomeScreen() {
         );
     };
 
-    const onRefresh = async () => {
-        setRefreshing(true);
-
-        setTimeout(() => {
-            const publicationTypes = [
-                {
-                    title: 'Bache peligroso reportado',
-                    author: 'LalitoCubano',
-                    image: { uri: 'https://picsum.photos/seed/bache/800/600' },
-                    categoria: 'Infraestructura',
-                },
-                {
-                    title: 'Semáforo reparado exitosamente',
-                    author: 'GeorgeS',
-                    image: { uri: 'https://picsum.photos/seed/semaforo/800/600' },
-                    categoria: 'Señalización',
-                },
-                {
-                    title: 'Nueva área verde inaugurada',
-                    author: 'ElliotM',
-                    image: { uri: 'https://picsum.photos/seed/parque/800/600' },
-                    categoria: 'Áreas Verdes',
-                },
-                {
-                    title: 'Fuga de agua en la calle principal',
-                    author: 'IgnacioL',
-                    image: { uri: 'https://picsum.photos/seed/agua/800/600' },
-                    categoria: 'Servicios Públicos',
-                },
-            ];
-
-            const randomPublication =
-                publicationTypes[Math.floor(Math.random() * publicationTypes.length)];
-
-            const newReport: Report = {
-                id: Date.now().toString(),
-                title: randomPublication.title,
-                author: randomPublication.author,
-                timeAgo: 'Ahora',
-                image: randomPublication.image,
-                upvotes: Math.floor(Math.random() * 100) + 5,
-                comments: [],
-                categoria: randomPublication.categoria,
-            };
-
-            setReports((prevReports) => [newReport, ...prevReports]);
-            console.log(
-                'Publicaciones actualizadas - Nueva publicación agregada:',
-                randomPublication.title
-            );
-            setRefreshing(false);
-        }, 1500);
+    // Handler mejorado para loadMore
+    const handleLoadMore = () => {
+        console.log('Handle load more called - hasNext:', hasNext, 'loading:', loading);
+        if (hasNext && !loading && !refreshing) {
+            loadMore();
+        }
     };
 
     return (
@@ -261,12 +184,14 @@ export default function HomeScreen() {
 
             <ClientContent
                 reports={
-                    filteredReports.length > 0 || selectedCategoria ? filteredReports : reports
+                    filteredReports.length > 0 || selectedCategoria
+                        ? filteredReports
+                        : fetchedReports
                 }
                 onCommentPress={openCommentsModal}
                 insets={insets}
                 refreshing={refreshing}
-                onRefresh={onRefresh}
+                onRefresh={refresh}
                 selectedReport={selectedReport}
                 commentsModalVisible={commentsModalVisible}
                 onCloseCommentsModal={closeCommentsModal}
@@ -279,6 +204,13 @@ export default function HomeScreen() {
                 }}
                 selectedCategoria={selectedCategoria}
                 onCategoriaChange={setSelectedCategoria}
+                onLoadMore={handleLoadMore}
+                hasNext={hasNext}
+                loading={loading || initialLoad}
+                error={error}
+                isLoadingMore={isLoadingMore}
+                loadMoreError={loadMoreError}
+                retryLoadMore={retryLoadMore}
             />
 
             <FloatingButton onPress={() => router.push('/(tabs)/(map)/create_report')} />
