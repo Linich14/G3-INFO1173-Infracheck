@@ -69,18 +69,13 @@ const FormReport = ({
 
     const getTipoDenunciaLabel = (value: string) => {
         const tipos = {
-            '1': 'Vialidad y veredas',
-            '2': 'Alumbrado público',
-            '3': 'Drenaje y aguas lluvias',
-            '4': 'Áreas verdes y arbolado',
-            '5': 'Mobiliario urbano y plazas',
-            '6': 'Señalización y demarcación',
-            '7': 'Ciclovías y movilidad activa',
-            '8': 'Paraderos y equipamiento de transporte',
-            '9': 'Infraestructura municipal',
-            '10': 'Limpieza y recuperación de espacio público',
-            '11': 'Accesibilidad',
-            '12': 'Riesgos y emergencias',
+            '1': 'Calles y Veredas en Mal Estado',
+            '2': 'Luz o Alumbrado Público Dañado',
+            '3': 'Drenaje o Aguas Estancadas',
+            '4': 'Parques, Plazas o Árboles con Problemas',
+            '5': 'Basura, Escombros o Espacios Sucios',
+            '6': 'Emergencias o Situaciones de Riesgo',
+            '7': 'Infraestructura o Mobiliario Público Dañado',
         };
         return tipos[value as keyof typeof tipos] || '';
     };
@@ -151,74 +146,44 @@ const FormReport = ({
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Vialidad y veredas"
+                                label="Calles y Veredas en Mal Estado"
                                 value="1"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Alumbrado público"
+                                label="Luz o Alumbrado Público Dañado"
                                 value="2"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Drenaje y aguas lluvias"
+                                label="Drenaje o Aguas Estancadas"
                                 value="3"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Áreas verdes y arbolado"
+                                label="Parques, Plazas o Árboles con Problemas"
                                 value="4"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Mobiliario urbano y plazas"
+                                label="Basura, Escombros o Espacios Sucios"
                                 value="5"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Señalización y demarcación"
+                                label="Emergencias o Situaciones de Riesgo"
                                 value="6"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Ciclovías y movilidad activa"
+                                label="Infraestructura o Mobiliario Público Dañado"
                                 value="7"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Paraderos y equipamiento de transporte"
-                                value="8"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Infraestructura municipal"
-                                value="9"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Limpieza y recuperación de espacio público"
-                                value="10"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Accesibilidad"
-                                value="11"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Riesgos y emergencias"
-                                value="12"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />

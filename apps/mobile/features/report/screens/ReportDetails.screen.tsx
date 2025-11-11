@@ -2,7 +2,8 @@ import { Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useReportDetail } from '../hooks/useReportDetails';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import { useUserContext } from '../../../contexts/UserContext'; // Cambiar a UserContext
 
 type Props = {
     reportId: string;
@@ -38,6 +39,13 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
     const { report, loading, error, refetch } = useReportDetail(reportId);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const { width: screenWidth } = Dimensions.get('window');
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    // Obtener el usuario actual del UserContext
+    const { user } = useUserContext();
+
+    // Función para verificar si el usuario actual es el propietario del reporte
+    const isOwner = report && user && report.usuario.id === user.usua_id;
 
     // Función para manejar la navegación hacia atrás de forma segura
     const handleGoBack = useCallback(() => {
@@ -48,6 +56,18 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
             onBack();
         }
     }, [onBack]);
+
+    // Función para manejar el cambio de imagen de forma segura
+    const handleImageScroll = useCallback(
+        (event: any) => {
+            const newIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
+            // Usar requestAnimationFrame para evitar el warning de Reanimated
+            requestAnimationFrame(() => {
+                setCurrentImageIndex(newIndex);
+            });
+        },
+        [screenWidth]
+    );
 
     // Validación del reportId
     if (!reportId || reportId.trim() === '') {
@@ -134,25 +154,30 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                 {report.imagenes.length > 0 && (
                     <View className="relative bg-black">
                         <ScrollView
+                            ref={scrollViewRef}
                             horizontal
                             pagingEnabled
                             showsHorizontalScrollIndicator={false}
-                            onMomentumScrollEnd={(event) => {
-                                const newIndex = Math.round(
-                                    event.nativeEvent.contentOffset.x / screenWidth
-                                );
-                                setCurrentImageIndex(newIndex);
-                            }}
+                            onMomentumScrollEnd={handleImageScroll}
                             className="h-64">
                             {report.imagenes.map((imagen, index) => (
                                 <TouchableOpacity
-                                    key={index}
+                                    key={`image-${index}`}
                                     style={{ width: screenWidth }}
                                     activeOpacity={0.9}>
                                     <Image
-                                        source={{ uri: imagen }}
+                                        source={{
+                                            uri: imagen,
+                                            cache: 'force-cache',
+                                        }}
                                         className="h-full w-full"
                                         resizeMode="cover"
+                                        onError={(error) => {
+                                            console.log(
+                                                'Error loading image:',
+                                                error.nativeEvent.error
+                                            );
+                                        }}
                                     />
                                     {/* Overlay con gradiente */}
                                     <View className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 py-6">
@@ -196,7 +221,7 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                             <View className="absolute bottom-4 left-4">
                                 <View className="flex-row space-x-2">
                                     {report.imagenes.map((_, index) => (
-                                        <TouchableOpacity key={index}>
+                                        <TouchableOpacity key={`indicator-${index}`}>
                                             <View
                                                 className={`h-1 rounded-full transition-all duration-300 ${
                                                     index === currentImageIndex
@@ -396,35 +421,39 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                     </View>
                 </View>
 
-                {/* Acciones */}
-                <View className="mx-4 mb-6 mt-4">
-                    {report.estadisticas.puede_agregar_imagenes && (
-                        <TouchableOpacity className="mb-3 rounded-xl bg-green-600 p-4">
+                {/* Acciones - Solo mostrar si el usuario es el propietario del reporte */}
+                {isOwner && (
+                    <View className="mx-4 mb-6 mt-4">
+                        {report.estadisticas.puede_agregar_imagenes && (
+                            <TouchableOpacity className="mb-3 rounded-xl bg-green-600 p-4">
+                                <View className="flex-row items-center justify-center">
+                                    <Ionicons name="camera-outline" size={20} color="white" />
+                                    <Text className="ml-2 font-semibold text-white">
+                                        Agregar imágenes
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+
+                        <TouchableOpacity className="mb-3 rounded-xl bg-[#537CF2] p-4">
                             <View className="flex-row items-center justify-center">
-                                <Ionicons name="camera-outline" size={20} color="white" />
+                                <Ionicons name="create-outline" size={20} color="white" />
                                 <Text className="ml-2 font-semibold text-white">
-                                    Agregar imágenes
+                                    Actualizar reporte
                                 </Text>
                             </View>
                         </TouchableOpacity>
-                    )}
 
-                    <TouchableOpacity className="mb-3 rounded-xl bg-[#537CF2] p-4">
-                        <View className="flex-row items-center justify-center">
-                            <Ionicons name="create-outline" size={20} color="white" />
-                            <Text className="ml-2 font-semibold text-white">
-                                Actualizar reporte
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity className="rounded-xl bg-red-600 p-4">
-                        <View className="flex-row items-center justify-center">
-                            <Ionicons name="trash-outline" size={20} color="white" />
-                            <Text className="ml-2 font-semibold text-white">Eliminar reporte</Text>
-                        </View>
-                    </TouchableOpacity>
-                </View>
+                        <TouchableOpacity className="rounded-xl bg-red-600 p-4">
+                            <View className="flex-row items-center justify-center">
+                                <Ionicons name="trash-outline" size={20} color="white" />
+                                <Text className="ml-2 font-semibold text-white">
+                                    Eliminar reporte
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </ScrollView>
         </SafeAreaView>
     );

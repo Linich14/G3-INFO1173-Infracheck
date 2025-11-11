@@ -12,18 +12,13 @@ interface MapFiltersProps {
 }
 
 const FILTER_LABELS: Record<AnnotationType, string> = {
-    [AnnotationType.VIALIDAD_VEREDAS]: 'Vialidad',
-    [AnnotationType.ALUMBRADO_PUBLICO]: 'Alumbrado',
-    [AnnotationType.DRENAJE_AGUAS]: 'Drenaje',
-    [AnnotationType.AREAS_VERDES]: 'Áreas Verdes',
-    [AnnotationType.MOBILIARIO_URBANO]: 'Mobiliario',
-    [AnnotationType.SENALIZACION]: 'Señalización',
-    [AnnotationType.CICLOVIAS]: 'Ciclovías',
-    [AnnotationType.PARADEROS_TRANSPORTE]: 'Transporte',
-    [AnnotationType.INFRAESTRUCTURA_MUNICIPAL]: 'Municipal',
-    [AnnotationType.LIMPIEZA_ESPACIO_PUBLICO]: 'Limpieza',
-    [AnnotationType.ACCESIBILIDAD]: 'Accesibilidad',
-    [AnnotationType.RIESGOS_EMERGENCIAS]: 'Emergencias',
+    [AnnotationType.CALLES_VEREDAS]: 'Calles y Veredas',
+    [AnnotationType.ALUMBRADO_DANADO]: 'Alumbrado Público',
+    [AnnotationType.DRENAJE_AGUAS]: 'Drenaje y Aguas',
+    [AnnotationType.PARQUES_ARBOLES]: 'Parques y Árboles',
+    [AnnotationType.BASURA_ESCOMBROS]: 'Basura y Escombros',
+    [AnnotationType.EMERGENCIAS_RIESGOS]: 'Emergencias',
+    [AnnotationType.MOBILIARIO_DANADO]: 'Mobiliario Público',
 };
 
 export default function MapFilters({

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Pressable, View, Text } from 'react-native';
+import { Pressable, View, Text, Dimensions } from 'react-native';
 import { MapView, Camera, UserLocation, PointAnnotation } from '@maplibre/maplibre-react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
@@ -16,13 +16,17 @@ import {
 } from '../types';
 import PinDetailsModal from '../components/PinDetailsModal';
 import MapFilters from '../components/MapFilters';
+import MapPopup from '../components/MapPopup';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Obtener dimensiones de pantalla
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Datos de ejemplo - en producción vendrían de una API
 const SAMPLE_ANNOTATIONS: AnnotationData[] = [
     {
         id: '1',
-        type: AnnotationType.VIALIDAD_VEREDAS,
+        type: AnnotationType.ALUMBRADO_DANADO,
         coordinate: [-72.591, -38.74],
         title: 'Hueco en la calzada',
         severity: 'high',
@@ -30,7 +34,7 @@ const SAMPLE_ANNOTATIONS: AnnotationData[] = [
     },
     {
         id: '2',
-        type: AnnotationType.ALUMBRADO_PUBLICO,
+        type: AnnotationType.BASURA_ESCOMBROS,
         coordinate: [-72.595, -38.742],
         title: 'Luminaria sin funcionar',
         severity: 'medium',
@@ -38,7 +42,7 @@ const SAMPLE_ANNOTATIONS: AnnotationData[] = [
     },
     {
         id: '3',
-        type: AnnotationType.AREAS_VERDES,
+        type: AnnotationType.EMERGENCIAS_RIESGOS,
         coordinate: [-72.588, -38.738],
         title: 'Árbol caído',
         severity: 'high',
@@ -54,7 +58,7 @@ const SAMPLE_ANNOTATIONS: AnnotationData[] = [
     },
     {
         id: '5',
-        type: AnnotationType.MOBILIARIO_URBANO,
+        type: AnnotationType.PARQUES_ARBOLES,
         coordinate: [-72.589, -38.741],
         title: 'Banca rota',
         severity: 'low',
@@ -62,8 +66,8 @@ const SAMPLE_ANNOTATIONS: AnnotationData[] = [
     },
     {
         id: '6',
-        type: AnnotationType.ACCESIBILIDAD,
-        coordinate: [-72.592, -38.739],
+        type: AnnotationType.BASURA_ESCOMBROS,
+        coordinate: [-72.592, -39.739],
         title: 'Rampa de acceso dañada',
         severity: 'high',
         status: 'pending',
@@ -82,6 +86,11 @@ export default function MapScreen() {
     const [cargando, setCargando] = useState(false);
     const [selectedAnnotation, setSelectedAnnotation] = useState<AnnotationData | null>(null);
 
+    // Estados para el popup
+    const [popupVisible, setPopupVisible] = useState(false);
+    const [popupAnnotation, setPopupAnnotation] = useState<AnnotationData | null>(null);
+    const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+
     // Estado de zoom - iniciado en 10
     const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(10);
     const [shouldUpdateCamera, setShouldUpdateCamera] = useState(true); // Control para la cámara
@@ -96,7 +105,8 @@ export default function MapScreen() {
     });
     const [filtersVisible, setFiltersVisible] = useState(false);
 
-    const { getUserLocation, showPermissionModal, handleAcceptPermission, handleCancelPermission } = useUserLocation();
+    const { getUserLocation, showPermissionModal, handleAcceptPermission, handleCancelPermission } =
+        useUserLocation();
     const router = useRouter();
 
     // Función para actualizar el zoom actual
@@ -112,7 +122,12 @@ export default function MapScreen() {
         }
     }, []);
 
-    // Callback para cuando el mapa se mueve/hace zoom
+    // Callback para cuando el mapa se mueve/hace zoom - oculta el popup
+    const onRegionWillChange = useCallback(() => {
+        setPopupVisible(false);
+        setPopupAnnotation(null);
+    }, []);
+
     const onRegionDidChange = useCallback(() => {
         updateCurrentZoom();
         // Después del primer cambio, no actualizar más la cámara automáticamente
@@ -137,24 +152,83 @@ export default function MapScreen() {
         }
     };
 
-    const handleAnnotationSelected = async (annotation: AnnotationData) => {
-        setSelectedAnnotation(annotation);
+    // Función para mostrar el popup cuando se selecciona un marker
+    const handleAnnotationSelected = async (annotation: AnnotationData, event?: any) => {
+        setPopupAnnotation(annotation);
+
+        try {
+            if (mapRef.current) {
+                // Obtener la posición del pin en coordenadas de pantalla
+                const pointInView = await mapRef.current.getPointInView(annotation.coordinate);
+
+                console.log('Coordenadas del pin en pantalla:', pointInView);
+                console.log('Coordenadas geográficas:', annotation.coordinate);
+
+                // Calcular posición del popup considerando:
+                // - El ancho del popup (288px)
+                // - La altura del popup (aproximadamente 140px)
+                // - El offset para que aparezca arriba del pin
+                const popupWidth = 288;
+                const popupHeight = 140;
+                const pinOffset = 16; // Offset para el icono del pin
+
+                let x = pointInView[0] - popupWidth / 2; // Centrar horizontalmente
+                let y = pointInView[1] - popupHeight - pinOffset; // Posicionar arriba del pin
+
+                // Ajustar si el popup se sale de la pantalla horizontalmente
+                if (x < 16) {
+                    x = 16; // Margen mínimo izquierdo
+                } else if (x + popupWidth > SCREEN_WIDTH - 16) {
+                    x = SCREEN_WIDTH - popupWidth - 16; // Margen mínimo derecho
+                }
+
+                // Ajustar si el popup se sale de la pantalla verticalmente
+                if (y < 100) {
+                    // Considerar espacio para header/filtros
+                    y = pointInView[1] + 40; // Mostrar debajo del pin si no hay espacio arriba
+                }
+
+                console.log('Posición calculada del popup:', { x, y });
+
+                setPopupPosition({ x, y });
+                setPopupVisible(true);
+            }
+        } catch (error) {
+            console.error('Error calculando posición del popup:', error);
+
+            // Fallback: centrar en pantalla
+            const fallbackPosition = {
+                x: SCREEN_WIDTH / 2 - 144, // 144 = popupWidth / 2
+                y: SCREEN_HEIGHT / 2 - 70, // 70 = popupHeight / 2
+            };
+
+            setPopupPosition(fallbackPosition);
+            setPopupVisible(true);
+        }
+    };
+
+    // Función para abrir el modal detallado desde el popup
+    const handlePopupPress = async () => {
+        if (!popupAnnotation) return;
+
+        setSelectedAnnotation(popupAnnotation);
         setCargando(true);
         setModalVisible(true);
+        setPopupVisible(false); // Ocultar el popup
 
         try {
             // Simular carga de datos específicos del pin
             const detalles: PinDetails = {
-                id: annotation.id,
-                titulo: annotation.title,
-                descripcion: annotation.description || 'Sin descripción',
-                tipoDenuncia: annotation.type,
+                id: popupAnnotation.id,
+                titulo: popupAnnotation.title,
+                descripcion: popupAnnotation.description || 'Sin descripción',
+                tipoDenuncia: popupAnnotation.type,
                 ubicacion: {
-                    latitud: annotation.coordinate[1],
-                    longitud: annotation.coordinate[0],
+                    latitud: popupAnnotation.coordinate[1],
+                    longitud: popupAnnotation.coordinate[0],
                     direccion: '',
                 },
-                nivelUrgencia: annotation.severity || 'low',
+                nivelUrgencia: popupAnnotation.severity || 'low',
                 fecha: new Date().toISOString(),
                 imagenes: ['https://picsum.photos/400/400'],
                 video: '',
@@ -199,7 +273,7 @@ export default function MapScreen() {
                     key={annotation.id}
                     id={annotation.id}
                     coordinate={annotation.coordinate}
-                    onSelected={() => handleAnnotationSelected(annotation)}>
+                    onSelected={(event) => handleAnnotationSelected(annotation, event)}>
                     <View className="items-center justify-center">
                         <MaterialCommunityIcons
                             name={config.icon}
@@ -224,6 +298,7 @@ export default function MapScreen() {
                         style={{ flex: 1 }}
                         compassEnabled={true}
                         mapStyle={MAP_CONFIG.STYLE_URL}
+                        onRegionWillChange={onRegionWillChange}
                         onRegionDidChange={onRegionDidChange}>
                         {/* Solo mostrar Camera cuando sea necesario actualizar */}
                         {shouldUpdateCamera && (
@@ -237,6 +312,14 @@ export default function MapScreen() {
                         {renderAnnotations()}
                     </MapView>
                 </View>
+
+                {/* Popup compacto */}
+                <MapPopup
+                    annotation={popupAnnotation}
+                    visible={popupVisible}
+                    onPress={handlePopupPress}
+                    position={popupPosition}
+                />
 
                 {/* Filtros */}
                 <MapFilters

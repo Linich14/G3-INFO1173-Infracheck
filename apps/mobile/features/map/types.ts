@@ -17,18 +17,13 @@ export type PinDetails = {
 };
 
 export enum AnnotationType {
-    VIALIDAD_VEREDAS = 'vialidad_veredas',
-    ALUMBRADO_PUBLICO = 'alumbrado_publico',
-    DRENAJE_AGUAS = 'drenaje_aguas',
-    AREAS_VERDES = 'areas_verdes',
-    MOBILIARIO_URBANO = 'mobiliario_urbano',
-    SENALIZACION = 'senalizacion',
-    CICLOVIAS = 'ciclovias',
-    PARADEROS_TRANSPORTE = 'paraderos_transporte',
-    INFRAESTRUCTURA_MUNICIPAL = 'infraestructura_municipal',
-    LIMPIEZA_ESPACIO_PUBLICO = 'limpieza_espacio_publico',
-    ACCESIBILIDAD = 'accesibilidad',
-    RIESGOS_EMERGENCIAS = 'riesgos_emergencias',
+    CALLES_VEREDAS = '1',
+    ALUMBRADO_DANADO = '2',
+    DRENAJE_AGUAS = '3',
+    PARQUES_ARBOLES = '4',
+    BASURA_ESCOMBROS = '5',
+    EMERGENCIAS_RIESGOS = '6',
+    MOBILIARIO_DANADO = '7',
 }
 
 export interface AnnotationData {
@@ -48,13 +43,13 @@ export interface AnnotationConfig {
 }
 
 export const ANNOTATION_CONFIGS: Record<AnnotationType, AnnotationConfig> = {
-    [AnnotationType.VIALIDAD_VEREDAS]: {
+    [AnnotationType.CALLES_VEREDAS]: {
         icon: 'road-variant',
-        color: '#FFD700',
+        color: '#FF9800',
         size: 32,
     },
-    [AnnotationType.ALUMBRADO_PUBLICO]: {
-        icon: 'lightbulb',
+    [AnnotationType.ALUMBRADO_DANADO]: {
+        icon: 'lightbulb-off',
         color: '#FFD700',
         size: 32,
     },
@@ -63,49 +58,24 @@ export const ANNOTATION_CONFIGS: Record<AnnotationType, AnnotationConfig> = {
         color: '#2196F3',
         size: 32,
     },
-    [AnnotationType.AREAS_VERDES]: {
+    [AnnotationType.PARQUES_ARBOLES]: {
         icon: 'tree',
         color: '#4CAF50',
         size: 32,
     },
-    [AnnotationType.MOBILIARIO_URBANO]: {
-        icon: 'table-chair',
-        color: '#795548',
-        size: 32,
-    },
-    [AnnotationType.SENALIZACION]: {
-        icon: 'sign-direction',
-        color: '#FF9800',
-        size: 32,
-    },
-    [AnnotationType.CICLOVIAS]: {
-        icon: 'bike',
-        color: '#8BC34A',
-        size: 32,
-    },
-    [AnnotationType.PARADEROS_TRANSPORTE]: {
-        icon: 'bus-stop-covered',
-        color: '#3F51B5',
-        size: 32,
-    },
-    [AnnotationType.INFRAESTRUCTURA_MUNICIPAL]: {
-        icon: 'office-building',
-        color: '#607D8B',
-        size: 32,
-    },
-    [AnnotationType.LIMPIEZA_ESPACIO_PUBLICO]: {
-        icon: 'broom',
+    [AnnotationType.BASURA_ESCOMBROS]: {
+        icon: 'delete',
         color: '#9C27B0',
         size: 32,
     },
-    [AnnotationType.ACCESIBILIDAD]: {
-        icon: 'wheelchair-accessibility',
-        color: '#009688',
-        size: 32,
-    },
-    [AnnotationType.RIESGOS_EMERGENCIAS]: {
+    [AnnotationType.EMERGENCIAS_RIESGOS]: {
         icon: 'alert-circle',
         color: '#F44336',
+        size: 32,
+    },
+    [AnnotationType.MOBILIARIO_DANADO]: {
+        icon: 'chair-rolling',
+        color: '#795548',
         size: 32,
     },
 };
