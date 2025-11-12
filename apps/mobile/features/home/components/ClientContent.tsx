@@ -26,7 +26,7 @@ interface ClientContentProps {
     selectedReport: Report | null;
     commentsModalVisible: boolean;
     onCloseCommentsModal: () => void;
-    onAddComment: (content: string) => void;
+    onAddComment: (content: string) => Promise<void>;
     searchModalVisible: boolean;
     onCloseSearchModal: () => void;
     onSelectReport: (report: Report) => void;
@@ -450,6 +450,7 @@ export default function ClientContent({
                     visible={commentsModalVisible}
                     onClose={onCloseCommentsModal}
                     postTitle={selectedReport.title}
+                    reportId={selectedReport.id}
                     comments={selectedReport.comments}
                     onAddComment={onAddComment}
                 />

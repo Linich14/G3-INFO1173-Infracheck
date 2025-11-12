@@ -1,10 +1,12 @@
 import logging
+from datetime import datetime, timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
+from django.utils import timezone as django_timezone
 
 from reports.models import ReportModel, ComentarioReporte
 from infrastructure.exceptions import (
@@ -16,6 +18,44 @@ from infrastructure.exceptions import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def obtener_tiempo_relativo(fecha_comentario):
+    """
+    Calcula el tiempo relativo desde que se hizo un comentario.
+    Retorna un string amigable como "hace 5 minutos", "hace 2 horas", etc.
+    """
+    ahora = django_timezone.now()
+    diferencia = ahora - fecha_comentario
+    
+    segundos = diferencia.total_seconds()
+    minutos = segundos / 60
+    horas = minutos / 60
+    dias = horas / 24
+    semanas = dias / 7
+    meses = dias / 30
+    años = dias / 365
+    
+    if segundos < 60:
+        return "hace unos segundos"
+    elif minutos < 60:
+        mins = int(minutos)
+        return f"hace {mins} minuto{'s' if mins != 1 else ''}"
+    elif horas < 24:
+        hrs = int(horas)
+        return f"hace {hrs} hora{'s' if hrs != 1 else ''}"
+    elif dias < 7:
+        d = int(dias)
+        return f"hace {d} día{'s' if d != 1 else ''}"
+    elif semanas < 4:
+        sem = int(semanas)
+        return f"hace {sem} semana{'s' if sem != 1 else ''}"
+    elif meses < 12:
+        m = int(meses)
+        return f"hace {m} mes{'es' if m != 1 else ''}"
+    else:
+        a = int(años)
+        return f"hace {a} año{'s' if a != 1 else ''}"
 
 
 @api_view(['POST'])
@@ -51,6 +91,9 @@ def crear_comentario_reporte(request, report_id):
             comentario=comentario_texto
         )
 
+        # Verificar si es administrador
+        es_admin = usuario.rous_id.rous_nombre.lower() == 'admin'
+
         return Response(
             {
                 'message': 'Comentario creado exitosamente.',
@@ -58,10 +101,14 @@ def crear_comentario_reporte(request, report_id):
                     'id': comentario.id,
                     'comentario': comentario.comentario,
                     'fecha_comentario': comentario.fecha_comentario.isoformat(),
+                    'tiempo_relativo': obtener_tiempo_relativo(comentario.fecha_comentario),
                     'usuario': {
                         'id': comentario.usuario.usua_id,
                         'nickname': comentario.usuario.usua_nickname
-                    }
+                    },
+                    'puede_eliminar': True,  # El autor siempre puede eliminar su propio comentario
+                    'es_autor': True,
+                    'es_admin': es_admin
                 }
             },
             status=status.HTTP_201_CREATED
@@ -100,6 +147,16 @@ def listar_comentarios_reporte(request, report_id):
         # Obtener el reporte
         reporte = get_object_or_404(ReportModel, id=report_id)
 
+        # Verificar si el usuario es administrador
+        es_admin = usuario.rous_id.rous_nombre.lower() == 'admin'
+
+        # Verificar si el usuario ya ha comentado en este reporte
+        usuario_ha_comentado = ComentarioReporte.objects.filter(
+            reporte=reporte,
+            usuario=usuario,
+            comment_visible=True
+        ).exists()
+
         # Obtener parámetros de paginación
         page = int(request.GET.get('page', 1))
         limit = min(int(request.GET.get('limit', 20)), 50)  # Máximo 50
@@ -117,14 +174,24 @@ def listar_comentarios_reporte(request, report_id):
         # Serializar resultados
         results = []
         for comentario in comentarios:
+            # Verificar si el usuario actual es el autor de este comentario
+            es_autor = comentario.usuario.usua_id == usuario.usua_id
+            
+            # El usuario puede eliminar si es el autor o es administrador
+            puede_eliminar = es_autor or es_admin
+            
             results.append({
                 'id': comentario.id,
                 'comentario': comentario.comentario,
                 'fecha_comentario': comentario.fecha_comentario.isoformat(),
+                'tiempo_relativo': obtener_tiempo_relativo(comentario.fecha_comentario),
                 'usuario': {
                     'id': comentario.usuario.usua_id,
                     'nickname': comentario.usuario.usua_nickname
-                }
+                },
+                'es_autor': es_autor,
+                'puede_eliminar': puede_eliminar,
+                'es_admin': es_admin and es_autor  # Solo marcamos si es admin Y autor del comentario
             })
 
         # Contar total de comentarios visibles
@@ -133,13 +200,31 @@ def listar_comentarios_reporte(request, report_id):
             comment_visible=True
         ).count()
 
-        return Response(
-            {
-                'count': total_count,
-                'results': results
-            },
-            status=status.HTTP_200_OK
-        )
+        # Calcular paginación
+        total_pages = (total_count + limit - 1) // limit if total_count > 0 else 0
+        has_next = page < total_pages
+        has_previous = page > 1
+
+        # Preparar respuesta base
+        response_data = {
+            'comentarios': results,
+            'usuario_ha_comentado': usuario_ha_comentado,
+            'pagination': {
+                'page': page,
+                'limit': limit,
+                'total_items': total_count,
+                'total_pages': total_pages,
+                'has_next': has_next,
+                'has_previous': has_previous
+            }
+        }
+
+        # Agregar mensaje personalizado si no hay comentarios
+        if total_count == 0:
+            response_data['message'] = '¡Sé el primero en comentar en este reporte!'
+            response_data['empty'] = True
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
     except UserAuthenticationError as e:
         return Response(e.get_error_response(), status=e.status_code)
@@ -201,6 +286,7 @@ def eliminar_comentario_reporte(request, comment_id):
                     'id': comentario.id,
                     'comentario': comentario.comentario,
                     'fecha_comentario': comentario.fecha_comentario.isoformat(),
+                    'tiempo_relativo': obtener_tiempo_relativo(comentario.fecha_comentario),
                     'usuario': {
                         'id': comentario.usuario.usua_id,
                         'nickname': comentario.usuario.usua_nickname
@@ -275,6 +361,7 @@ def restaurar_comentario_reporte(request, comment_id):
                     'id': comentario.id,
                     'comentario': comentario.comentario,
                     'fecha_comentario': comentario.fecha_comentario.isoformat(),
+                    'tiempo_relativo': obtener_tiempo_relativo(comentario.fecha_comentario),
                     'usuario': {
                         'id': comentario.usuario.usua_id,
                         'nickname': comentario.usuario.usua_nickname

@@ -153,27 +153,12 @@ export default function HomeScreen() {
         });
     };
 
-    const addComment = (content: string) => {
+    const addComment = async (content: string) => {
         if (!selectedReport) return;
 
-        const newComment: Comment = {
-            id: Date.now().toString(),
-            author: 'Usuario Actual',
-            content,
-            timeAgo: 'Ahora',
-        };
-
-        setFetchedReports((prev) =>
-            prev.map((report) =>
-                report.id === selectedReport.id
-                    ? { ...report, comments: [...report.comments, newComment] }
-                    : report
-            )
-        );
-
-        setSelectedReport((prev) =>
-            prev ? { ...prev, comments: [...prev.comments, newComment] } : null
-        );
+        // El comentario se maneja dentro del CommentsModal
+        // Esta función ahora es solo un placeholder para compatibilidad
+        // El modal se encarga de actualizar la lista de comentarios
     };
 
     // Handler mejorado para loadMore

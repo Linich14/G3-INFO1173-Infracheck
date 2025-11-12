@@ -1,8 +1,15 @@
 export interface Comment {
-  id: string;
+  id: string | number;
   author: string;
   content: string;
   timeAgo: string;
+  usuario?: {
+    id: number;
+    nickname: string;
+  };
+  puede_eliminar?: boolean;
+  es_autor?: boolean;
+  es_admin?: boolean;
 }
 
 export interface Report {
@@ -24,6 +31,8 @@ export interface CommentsModalProps {
   visible: boolean;
   onClose: () => void;
   postTitle: string;
+  reportId: string | number;
   comments: Comment[];
-  onAddComment: (content: string) => void;
+  onAddComment: (content: string) => Promise<void>;
+  onRefreshComments?: () => void;
 }
