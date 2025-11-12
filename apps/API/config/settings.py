@@ -14,6 +14,16 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(','
 #GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
 #EOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
 
+
+if os.name == 'nt':  # Windows
+    # Configuración GDAL para OSGeo4W
+    OSGEO_PATH = r'C:\OSGeo4W'  # Cambiado de OSGeo4W64 a OSGeo4W
+    os.environ['PATH'] = os.path.join(OSGEO_PATH, 'bin') + ';' + os.environ['PATH']
+    os.environ['PROJ_LIB'] = os.path.join(OSGEO_PATH, 'share', 'proj')
+    os.environ['GDAL_DATA'] = os.path.join(OSGEO_PATH, 'share', 'gdal')
+    GDAL_LIBRARY_PATH = os.path.join(OSGEO_PATH, 'bin', 'gdal311.dll')
+    GEOS_LIBRARY_PATH = os.path.join(OSGEO_PATH, 'bin', 'geos_c.dll')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
