@@ -14,10 +14,14 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(','
 #GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
 #EOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
 
+import platform
 
-if os.name == 'nt':  # Windows
+if platform.system() == 'Darwin':  # macOS
+    GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
+    GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
+elif os.name == 'nt':  # Windows
     # Configuración GDAL para OSGeo4W
-    OSGEO_PATH = r'C:\Users\DBurg\AppData\Local\Programs\OSGeo4W'  # Cambiado de OSGeo4W64 a OSGeo4W
+    OSGEO_PATH = r'C:\OSGeo4W'
     os.environ['PATH'] = os.path.join(OSGEO_PATH, 'bin') + ';' + os.environ['PATH']
     os.environ['PROJ_LIB'] = os.path.join(OSGEO_PATH, 'share', 'proj')
     os.environ['GDAL_DATA'] = os.path.join(OSGEO_PATH, 'share', 'gdal')
