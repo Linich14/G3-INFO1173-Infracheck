@@ -8,42 +8,154 @@ interface PinDetailsModalProps {
     pinDetails: PinDetails | null;
     visible: boolean;
     onClose: () => void;
+    onOpenFullScreen: () => void;
 }
 
-const PinDetailsModal = ({ cargando, pinDetails, visible, onClose }: PinDetailsModalProps) => {
+const PinDetailsModal = ({
+    cargando,
+    pinDetails,
+    visible,
+    onClose,
+    onOpenFullScreen,
+}: PinDetailsModalProps) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [imageLoading, setImageLoading] = useState<boolean>(false);
+    const [imageError, setImageError] = useState<boolean>(false);
+
+    // Función para construir URL completa de imagen
+    const buildCompleteImageUrl = (imagePath: string): string => {
+        if (!imagePath) return '';
+
+        // Si ya es una URL completa, devolverla tal como está
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+            return imagePath;
+        }
+
+        // Obtener la URL base de la API
+        const baseURL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+
+        // Construir URL completa
+        return `${baseURL}${imagePath}`;
+    };
 
     useEffect(() => {
         if (visible && pinDetails) {
             setImageLoading(true);
+            setImageError(false);
+            const primeraImagen = pinDetails.imagenes[0] || null;
+
             setTimeout(() => {
-                setImageUrl(pinDetails.imagenes[0] || null);
-                setImageLoading(false);
-            }, 2000);
+                // Verificar si hay imagen disponible
+                if (!primeraImagen || primeraImagen.trim() === '') {
+                    setImageUrl(null);
+                    setImageError(false);
+                    setImageLoading(false);
+                } else {
+                    // Construir URL completa
+                    const imagenCompleta = buildCompleteImageUrl(primeraImagen);
+                    setImageUrl(imagenCompleta);
+                    setImageLoading(false);
+                }
+            }, 1000);
+        } else {
+            setImageUrl(null);
+            setImageError(false);
+            setImageLoading(false);
         }
     }, [visible, pinDetails]);
 
     const handleImageLoad = () => {
         setImageLoading(false);
+        setImageError(false);
     };
 
     const handleImageError = () => {
         setImageLoading(false);
-        console.log('Error loading image');
+        setImageError(true);
+    };
+
+    // Función para formatear fecha
+    const formatDate = (dateString: string | undefined) => {
+        try {
+            if (!dateString) return { fecha: 'Fecha no disponible', hora: 'Hora no disponible' };
+
+            const date = new Date(dateString);
+            const meses = [
+                'enero',
+                'febrero',
+                'marzo',
+                'abril',
+                'mayo',
+                'junio',
+                'julio',
+                'agosto',
+                'septiembre',
+                'octubre',
+                'noviembre',
+                'diciembre',
+            ];
+
+            const dia = date.getDate();
+            const mes = meses[date.getMonth()];
+            const año = date.getFullYear();
+            const hora = date.getHours().toString().padStart(2, '0');
+            const minutos = date.getMinutes().toString().padStart(2, '0');
+
+            return {
+                fecha: `${dia} de ${mes}, ${año}`,
+                hora: `${hora}:${minutos}`,
+            };
+        } catch {
+            return {
+                fecha: 'Fecha no disponible',
+                hora: 'Hora no disponible',
+            };
+        }
+    };
+
+    // Función para renderizar el contenido de la imagen
+    const renderImageContent = () => {
+        if (imageLoading) {
+            return (
+                <View className="items-center justify-center">
+                    <ActivityIndicator size="large" color="#007AFF" />
+                    <Text className="mt-2 text-gray-400">Cargando imagen...</Text>
+                </View>
+            );
+        }
+
+        if (!imageUrl || imageError) {
+            return (
+                <View className="items-center justify-center">
+                    <MaterialCommunityIcons name="image-off" size={48} color="#666" />
+                    <Text className="mt-2 text-gray-400">Imagen no disponible</Text>
+                </View>
+            );
+        }
+
+        return (
+            <Image
+                source={{ uri: imageUrl }}
+                className="h-full w-full rounded-lg"
+                resizeMode="cover"
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+            />
+        );
     };
 
     return (
         <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
             <View className="flex-1 justify-end bg-black/50">
-                <View className="bg-tertiary h-[60%] w-full rounded-t-xl">
+                <View className="h-[60%] w-full rounded-t-xl bg-tertiary">
                     {/* Header del modal */}
                     <View className="flex-row items-center border-b border-gray-500 px-4 py-3">
                         <Text className="text-lg font-semibold text-white">
                             Detalles del reporte
                         </Text>
                         <View className="ml-auto flex-row space-x-2">
-                            <Pressable className="rounded-full p-2">
+                            {/* Botón para abrir en pantalla completa */}
+                            <Pressable onPress={onOpenFullScreen} className="rounded-full p-2">
                                 <MaterialCommunityIcons
                                     name="open-in-new"
                                     size={24}
@@ -69,58 +181,49 @@ const PinDetailsModal = ({ cargando, pinDetails, visible, onClose }: PinDetailsM
                                 </Text>
 
                                 <View className={styles.container_card}>
+                                    <Text className={styles.title_card}>Categoría</Text>
+                                    <Text className={styles.text_card}>
+                                        {pinDetails.tipoDenuncia}
+                                    </Text>
+                                </View>
+
+                                <View className={styles.container_card}>
                                     <Text className={styles.title_card}>Descripción</Text>
                                     <Text className={styles.text_card}>
-                                        Vehículo estacionado en zona restringida durante más de 30
-                                        minutos. Se observa que el conductor no está presente en el
-                                        vehículo. Es necesario tomar medidas correctivas inmediatas.
+                                        {pinDetails.descripcion}
                                     </Text>
                                 </View>
 
                                 <View className={styles.container_card}>
                                     <Text className={styles.title_card}>Información básica</Text>
                                     <Text className={styles.text_card}>
-                                        Fecha: 8 de septiembre, 2025
+                                        Fecha: {formatDate(pinDetails.fecha).fecha}
                                     </Text>
-                                    <Text className={styles.text_card}>Hora: 14:30</Text>
-                                    <Text className={styles.text_card}>Estado: Activo</Text>
-                                    <Text className={styles.text_card}>Prioridad: Alta</Text>
+                                    <Text className={styles.text_card}>
+                                        Hora: {formatDate(pinDetails.fecha).hora}
+                                    </Text>
+                                    <Text className={styles.text_card}>
+                                        Urgencia: {pinDetails.nivelUrgencia}
+                                    </Text>
                                 </View>
 
                                 <View className={styles.container_card}>
                                     <Text className={styles.title_card}>Ubicación</Text>
-                                    <Text className={styles.text_card}>Latitud: -38.7400</Text>
-                                    <Text className={styles.text_card}>Longitud: -72.5910</Text>
                                     <Text className={styles.text_card}>
-                                        Dirección: Avenida Alemania 1234, Temuco
+                                        Latitud: {pinDetails.ubicacion.latitud}
+                                    </Text>
+                                    <Text className={styles.text_card}>
+                                        Longitud: {pinDetails.ubicacion.longitud}
+                                    </Text>
+                                    <Text className={styles.text_card}>
+                                        Dirección: {pinDetails.ubicacion.direccion}
                                     </Text>
                                 </View>
 
                                 <View className={styles.container_card}>
                                     <Text className={styles.title_card}>Evidencia fotográfica</Text>
                                     <View className="h-48 w-full items-center justify-center rounded-lg bg-gray-800">
-                                        {imageLoading ? (
-                                            <ActivityIndicator size="large" color="#007AFF" />
-                                        ) : imageUrl ? (
-                                            <Image
-                                                source={{ uri: imageUrl }}
-                                                className="h-full w-full rounded-lg"
-                                                resizeMode="cover"
-                                                onLoad={handleImageLoad}
-                                                onError={handleImageError}
-                                            />
-                                        ) : (
-                                            <View className="items-center">
-                                                <MaterialCommunityIcons
-                                                    name="image-off"
-                                                    size={48}
-                                                    color="#666"
-                                                />
-                                                <Text className="mt-2 text-gray-400">
-                                                    Imagen no disponible
-                                                </Text>
-                                            </View>
-                                        )}
+                                        {renderImageContent()}
                                     </View>
                                 </View>
                             </View>

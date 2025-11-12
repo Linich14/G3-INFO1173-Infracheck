@@ -32,8 +32,24 @@ export interface AnnotationData {
     coordinate: [number, number];
     title: string;
     description?: string;
-    severity?: 'low' | 'medium' | 'high';
-    status?: 'active' | 'resolved' | 'pending';
+    // Usar directamente los strings del backend (ya están en español)
+    severity?: string; // "Baja", "Media", "Alta", "Crítica"
+    status?: string; // "Abierto", "En Revisión", "En Proceso", "Resuelto", "Cerrado", "Rechazado"
+    // Campos adicionales del backend
+    direccion?: string;
+    urgencia?: number;
+    urgencia_label?: string;
+    estado?: number;
+    estado_nombre?: string;
+    tipo_denuncia?: number;
+    tipo_denuncia_nombre?: string;
+    ciudad_nombre?: string;
+    fecha_creacion?: string;
+    imagen_principal?: string;
+    total_archivos?: number;
+    es_mi_reporte?: boolean;
+    usuario_nombre?: string;
+    marker_color?: string;
 }
 
 export interface AnnotationConfig {
