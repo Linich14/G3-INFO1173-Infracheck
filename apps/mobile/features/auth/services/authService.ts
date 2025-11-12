@@ -280,11 +280,7 @@ export const isAuthenticated = async (): Promise<boolean> => {
 export async function loginUser(data: LoginData): Promise<AuthResponse> {
   try {
     // Verificar si hay un token guardado (no debería haberlo para login)
-    const existingToken = await getToken();
-    console.log('Existing token before login:', existingToken ? 'EXISTS' : 'NONE');
-    
-    console.log('Attempting login with data:', { rut: data.rut, password: '***' });
-    console.log('API URL:', `${API_CONFIG.BASE_URL}/api/v1/login/`);
+    // const existingToken = await getToken();
     
     const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/login/`, {
       method: 'POST',
@@ -293,12 +289,7 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
       },
       body: JSON.stringify(data),
     });
-
-    console.log('Response status:', response.status);
-    console.log('Response ok:', response.ok);
-    
     const result = await response.json();
-    console.log('Response result:', result);
 
     // El backend envía token cuando el login es exitoso, no un campo 'success'
     if (response.ok && result.token) {

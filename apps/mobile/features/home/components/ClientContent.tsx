@@ -86,13 +86,21 @@ export default function ClientContent({
 
     // Función para manejar upvote
     const handleUpvote = (reportId: string) => {
-        if (!upvotedReports.has(reportId)) {
-            setUpvotedReports((prev) => new Set(prev).add(reportId));
-            setReportUpvotes((prev) => ({
-                ...prev,
-                [reportId]: (prev[reportId] || 0) + 1,
+        setUpvotedReports((prev) => {
+            const newSet = new Set(prev);
+            setReportUpvotes((prevCounts) => ({
+                ...prevCounts,
+                [reportId]: newSet.has(reportId) ? Math.max(0, (prevCounts[reportId] || 1) - 1) : (prevCounts[reportId] || 0) + 1,
             }));
-        }
+
+            if (newSet.has(reportId)) {
+                newSet.delete(reportId);
+            } else {
+                newSet.add(reportId);
+            }
+
+            return newSet;
+        });
     };
 
     // Función para manejar follow

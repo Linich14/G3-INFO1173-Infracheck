@@ -8,8 +8,6 @@ import api from '~/shared/api';
 export const testBackendConnection = async (): Promise<{ success: boolean; message: string; url: string }> => {
   try {
     const url = `${API_CONFIG.BASE_URL}/api/v1/health/`; // Endpoint de health check si existe
-    console.log('🔍 Probando conexión con backend:', url);
-
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -35,55 +33,16 @@ export const testBackendConnection = async (): Promise<{ success: boolean; messa
  * Función de debug para verificar configuración de votación
  */
 export const debugVoteConfiguration = async (reportId: string | number = 1) => {
-  console.log('🔧 Debug - Configuración de Votación');
-  console.log('=====================================');
-
-  // Verificar URL base
-  console.log('📍 URL Base:', API_CONFIG.BASE_URL);
-
-  // Verificar URL completa del endpoint
+  // Esta función se deja como utilidad pero sin logs para no saturar la consola en producción.
+  // Si necesitas debug, habilita manualmente logs locales aquí.
   const voteUrl = `${API_CONFIG.BASE_URL}/api/reports/${reportId}/vote/`;
-  console.log('🎯 URL del endpoint de voto:', voteUrl);
-
-  // Verificar autenticación
-  console.log('🔐 Verificando autenticación...');
+  // Probar conexión básica (sin loguear)
+  await testBackendConnection();
   try {
-    const { isAuthenticated, getToken } = await import('~/features/auth/services/authService');
-    const isAuth = await isAuthenticated();
-    const token = await getToken();
-    console.log('Estado de autenticación:', isAuth ? 'AUTENTICADO' : 'NO AUTENTICADO');
-    console.log('Token disponible:', token ? 'SÍ' : 'NO', token ? `(longitud: ${token.length})` : '');
-  } catch (error) {
-    console.log('Error verificando autenticación:', error);
+    await fetch(voteUrl, { method: 'OPTIONS' });
+  } catch {
+    // Silencioso
   }
-
-  // Probar conexión básica
-  console.log('🌐 Probando conexión básica...');
-  const connectionTest = await testBackendConnection();
-  console.log('Resultado:', connectionTest);
-
-  // Verificar si el endpoint existe (sin autenticación)
-  console.log('🔍 Verificando endpoint de voto...');
-  try {
-    const response = await fetch(voteUrl, {
-      method: 'OPTIONS', // O GET si el endpoint lo permite
-    });
-    console.log('Endpoint response:', {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries())
-    });
-  } catch (error) {
-    console.log('Error al verificar endpoint:', error);
-  }
-
-  console.log('=====================================');
-  console.log('💡 URLs del backend:');
-  console.log('   - Auth: /api/v1/* (login, verify-token, etc.)');
-  console.log('   - Reports/Proyectos: /api/* (sin v1)');
-  console.log('💡 Si ves "NO AUTENTICADO", necesitas iniciar sesión');
-  console.log('💡 Si ves errores 403, el token podría ser inválido');
-  console.log('💡 Si ves errores de red, verifica que el backend esté ejecutándose');
 };
 
 export interface VoteData {
@@ -156,18 +115,25 @@ export const getReportVotes = async (reportId: string | number): Promise<ReportV
 /**
  * Servicio para votar/unvotar un reporte
  */
-export const toggleReportVote = async (reportId: string | number): Promise<{ success: boolean; message: string }> => {
+export const toggleReportVote = async (reportId: string | number): Promise<{ success: boolean; action?: 'added' | 'removed'; message: string }> => {
   try {
     const response = await api.post(`/api/reports/${reportId}/vote/`, {}, {
       headers: {
         'Content-Type': 'application/json',
       }
     });
-
+    // El endpoint puede devolver 201 para creación o 204/200 para eliminación dependiendo del backend
     if (response.status === 201) {
       return {
         success: true,
-        message: response.data.message || 'Voto registrado exitosamente'
+        action: 'added',
+        message: response.data?.message || 'Voto registrado exitosamente'
+      };
+    } else if (response.status === 204 || response.status === 200) {
+      return {
+        success: true,
+        action: 'removed',
+        message: response.data?.message || 'Voto eliminado exitosamente'
       };
     } else {
       const errorMessage = response.data?.errors?.[0] || response.data?.message || 'Error al registrar el voto';

@@ -11,6 +11,7 @@ import {
 import { ReportCardProps } from '../types';
 import { useReportVotes } from '../hooks/useReportVotes';
 import { useRouter } from 'expo-router';
+import VoteButton from './VoteButton';
 
 const ReportCard: React.FC<ReportCardProps> = ({
     id,
@@ -140,32 +141,16 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 {/* Footer */}
                 <View className="flex-row items-center justify-between p-4">
                     <View className="flex-row">
-                        <TouchableOpacity
-                            className={`mr-4 flex-row items-center gap-2 rounded-[32px] border px-4 py-2 shadow active:opacity-90 ${
-                                userHasVoted
-                                    ? 'border-blue-500 bg-[#4A90E2]'
-                                    : 'border-gray-400 bg-[#f0f0f0]'
-                            }`}
-                            onPress={(e) => {
-                                e.stopPropagation();
+                        <VoteButton
+                            voteCount={voteCount}
+                            userHasVoted={userHasVoted}
+                            isLoading={votesLoading}
+                            isSubmitting={isSubmitting}
+                            onPress={() => {
                                 submitVote();
                                 onUpvote?.(); // Mantener callback por compatibilidad
                             }}
-                            disabled={votesLoading || isSubmitting || userHasVoted}
-                            accessibilityLabel={`${voteCount} votos${userHasVoted ? ', ya has votado' : ''}`}
-                            accessibilityRole="button"
-                        >
-                            {votesLoading || isSubmitting ? (
-                                <ActivityIndicator size="small" color={userHasVoted ? '#fff' : '#666'} />
-                            ) : (
-                                <ArrowBigUp size={18} color={userHasVoted ? '#fff' : '#666'} />
-                            )}
-                            <Text className={`text-center text-base font-medium ${
-                                userHasVoted ? 'text-white' : 'text-gray-600'
-                            }`}>
-                                {voteCount}
-                            </Text>
-                        </TouchableOpacity>
+                        />
 
                         <TouchableOpacity
                             className="flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 shadow active:opacity-90"

@@ -4,6 +4,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '~/contexts/AuthContext';
 import { UserProvider } from '~/contexts/UserContext';
+import { ToastProvider } from '~/features/posts/contexts/ToastContext';
 import { View, ActivityIndicator } from 'react-native';
 import { useNavigationBreadcrumb } from '~/hooks/useNavigationBreadcrumb';
 
@@ -59,7 +60,9 @@ export default function Layout() {
   return (
     <AuthProvider>
       <UserProvider>
-        <RootLayoutNav />
+        <ToastProvider>
+          <RootLayoutNav />
+        </ToastProvider>
       </UserProvider>
     </AuthProvider>
   );

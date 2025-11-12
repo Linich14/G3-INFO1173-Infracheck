@@ -16,7 +16,6 @@ const mapReportToHomeFormat = (report: any): ReportForHome => ({
 });
 
 const getMainImage = (archivos: any[]) => {
-    console.log('Processing archivos:', archivos);
 
     if (!archivos || archivos.length === 0) {
         return require('@assets/Publicaciones/1.png');
@@ -107,14 +106,7 @@ export const useReportsList = () => {
                     return;
                 }
 
-                console.log(
-                    'Loading reports with cursor:',
-                    cursor,
-                    'isRefresh:',
-                    isRefresh,
-                    'isLoadMore:',
-                    isLoadMore
-                );
+                // loading reports (no debug logs)
 
                 // Limpiar errores
                 if (isLoadMore) {
@@ -158,11 +150,7 @@ export const useReportsList = () => {
                 if (response.success) {
                     const mappedReports = response.data.map(mapReportToHomeFormat);
 
-                    console.log('Response received:', {
-                        reportsCount: mappedReports.length,
-                        hasMore: response.pagination.hasMore,
-                        nextCursor: response.pagination.nextCursor,
-                    });
+                    // response received (mapped reports)
 
                     if (isRefresh || (!cursor && !isLoadMore)) {
                         // Nueva carga o refresh - reemplazar todos los reportes

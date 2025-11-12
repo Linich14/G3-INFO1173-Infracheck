@@ -15,8 +15,12 @@ logger = logging.getLogger(__name__)
 @permission_classes([IsAuthenticated])
 def votar_reporte(request, report_id):
     """
-    Endpoint para que un usuario vote por un reporte.
+    Endpoint para que un usuario vote o quite su voto de un reporte (toggle).
     POST /api/v1/reports/{report_id}/vote/
+    
+    Comportamiento:
+    - Si el usuario NO ha votado: Se registra el voto (201 Created)
+    - Si el usuario YA votó: Se elimina el voto (200 OK)
     """
     try:
         # Obtener usuario autenticado
@@ -31,39 +35,70 @@ def votar_reporte(request, report_id):
         reporte = get_object_or_404(ReportModel, id=report_id)
 
         # Verificar si el usuario ya votó por este reporte
-        if VotoReporte.ha_votado_reporte(usuario, reporte):
-            return Response(
-                {'errors': ['Ya has votado por este reporte.']},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        voto_existente = VotoReporte.objects.filter(
+            usuario=usuario,
+            reporte=reporte
+        ).first()
 
-        # Crear el voto
-        try:
-            voto = VotoReporte.objects.create(
-                usuario=usuario,
-                reporte=reporte
-            )
-
+        if voto_existente:
+            # TOGGLE: Si ya votó, eliminar el voto
+            voto_existente.delete()
+            
+            # Obtener el nuevo conteo de votos
+            nuevo_conteo = VotoReporte.contar_votos_reporte(reporte)
+            
+            logger.info(f"Voto eliminado - Usuario: {usuario.usua_id}, Reporte: {report_id}")
+            
             return Response(
                 {
-                    'message': 'Voto registrado exitosamente.',
-                    'voto': {
-                        'id': voto.id,
-                        'fecha_voto': voto.fecha_voto.isoformat(),
-                        'reporte_id': reporte.id
+                    'message': 'Voto eliminado exitosamente.',
+                    'action': 'removed',
+                    'votos': {
+                        'count': nuevo_conteo,
+                        'usuario_ha_votado': False
                     }
                 },
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_200_OK
             )
+        else:
+            # Si no ha votado, crear el voto
+            try:
+                voto = VotoReporte.objects.create(
+                    usuario=usuario,
+                    reporte=reporte
+                )
+                
+                # Obtener el nuevo conteo de votos
+                nuevo_conteo = VotoReporte.contar_votos_reporte(reporte)
+                
+                logger.info(f"Voto registrado - Usuario: {usuario.usua_id}, Reporte: {report_id}")
 
-        except IntegrityError:
-            return Response(
-                {'errors': ['Ya has votado por este reporte.']},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                return Response(
+                    {
+                        'message': 'Voto registrado exitosamente.',
+                        'action': 'added',
+                        'voto': {
+                            'id': voto.id,
+                            'fecha_voto': voto.fecha_voto.isoformat(),
+                            'reporte_id': reporte.id
+                        },
+                        'votos': {
+                            'count': nuevo_conteo,
+                            'usuario_ha_votado': True
+                        }
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+
+            except IntegrityError:
+                # Por si acaso hay una condición de carrera
+                return Response(
+                    {'errors': ['Ya has votado por este reporte.']},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
     except Exception as e:
-        logger.error(f"Error al registrar voto: {str(e)}")
+        logger.error(f"Error al procesar voto: {str(e)}")
         return Response(
             {'errors': ['Error interno del servidor. Intente nuevamente.']},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR

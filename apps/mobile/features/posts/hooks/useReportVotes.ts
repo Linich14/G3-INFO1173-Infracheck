@@ -40,7 +40,7 @@ export const useReportVotes = (
     error: null,
   });
 
-  const { showSuccess, showError, showInfo, hapticOnly } = useVoteFeedback();
+  const { showSuccess, showVote, showUnvote, showError, showInfo, hapticOnly } = useVoteFeedback();
   const { isLoggedIn, handleSessionExpired } = useAuth();
 
   // Actualizar el estado cuando cambien los valores iniciales (del reporte)
@@ -74,14 +74,7 @@ export const useReportVotes = (
       };
     }
 
-    // Validación 2: No debe haber votado ya
-    if (state.userHasVoted) {
-      return {
-        canVote: false,
-        reason: 'already_voted',
-        message: 'Ya has votado por este reporte'
-      };
-    }
+    // Nota: permitimos toggling (votar y quitar voto). No bloqueamos si ya votó.
 
     // Validación 3: No debe estar enviando otro voto
     if (state.isSubmitting) {
@@ -110,7 +103,7 @@ export const useReportVotes = (
    * Votar por el reporte con optimistic update y manejo completo de errores
    */
   const submitVote = useCallback(async () => {
-    // PASO 1: Validaciones
+    // PASO 1: Validaciones (solo autenticación y no reenvío)
     const validation = canUserVote();
 
     if (!validation.canVote) {
@@ -125,14 +118,16 @@ export const useReportVotes = (
       return;
     }
 
-    // PASO 2: Optimistic Update (actualizar UI inmediatamente)
+    // PASO 2: Determinar acción (votar o eliminar voto)
+    const isCurrentlyVoted = state.userHasVoted;
     const previousCount = state.voteCount;
     const previousVoted = state.userHasVoted;
 
+    // Optimistic update: si ya votó -> decrement; si no -> increment
     setState(prev => ({
       ...prev,
-      voteCount: prev.voteCount + 1,
-      userHasVoted: true,
+      voteCount: prev.voteCount + (isCurrentlyVoted ? -1 : 1),
+      userHasVoted: !isCurrentlyVoted,
       isSubmitting: true,
     }));
 
@@ -140,96 +135,48 @@ export const useReportVotes = (
     hapticOnly('light');
 
     try {
-      // PASO 3: Enviar request a API
+      // PASO 3: Enviar request a API (endpoint toggle)
       const result = await toggleReportVote(reportId);
 
       if (result.success) {
-        // ✅ ÉXITO: Voto registrado
-        
-        // Mantener el cambio optimista - no necesitamos recargar
-        // El backend ya procesó el voto correctamente
-        setState(prev => ({
-          ...prev,
-          isSubmitting: false,
-        }));
+        // Determinar acción informada por backend
+        const action = result.action ?? (isCurrentlyVoted ? 'removed' : 'added');
 
-        // Actualizar caché
+        // Actualizar caché según acción
         votesCache.set(reportId, {
-          count: previousCount + 1,
-          userHasVoted: true,
+          count: action === 'added' ? previousCount + 1 : Math.max(0, previousCount - 1),
+          userHasVoted: action === 'added',
           timestamp: Date.now(),
         });
 
-        // Feedback al usuario
-        showSuccess('¡Voto registrado exitosamente!');
+        // Feedback al usuario con mensajes específicos
+        if (action === 'added') {
+          showVote('¡Voto registrado!');
+        } else {
+          showUnvote('Voto eliminado');
+        }
+        
         hapticOnly('success');
 
+        // Establecer isSubmitting = false (ya actualizado optimísticamente)
+        setState(prev => ({ ...prev, isSubmitting: false }));
+
       } else {
-        // ❌ ERROR: Procesar según el tipo de error
-        const errorMessage = result.message.toLowerCase();
+        // Server error: revertir optimismo
+        setState(prev => ({
+          ...prev,
+          voteCount: previousCount,
+          userHasVoted: previousVoted,
+          isSubmitting: false,
+        }));
 
-        if (errorMessage.includes('ya has votado') || errorMessage.includes('already voted')) {
-          // ⚠️ ERROR: Usuario ya había votado (validación preventiva falló)
-
-          // Mantener estado "votado" (era validación preventiva)
-          // No revertir porque técnicamente sí está votado
-          votesCache.set(reportId, {
-            count: state.voteCount + 1,
-            userHasVoted: true,
-            timestamp: Date.now(),
-          });
-
-          showInfo('Ya has votado por este reporte');
-
-        } else if (errorMessage.includes('usuario no autenticado') || errorMessage.includes('not authenticated')) {
-          // 🔒 ERROR: Token inválido/expirado
-
-          // Revertir cambio optimista
-          setState(prev => ({
-            ...prev,
-            voteCount: previousCount,
-            userHasVoted: previousVoted,
-            isSubmitting: false,
-          }));
-
-          // Limpiar sesión y redirigir
-          await handleSessionExpired();
-          showError('Sesión expirada. Inicia sesión nuevamente.');
-
-        } else if (errorMessage.includes('reporte no encontrado') || errorMessage.includes('not found')) {
-          // ❌ ERROR: Reporte no existe
-
-          // Revertir cambio
-          setState(prev => ({
-            ...prev,
-            voteCount: previousCount,
-            userHasVoted: previousVoted,
-            isSubmitting: false,
-          }));
-
-          showError('Reporte no encontrado');
-
-        } else {
-          // ❌ ERROR: Otro error del servidor
-
-          // Revertir cambio
-          setState(prev => ({
-            ...prev,
-            voteCount: previousCount,
-            userHasVoted: previousVoted,
-            isSubmitting: false,
-          }));
-
-          showError(result.message || 'Error al registrar voto');
-        }
+        showError(result.message || 'Error al registrar voto');
       }
 
     } catch (error: any) {
-      // ❌ ERROR: Problema de red o sesión expirada
-
-      console.error('Error al votar:', error);
-
       // Revertir cambio optimista
+      if (__DEV__) console.error('Error al votar:', error);
+
       setState(prev => ({
         ...prev,
         voteCount: previousCount,
@@ -243,12 +190,6 @@ export const useReportVotes = (
       } else {
         showError('Error de conexión. Verifica tu internet.');
       }
-
-    } finally {
-      setState(prev => ({
-        ...prev,
-        isSubmitting: false,
-      }));
     }
   }, [reportId, state, canUserVote, showSuccess, showError, showInfo, hapticOnly, clearCache, handleSessionExpired]);
 

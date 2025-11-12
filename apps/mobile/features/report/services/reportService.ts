@@ -14,6 +14,7 @@ export class ReportService {
     static async createReport(data: ReportFormData): Promise<CreateReportResponse> {
         try {
             console.log('Creating report with data:', data);
+                // creating report (no debug log)
 
             // Verificar autenticación
             const authenticated = await isAuthenticated();
@@ -70,19 +71,6 @@ export class ReportService {
 
             formData.append('visible', data.visible.toString());
 
-            // Log para debug
-            console.log('FormData values:', {
-                titulo: data.titulo,
-                descripcion: data.descripcion,
-                direccion: data.direccion,
-                latitud: data.latitud.toString(),
-                longitud: data.longitud.toString(),
-                urgencia: data.urgencia,
-                tipo_denuncia: data.tipoDenuncia,
-                ciudad: data.ciudad,
-                visible: data.visible.toString(),
-            });
-
             // Agregar imágenes
             data.imagenes.forEach((imageUri, index) => {
                 const filename = imageUri.split('/').pop() || `image_${index + 1}.jpg`;
@@ -135,6 +123,7 @@ export class ReportService {
     static async getReportDetail(reportId: string): Promise<ReportDetailResponse> {
         try {
             console.log('Getting report detail for ID:', reportId);
+                // getting report detail
 
             // Verificar autenticación
             const authenticated = await isAuthenticated();
@@ -160,6 +149,7 @@ export class ReportService {
     ): Promise<ReportsListResponse> {
         try {
             console.log('Getting reports list:', { cursor, limit });
+                // getting reports list
 
             // Verificar autenticación
             const authenticated = await isAuthenticated();
@@ -186,15 +176,10 @@ export class ReportService {
             }
 
             console.log('Request params:', params);
+                // request params
 
             const response = await api.get('/api/reports/', {
                 params,
-            });
-
-            console.log('API response received:', {
-                success: response.data.success,
-                dataLength: response.data.data?.length,
-                hasMore: response.data.pagination?.hasMore,
             });
 
             return response.data;

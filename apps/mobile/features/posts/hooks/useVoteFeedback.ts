@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { Alert } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { useToast } from '../contexts/ToastContext';
 
 interface FeedbackOptions {
   haptic?: 'success' | 'error' | 'warning' | 'light';
@@ -8,60 +8,48 @@ interface FeedbackOptions {
 }
 
 /**
- * Hook para manejar feedback al usuario (alerts y haptics)
+ * Hook para manejar feedback al usuario (toast y haptics)
  */
 export const useVoteFeedback = () => {
+  const toast = useToast();
+
   /**
    * Mostrar mensaje de éxito
    */
   const showSuccess = useCallback((message: string, options: FeedbackOptions = {}) => {
-    const { haptic = 'success', duration = 2000 } = options;
+    toast.showSuccess(message);
+  }, [toast]);
 
-    // Alert de éxito
-    Alert.alert('¡Votado!', message, [{ text: 'OK' }], { cancelable: false });
+  /**
+   * Mostrar mensaje de voto
+   */
+  const showVote = useCallback((message: string, options: FeedbackOptions = {}) => {
+    toast.showVote(message);
+  }, [toast]);
 
-    // Feedback háptico
-    if (haptic === 'success') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } else if (haptic === 'light') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-  }, []);
+  /**
+   * Mostrar mensaje de unvote
+   */
+  const showUnvote = useCallback((message: string, options: FeedbackOptions = {}) => {
+    toast.showUnvote(message);
+  }, [toast]);
 
   /**
    * Mostrar mensaje de error
    */
   const showError = useCallback((message: string, options: FeedbackOptions = {}) => {
-    const { haptic = 'error' } = options;
-
-    // Alert de error
-    Alert.alert('Error', message, [{ text: 'Entendido' }], { cancelable: false });
-
-    // Feedback háptico
-    if (haptic === 'error') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    } else if (haptic === 'warning') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-  }, []);
+    toast.showError(message);
+  }, [toast]);
 
   /**
    * Mostrar mensaje informativo
    */
   const showInfo = useCallback((message: string, options: FeedbackOptions = {}) => {
-    const { haptic = 'light' } = options;
-
-    // Alert informativo
-    Alert.alert('Información', message, [{ text: 'OK' }], { cancelable: false });
-
-    // Feedback háptico suave
-    if (haptic === 'light') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-  }, []);
+    toast.showInfo(message);
+  }, [toast]);
 
   /**
-   * Feedback háptico solo (sin alert)
+   * Feedback háptico solo (sin toast)
    */
   const hapticOnly = useCallback((type: 'success' | 'error' | 'warning' | 'light' = 'light') => {
     switch (type) {
@@ -83,6 +71,8 @@ export const useVoteFeedback = () => {
 
   return {
     showSuccess,
+    showVote,
+    showUnvote,
     showError,
     showInfo,
     hapticOnly,
