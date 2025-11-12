@@ -38,8 +38,12 @@ class SeguimientoReporte(models.Model):
 
     @staticmethod
     def puede_seguir_mas_reportes(usuario):
-        """Verifica si el usuario puede seguir más reportes (máximo 15)"""
-        return SeguimientoReporte.objects.filter(usuario=usuario).count() < 15
+        """Verifica si el usuario puede seguir más reportes (máximo 15)
+        Solo cuenta reportes visibles (visible=True), los eliminados no cuentan"""
+        return SeguimientoReporte.objects.filter(
+            usuario=usuario,
+            reporte__visible=True
+        ).count() < 15
 
     @staticmethod
     def esta_siguiendo_reporte(usuario, reporte):

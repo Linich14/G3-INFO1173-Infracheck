@@ -264,14 +264,19 @@ def followed_reports_view(request):
         offset = (page - 1) * limit
 
         # Obtener seguimientos con reportes relacionados
+        # SOLO reportes visibles (visible=True) - los eliminados no aparecen
         seguimientos = SeguimientoReporte.objects.filter(
-            usuario=usuario
+            usuario=usuario,
+            reporte__visible=True  # ← Solo reportes visibles
         ).select_related('reporte', 'reporte__usuario', 'reporte__denuncia_estado', 'reporte__tipo_denuncia', 'reporte__ciudad')\
             .order_by('-fecha_seguimiento')[offset:offset + limit]
 
         # Serializar resultados
         results = []
         for seguimiento in seguimientos:
+            # Obtener coordenadas del reporte
+            coordinates = seguimiento.reporte.get_coordinates()
+            
             results.append({
                 'id': seguimiento.id,
                 'titulo': seguimiento.reporte.titulo,
@@ -280,8 +285,14 @@ def followed_reports_view(request):
                     'id': seguimiento.reporte.id,
                     'titulo': seguimiento.reporte.titulo,
                     'descripcion': seguimiento.reporte.descripcion,
-                    'ubicacion': seguimiento.reporte.ubicacion,
-                    'urgencia': seguimiento.reporte.urgencia,
+                    'ubicacion': {
+                        'latitud': coordinates['latitud'],
+                        'longitud': coordinates['longitud']
+                    },
+                    'urgencia': {
+                        'valor': seguimiento.reporte.urgencia,
+                        'etiqueta': seguimiento.reporte.get_urgencia_display()
+                    },
                     'fecha_creacion': seguimiento.reporte.fecha_creacion.isoformat(),
                     'usuario': {
                         'id': seguimiento.reporte.usuario.usua_id,
@@ -293,9 +304,10 @@ def followed_reports_view(request):
                 }
             })
 
-        # Contar total de seguimientos
+        # Contar total de seguimientos (solo visibles)
         total_count = SeguimientoReporte.objects.filter(
-            usuario=usuario
+            usuario=usuario,
+            reporte__visible=True  # ← Solo contar visibles
         ).count()
 
         return Response(

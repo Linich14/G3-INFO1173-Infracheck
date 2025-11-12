@@ -7,9 +7,13 @@ import {
     ArrowBigUp,
     MessageCircle,
     Share2,
+    UserPlus,
+    UserCheck,
 } from 'lucide-react-native';
 import { ReportCardProps } from '../types';
 import { useReportVotes } from '../hooks/useReportVotes';
+import { useReportFollow } from '../hooks/useReportFollow';
+import { useToast } from '../contexts/ToastContext';
 import { useRouter } from 'expo-router';
 import VoteButton from './VoteButton';
 
@@ -22,6 +26,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
     upvotes = 0, // Mantener como fallback por compatibilidad
     initialVoteCount = 0,
     initialUserHasVoted = false,
+    seguimiento,
     onFollow,
     onMore,
     onLocation,
@@ -33,6 +38,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
     isFollowed = false,
 }) => {
     const router = useRouter();
+    const toast = useToast();
     const [imageError, setImageError] = useState(false);
     const hasImage = !!image && !imageError;
 
@@ -41,6 +47,29 @@ const ReportCard: React.FC<ReportCardProps> = ({
         id,
         initialVoteCount,
         initialUserHasVoted
+    );
+
+    // Hook para manejar seguimiento
+    const {
+        isFollowing,
+        followersCount,
+        isLoading: followLoading,
+        toggleFollow,
+    } = useReportFollow(
+        id,
+        seguimiento?.is_following ?? isFollowed,
+        seguimiento?.seguidores_count ?? 0,
+        (nowFollowing) => {
+            if (nowFollowing) {
+                toast.showSuccess('¡Ahora sigues este reporte!');
+            } else {
+                toast.showInfo('Dejaste de seguir este reporte');
+            }
+            onFollow?.();
+        },
+        (error) => {
+            toast.showError(error);
+        }
     );
 
     const goToDetail = () => {
@@ -82,13 +111,40 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
                 <View className="flex-shrink-0">
                     <TouchableOpacity
-                        className={`rounded-[32px] border px-4 py-1 shadow active:opacity-80 ${
-                            isFollowed ? 'border-red-500 bg-red-500' : 'border-white bg-[#537CF2]'
+                        className={`flex-row items-center gap-1.5 rounded-[32px] border px-4 py-1 shadow active:opacity-80 ${
+                            isFollowing 
+                                ? 'border-[#537CF2] bg-[#537CF2]/20' 
+                                : 'border-white bg-[#537CF2]'
                         }`}
-                        onPress={onFollow}>
-                        <Text className="text-center text-lg font-medium text-white">
-                            {followLabel}
-                        </Text>
+                        onPress={toggleFollow}
+                        disabled={followLoading}>
+                        {followLoading ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                            <>
+                                {isFollowing ? (
+                                    <UserCheck size={16} color="#537CF2" />
+                                ) : (
+                                    <UserPlus size={16} color="#fff" />
+                                )}
+                                <Text className={`text-center text-base font-medium ${
+                                    isFollowing ? 'text-[#537CF2]' : 'text-white'
+                                }`}>
+                                    {isFollowing ? 'Siguiendo' : followLabel}
+                                </Text>
+                                {followersCount > 0 && (
+                                    <View className={`ml-1 rounded-full px-2 py-0.5 ${
+                                        isFollowing ? 'bg-[#537CF2]' : 'bg-white/20'
+                                    }`}>
+                                        <Text className={`text-xs font-bold ${
+                                            isFollowing ? 'text-white' : 'text-white'
+                                        }`}>
+                                            {followersCount}
+                                        </Text>
+                                    </View>
+                                )}
+                            </>
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>

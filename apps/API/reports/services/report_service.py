@@ -10,6 +10,7 @@ import os
 
 from reports.models import ReportModel, DenunciaEstado, TipoDenuncia, Ciudad, VotoReporte
 from reports.models.report_archivos import ReportArchivo
+from reports.models.seguimiento_reporte import SeguimientoReporte
 from reports.exceptions import ReportNotFoundException, ReportValidationException
 from .validation_service import validation_service
 from .notification_service import notification_service
@@ -171,6 +172,15 @@ class ReportService:
                 usuario_id=usuario_id
             ).exists()
         
+        # Verificar si el usuario está siguiendo este reporte
+        is_following = False
+        if usuario_id:
+            try:
+                usuario = Usuario.objects.get(usua_id=usuario_id)
+                is_following = SeguimientoReporte.esta_siguiendo_reporte(usuario, report)
+            except Usuario.DoesNotExist:
+                pass
+        
         return {
             'id': report.id,
             'titulo': report.titulo,
@@ -216,6 +226,10 @@ class ReportService:
             'votos': {
                 'count': votos_count,
                 'usuario_ha_votado': usuario_ha_votado
+            },
+            'seguimiento': {
+                'is_following': is_following,
+                'seguidores_count': SeguimientoReporte.objects.filter(reporte=report).count()
             }
         }
     

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, FlatList, ActivityIndicator, Text, RefreshControl, TouchableOpacity } from 'react-native';
 import { AlertCircle } from 'lucide-react-native';
-import { useFollowedReports } from '../hooks/useFollowedReports';
+import { useFollowedReports } from '~/features/posts/hooks/useFollowedReports';
 import FollowedReportCard from './FollowedReportCard';
 import EmptyFollowedReports from './EmptyFollowedReports';
 import FollowedReportsPlaceholder from './FollowedReportsPlaceholder';
@@ -11,28 +11,16 @@ interface FollowedReportsListProps {
 }
 
 const FollowedReportsList: React.FC<FollowedReportsListProps> = ({ onSwitchToAll }) => {
-  const { reports, loading, error, refresh, unfollowReport } = useFollowedReports();
+  const { followedReports, count, isLoading, error, refresh } = useFollowedReports();
   const [refreshing, setRefreshing] = useState(false);
-  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    setHasAttemptedLoad(true);
     await refresh();
     setRefreshing(false);
   }, [refresh]);
 
-  const handleInitialLoad = React.useCallback(async () => {
-    setHasAttemptedLoad(true);
-    await refresh();
-  }, [refresh]);
-
-  // Si nunca se ha intentado cargar, mostrar placeholder
-  if (!hasAttemptedLoad) {
-    return <FollowedReportsPlaceholder onRetry={handleInitialLoad} />;
-  }
-
-  if (loading && !refreshing) {
+  if (isLoading && !refreshing) {
     return (
       <View className="flex-1 items-center justify-center bg-[#13161E]">
         <ActivityIndicator size="large" color="#537CF2" />
@@ -63,25 +51,28 @@ const FollowedReportsList: React.FC<FollowedReportsListProps> = ({ onSwitchToAll
     );
   }
 
-  if (reports.length === 0) {
+  if (followedReports.length === 0) {
     return <EmptyFollowedReports onExplore={onSwitchToAll} />;
   }
 
   return (
     <FlatList
-      data={reports}
+      data={followedReports}
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => (
         <FollowedReportCard
-          id={item.id}
-          titulo={item.titulo}
-          descripcion={item.descripcion}
-          urgencia={item.urgencia}
-          estado={item.estado}
-          categoria={item.categoria}
-          fecha_creacion={item.fecha_creacion}
-          usuario_nombre={item.usuario_nombre}
-          onUnfollow={unfollowReport}
+          id={item.reporte.id}
+          titulo={item.reporte.titulo}
+          descripcion={item.reporte.descripcion || ''}
+          urgencia={item.reporte.urgencia.valor}
+          estado={item.reporte.estado}
+          categoria={item.reporte.categoria || ''}
+          fecha_creacion={item.fecha_seguimiento}
+          usuario_nombre={item.reporte.usuario?.nickname || 'Usuario'}
+          onUnfollow={async (id) => {
+            await refresh();
+            return true;
+          }}
         />
       )}
       contentContainerStyle={{
