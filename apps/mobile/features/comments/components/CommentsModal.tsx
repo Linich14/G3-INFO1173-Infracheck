@@ -10,11 +10,12 @@ import {
   Platform,
   ActivityIndicator,
   Animated,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, Send, UserCircle2, CheckCircle2, XCircle } from 'lucide-react-native';
+import { X, Send, UserCircle2, CheckCircle2, XCircle, Trash2 } from 'lucide-react-native';
 import { Comment, CommentsModalProps } from '../types';
-import { createComment, getComments } from '../services/commentsService';
+import { createComment, getComments, deleteComment } from '../services/commentsService';
 import { getToken } from '~/features/auth/services/authService';
 import * as Haptics from 'expo-haptics';
 
@@ -192,16 +193,96 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
     }
   };
 
-  const renderComment = (comment: Comment) => (
-    <View key={comment.id} className="mb-4 bg-[#0f172a] rounded-lg p-3">
-      <View className="flex-row items-center mb-2">
-        <UserCircle2 size={24} color="#537CF2" />
-        <Text className="text-white font-semibold ml-2 flex-1">{comment.author}</Text>
-        <Text className="text-gray-400 text-sm">{comment.timeAgo}</Text>
+  const handleDeleteComment = async (commentId: string | number) => {
+    try {
+      const token = await getToken();
+      
+      if (!token) {
+        showLocalToast('Debes iniciar sesión para eliminar comentarios', 'error');
+        return;
+      }
+
+      // Optimistic update: remover el comentario de la lista local inmediatamente
+      const commentToDelete = comments.find(c => c.id === commentId);
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      
+      // Llamar al backend
+      await deleteComment(commentId, token);
+      
+      // Feedback háptico de éxito
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showLocalToast('Comentario eliminado', 'success');
+      
+      // Refrescar comentarios si hay callback
+      if (onRefreshComments) {
+        onRefreshComments();
+      }
+    } catch (error: any) {
+      console.error('Error deleting comment:', error);
+      
+      // Revertir el optimistic update en caso de error
+      // Recargar los comentarios
+      await loadComments();
+      
+      showLocalToast(error.message || 'Error al eliminar el comentario', 'error');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
+
+  const confirmDeleteComment = (commentId: string | number, authorName: string) => {
+    Alert.alert(
+      'Eliminar comentario',
+      `¿Estás seguro de que quieres eliminar este comentario de ${authorName}?`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => handleDeleteComment(commentId),
+        },
+      ]
+    );
+  };
+
+  const renderComment = (comment: Comment) => {
+    const isOwnComment = comment.es_autor;
+    const canDelete = comment.puede_eliminar;
+    
+    return (
+      <View 
+        key={comment.id} 
+        className={`mb-4 rounded-lg p-3 ${
+          isOwnComment ? 'bg-[#1a2332] border border-[#537CF2]/30' : 'bg-[#0f172a]'
+        }`}
+      >
+        <View className="flex-row items-center mb-2">
+          <UserCircle2 size={24} color={isOwnComment ? '#537CF2' : '#9ca3af'} />
+          <View className="flex-1 flex-row items-center ml-2">
+            <Text className="text-white font-semibold">{comment.author}</Text>
+            {isOwnComment && (
+              <View className="ml-2 bg-[#537CF2] px-2 py-0.5 rounded-full">
+                <Text className="text-white text-xs font-semibold">Tú</Text>
+              </View>
+            )}
+          </View>
+          <Text className="text-gray-400 text-sm">{comment.timeAgo}</Text>
+          {canDelete && (
+            <TouchableOpacity
+              onPress={() => confirmDeleteComment(comment.id, comment.author)}
+              className="ml-2 p-1"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Trash2 size={18} color="#ef4444" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <Text className="text-white text-base leading-5">{comment.content}</Text>
       </View>
-      <Text className="text-white text-base leading-5">{comment.content}</Text>
-    </View>
-  );
+    );
+  };
 
   return (
     <Modal

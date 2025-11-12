@@ -122,3 +122,42 @@ export const getComments = async (
     throw new Error('Error al obtener los comentarios');
   }
 };
+
+/**
+ * Elimina un comentario (soft delete)
+ * @param commentId - ID del comentario a eliminar
+ * @param token - Token de autenticación del usuario
+ * @returns Respuesta del servidor
+ */
+export const deleteComment = async (
+  commentId: string | number,
+  token: string
+): Promise<{ message: string }> => {
+  try {
+    const url = `${API_URL}/api/reports/comments/${commentId}/delete/`;
+    console.log('Deleting comment:', { url, commentId, hasToken: !!token });
+    
+    const response = await axios.delete(
+      url,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log('Comment deleted successfully:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error deleting comment - Full error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
+    if (axios.isAxiosError(error)) {
+      const errorMessage = error.response?.data?.error || 'Error al eliminar el comentario';
+      throw new Error(errorMessage);
+    }
+    throw new Error('Error al eliminar el comentario');
+  }
+};
