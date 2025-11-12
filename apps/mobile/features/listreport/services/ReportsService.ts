@@ -223,7 +223,9 @@ class ReportsService {
   async fetchAll(opts: FetchAllOpts = {}): Promise<ListResponse> {
     const key = this.makeKey('report:list', opts);
     const cached = this.getFromCache<ListResponse>(key);
-    if (cached) return cached;
+    if (cached) {
+      return cached;
+    }
 
     const params: Record<string, any> = {};
     
@@ -251,10 +253,23 @@ class ReportsService {
 
       if (resp.data.success && resp.data.data) {
         // Estructura con success y data
-        backendReports = resp.data.data.results || [];
-        next_cursor = resp.data.data.next_cursor || null;
-        has_more = resp.data.data.has_more || false;
-        count = resp.data.data.count || backendReports.length;
+        if (Array.isArray(resp.data.data)) {
+          backendReports = resp.data.data;
+          
+          // Obtener paginación si existe
+          if (resp.data.pagination) {
+            next_cursor = resp.data.pagination.next_cursor || null;
+            has_more = resp.data.pagination.has_more || false;
+            count = resp.data.pagination.count || backendReports.length;
+          } else {
+            count = backendReports.length;
+          }
+        } else if (resp.data.data.results) {
+          backendReports = resp.data.data.results || [];
+          next_cursor = resp.data.data.next_cursor || null;
+          has_more = resp.data.data.has_more || false;
+          count = resp.data.data.count || backendReports.length;
+        }
       } else if (resp.data.results) {
         // Estructura directa con results
         backendReports = resp.data.results || [];
@@ -262,7 +277,7 @@ class ReportsService {
         has_more = resp.data.has_more || false;
         count = resp.data.count || backendReports.length;
       } else if (Array.isArray(resp.data)) {
-        // Array directo
+        // Array directo en la raíz
         backendReports = resp.data;
         count = backendReports.length;
       }
@@ -279,7 +294,7 @@ class ReportsService {
       this.setCache(key, data);
       return data;
     } catch (err: any) {
-      console.error('Error fetching reports:', err);
+      console.error('Error al cargar reportes:', err?.response?.data || err?.message);
       throw new Error(err?.response?.data?.error || err?.message || 'Error al cargar reportes');
     }
   }
