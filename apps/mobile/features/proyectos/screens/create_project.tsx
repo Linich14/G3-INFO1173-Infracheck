@@ -3,9 +3,15 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Platform, A
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useReports } from '../../listreport/hooks/useReports';
-import { ReportListItem } from '../../listreport/types';
+import ProjectsService from '../services/ProjectsService';
+import ReportsService from '../../listreport/services/ReportsService';
 
+// ==================== INTERFACES Y TIPOS ====================
+
+/**
+ * Interface que define la estructura de una denuncia ciudadana
+ * Esta representa los reportes que envían los ciudadanos
+ */
 interface Denuncia {
   id: number;
   titulo: string;
@@ -19,12 +25,20 @@ interface Denuncia {
   fotos?: string[];
 }
 
+/**
+ * Props que recibe el componente CreateProjectScreen
+ * Permite inicializar con denuncias preseleccionadas
+ */
 interface CreateProjectProps {
   denunciaSeleccionada?: Denuncia;
-  onBack?: () => void;
+  onBack?: () => void; // Ahora es opcional
   onProjectCreated?: (project: any) => void;
 }
 
+/**
+ * Estructura del formulario para crear un proyecto municipal
+ * Define todos los campos obligatorios y opcionales
+ */
 interface FormData {
   nombreProyecto: string;
   descripcion: string;
@@ -32,59 +46,84 @@ interface FormData {
   fechaInicioEstimada: Date | null;
 }
 
-const mapUrgencyToPriority = (urgencia: string): 'Alta' | 'Media' | 'Baja' => {
-  if (urgencia === 'Crítico' || urgencia === 'Alto') return 'Alta';
-  if (urgencia === 'Medio') return 'Media';
-  return 'Baja';
-};
+// ==================== COMPONENTE PRINCIPAL ====================
 
-const transformReportToDenuncia = (report: ReportListItem): Denuncia => {
-  return {
-    id: parseInt(report.id),
-    titulo: report.titulo,
-    descripcion: report.descripcion,
-    fecha: report.fecha,
-    usuario: report.autor,
-    votos: report.votos || 0,
-    ubicacion: report.ubicacion,
-    tipoDenuncia: report.tipoDenuncia,
-    prioridad: mapUrgencyToPriority(report.nivelUrgencia),
-    fotos: report.imagenPreview ? [report.imagenPreview] : [],
-  };
-};
-
+/**
+ * PROPÓSITO: Permite a las autoridades municipales crear proyectos de respuesta
+ * a las denuncias ciudadanas. Maneja tanto la selección múltiple de denuncias
+ * como el formulario completo para definir el proyecto.
+ *
+ * FLUJO PRINCIPAL:
+ * 1. Selección de denuncias (si no vienen preseleccionadas)
+ * 2. Formulario de creación del proyecto
+ * 3. Validación y creación del proyecto
+ * 4. Confirmación y navegación de regreso
+ */
 export default function CreateProjectScreen({
   denunciaSeleccionada,
   onBack,
   onProjectCreated,
 }: CreateProjectProps) {
-  const { allResults, loading, error, refresh } = useReports({ 
-    limit: 100,
-    autoLoad: true,
-  });
+  // ==================== FUNCIÓN DE NAVEGACIÓN ====================
 
-  const [denunciasDisponibles, setDenunciasDisponibles] = useState<Denuncia[]>([]);
-
-  useEffect(() => {
-    if (allResults.length > 0) {
-      const transformed = allResults.map(transformReportToDenuncia);
-      setDenunciasDisponibles(transformed);
-    }
-  }, [allResults]);
+  /**
+   * Maneja la navegación hacia atrás de forma inteligente
+   * - Si onBack está definido, lo usa (modo componente embebido)
+   * - Si no, navega de vuelta al home principal
+   * Esto asegura que siempre vuelvas al punto de origen correcto
+   */
   const handleBack = () => {
     if (onBack) {
       onBack();
     } else {
+      // Navegar directamente al home para evitar ir a lista de proyectos
       router.push('/(tabs)/home');
     }
   };
 
+  /**
+   * Maneja el botón cancelar desde el formulario
+   * Vuelve a la selección de denuncias si no hay denuncia preseleccionada
+   * Si hay denuncia preseleccionada, sale completamente
+   */
+  const handleCancel = () => {
+    if (denunciaSeleccionada) {
+      // Si vino con denuncia preseleccionada, salir completamente
+      handleBack();
+    } else {
+      // Si no, volver a la selección de denuncias
+      setShowDenunciaSelector(true);
+      setDenunciaSelected(null);
+    }
+  };
+
+  // ==================== ESTADO DEL COMPONENTE ====================
+
+  /**
+   * Lista de denuncias disponibles cargadas desde la API
+   */
+  const [denunciasDisponibles, setDenunciasDisponibles] = useState<Denuncia[]>([]);
+  const [loadingDenuncias, setLoadingDenuncias] = useState(false);
+  const [errorDenuncias, setErrorDenuncias] = useState<string | null>(null);
+
+  /**
+   * Denuncia actualmente seleccionada para este proyecto
+   * Solo se permite una denuncia por proyecto
+   */
   const [denunciaSelected, setDenunciaSelected] = useState<Denuncia | null>(
     denunciaSeleccionada || null
   );
 
+  /**
+   * Controla si se muestra la pantalla de selección de denuncia
+   * Se muestra cuando no hay denuncia preseleccionada o el usuario quiere cambiarla
+   */
   const [showDenunciaSelector, setShowDenunciaSelector] = useState(!denunciaSeleccionada);
 
+  /**
+   * Estado del formulario con todos los campos del proyecto
+   * Inicializado con valores por defecto seguros
+   */
   const [formData, setFormData] = useState<FormData>({
     nombreProyecto: '',
     descripcion: '',
@@ -94,6 +133,57 @@ export default function CreateProjectScreen({
 
   // Estado para mostrar/ocultar el selector de fecha
   const [showDatePicker, setShowDatePicker] = useState(false);
+  
+  // Estado de carga para mostrar indicador mientras se crea el proyecto
+  const [isCreating, setIsCreating] = useState(false);
+
+  // ==================== EFECTO PARA CARGAR DENUNCIAS ====================
+
+  /**
+   * Carga las denuncias disponibles desde la API al montar el componente
+   */
+  useEffect(() => {
+    const loadDenuncias = async () => {
+      setLoadingDenuncias(true);
+      setErrorDenuncias(null);
+      
+      try {
+        const response = await ReportsService.fetchAll({ limit: 100 });
+        
+        // Mapear reportes a formato de Denuncia
+        const denuncias: Denuncia[] = response.results.map((report) => {
+          // Mapear urgencia a prioridad
+          const prioridadMap: Record<string, 'Alta' | 'Media' | 'Baja'> = {
+            'Crítico': 'Alta',
+            'Alto': 'Alta',
+            'Medio': 'Media',
+            'Bajo': 'Baja',
+          };
+
+          return {
+            id: parseInt(report.id),
+            titulo: report.titulo,
+            descripcion: report.descripcion,
+            fecha: report.fecha,
+            usuario: report.autor,
+            votos: report.votos || 0,
+            ubicacion: report.ubicacion,
+            tipoDenuncia: report.tipoDenuncia,
+            prioridad: prioridadMap[report.nivelUrgencia] || 'Media',
+          };
+        });
+
+        setDenunciasDisponibles(denuncias);
+      } catch (error) {
+        console.error('Error al cargar denuncias:', error);
+        setErrorDenuncias('Error al cargar las denuncias disponibles');
+      } finally {
+        setLoadingDenuncias(false);
+      }
+    };
+
+    loadDenuncias();
+  }, []);
 
   // ==================== FUNCIONES DE MANEJO ====================
 
@@ -132,9 +222,9 @@ export default function CreateProjectScreen({
   /**
    * Función principal para crear el proyecto
    * Realiza validaciones completas antes de proceder
-   * Crea el objeto proyecto y notifica al componente padre
+   * Envía el proyecto a la API del backend
    */
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     // ==================== VALIDACIONES ====================
 
     // Validación 1: Debe haber una denuncia seleccionada
@@ -149,52 +239,81 @@ export default function CreateProjectScreen({
       return;
     }
 
-    // Validación 3: La descripción es obligatoria
+    // Validación 3: La descripción es obligatoria (mínimo 20 caracteres)
     if (!formData.descripcion.trim()) {
       Alert.alert('Error', 'La descripción del proyecto es obligatoria');
       return;
     }
 
-    // ==================== CREACIÓN DEL PROYECTO ====================
+    if (formData.descripcion.trim().length < 20) {
+      Alert.alert('Error', 'La descripción debe tener al menos 20 caracteres');
+      return;
+    }
 
-    /**
-     * Construye el objeto proyecto con toda la información recopilada
-     * Incluye timestamp único como ID y metadatos de creación
-     */
-    const nuevoProyecto = {
-      id: Date.now(), // ID único basado en timestamp
-      nombreProyecto: formData.nombreProyecto,
-      descripcion: formData.descripcion,
-      tipoDenuncia: denunciaSelected.tipoDenuncia,
-      prioridad: formData.prioridadProyecto,
-      fechaInicioEstimada: formData.fechaInicioEstimada?.toISOString() || null,
-      denunciaAsociada: denunciaSelected, // Denuncia que resuelve este proyecto
-      estado: 'Aprobado',
-      fechaCreacion: new Date().toISOString(),
-      createdBy: 'Administrador Municipal', // Aqui tengo que identificar al usuario
+    // ==================== PREPARACIÓN DE DATOS ====================
+
+    // Mapear prioridad de texto a número
+    const prioridadMap: Record<'Alta' | 'Media' | 'Baja', 1 | 2 | 3> = {
+      'Baja': 1,
+      'Media': 2,
+      'Alta': 3,
     };
 
-    // ==================== CONFIRMACIÓN Y NAVEGACIÓN ====================
+    // Preparar datos para la API
+    const projectData = {
+      proy_titulo: formData.nombreProyecto.trim(),
+      proy_descripcion: formData.descripcion.trim(),
+      denu_id: denunciaSelected.id,
+      proy_prioridad: prioridadMap[formData.prioridadProyecto],
+      proy_fecha_inicio_estimada: formData.fechaInicioEstimada 
+        ? formData.fechaInicioEstimada.toISOString().split('T')[0] // Formato YYYY-MM-DD
+        : null,
+      proy_lugar: denunciaSelected.ubicacion,
+      proy_tipo_denuncia: denunciaSelected.tipoDenuncia,
+      proy_estado: 6 as 1 | 2 | 3 | 4 | 5 | 6 | 7, // 6 = Aprobado (según el backend)
+    };
 
-    /**
-     * Muestra confirmación al usuario y ejecuta callbacks
-     * onProjectCreated: Notifica al componente padre sobre el nuevo proyecto
-     * onBack: Navega de regreso a la pantalla anterior
-     */
+    // ==================== LLAMADA A LA API ====================
 
-    Alert.alert(
-      'Proyecto Creado',
-      `El proyecto "${formData.nombreProyecto}" ha sido creado exitosamente`,
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            onProjectCreated?.(nuevoProyecto); // Notifica al padre
-            handleBack(); // Regresa a la pantalla anterior
+    setIsCreating(true);
+
+    try {
+      const proyectoCreado = await ProjectsService.create(projectData);
+
+      // Éxito: mostrar confirmación y navegar
+      Alert.alert(
+        'Proyecto Creado',
+        `El proyecto "${formData.nombreProyecto}" ha sido creado exitosamente`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              onProjectCreated?.(proyectoCreado);
+              handleBack();
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error: any) {
+      // Error: mostrar mensaje al usuario
+      console.error('Error al crear proyecto:', error);
+      
+      let errorMessage = 'Error al crear el proyecto';
+      
+      try {
+        // Intentar parsear errores del backend
+        const errors = JSON.parse(error.message);
+        errorMessage = Object.entries(errors)
+          .map(([field, msgs]: [string, any]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+          .join('\n');
+      } catch {
+        errorMessage = error.message || 'Error desconocido al crear el proyecto';
+      }
+      
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   // ==================== RENDERIZADO CONDICIONAL ====================
@@ -208,6 +327,7 @@ export default function CreateProjectScreen({
   if (showDenunciaSelector) {
     return (
       <View className="flex-1 bg-black px-4 pt-10">
+        {/* Header de la pantalla de selección */}
         <View className="mb-6 flex-row items-center">
           <TouchableOpacity className="rounded-xl bg-[#537CF2] p-2" onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color="white" />
@@ -215,103 +335,118 @@ export default function CreateProjectScreen({
           <Text className="ml-4 text-xl font-bold text-white">Seleccionar Denuncia</Text>
         </View>
 
-        {loading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#537CF2" />
-            <Text className="mt-4 text-gray-300">Cargando reportes...</Text>
-          </View>
-        ) : error ? (
-          <View className="flex-1 items-center justify-center">
-            <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
-            <Text className="mt-4 text-center text-gray-300">{error}</Text>
-            <TouchableOpacity
-              className="mt-4 rounded-xl bg-[#537CF2] px-6 py-3"
-              onPress={refresh}>
-              <Text className="font-bold text-white">Reintentar</Text>
-            </TouchableOpacity>
-          </View>
-        ) : denunciasDisponibles.length === 0 ? (
-          <View className="flex-1 items-center justify-center">
-            <Ionicons name="document-text-outline" size={48} color="#9CA3AF" />
-            <Text className="mt-4 text-center text-gray-300">
-              No hay reportes activos disponibles
-            </Text>
-          </View>
-        ) : (
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="mb-2 text-gray-300">
-              Selecciona la denuncia para la cual quieres crear un proyecto de respuesta:
-            </Text>
-            <Text className="mb-4 text-sm text-blue-400">
-              {denunciaSelected
-                ? `Denuncia seleccionada: ${denunciaSelected.titulo}`
-                : 'Toca una denuncia para seleccionarla'}
-            </Text>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Instrucciones y contador de selección */}
+          <Text className="mb-2 text-gray-300">
+            Selecciona la denuncia para la cual quieres crear un proyecto de respuesta:
+          </Text>
+          <Text className="mb-4 text-sm text-blue-400">
+            {denunciaSelected
+              ? `Denuncia seleccionada: ${denunciaSelected.titulo}`
+              : 'Toca una denuncia para seleccionarla'}
+          </Text>
 
-            {denunciaSelected && (
+          {/* Estado de carga */}
+          {loadingDenuncias && (
+            <View className="items-center py-8">
+              <ActivityIndicator size="large" color="#537CF2" />
+              <Text className="mt-2 text-gray-400">Cargando denuncias...</Text>
+            </View>
+          )}
+
+          {/* Estado de error */}
+          {errorDenuncias && !loadingDenuncias && (
+            <View className="items-center py-8">
+              <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+              <Text className="mt-2 text-center text-red-400">{errorDenuncias}</Text>
               <TouchableOpacity
-                className="mb-4 rounded-xl bg-[#537CF2] p-4"
-                onPress={() => setShowDenunciaSelector(false)}>
-                <Text className="text-center font-bold text-white">
-                  Continuar con denuncia seleccionada
-                </Text>
+                className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2"
+                onPress={() => window.location.reload()}>
+                <Text className="text-white">Reintentar</Text>
               </TouchableOpacity>
-            )}
+            </View>
+          )}
 
-            {denunciasDisponibles.map((denuncia) => {
-              const isSelected = denunciaSelected?.id === denuncia.id;
-              return (
-                <TouchableOpacity
-                  key={denuncia.id}
-                  className={`mb-4 rounded-xl p-4 ${
-                    isSelected ? 'border-2 border-[#537CF2] bg-[#537CF2]/20' : 'bg-[#1D212D]'
-                  }`}
-                  onPress={() => handleSelectDenuncia(denuncia)}>
-                  <View className="mb-2 flex-row items-start justify-between">
-                    <View className="flex-1 flex-row items-center">
-                      {isSelected && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={20}
-                          color="#3B82F6"
-                          style={{ marginRight: 8 }}
-                        />
-                      )}
-                      <Text className="flex-1 pr-2 text-lg font-semibold text-white">
-                        {denuncia.titulo}
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center">
-                      <Ionicons name="arrow-up" size={16} color="#60A5FA" />
-                      <Text className="ml-1 font-semibold text-blue-400">{denuncia.votos}</Text>
-                    </View>
+          {/* Botón para continuar - solo visible si hay selección */}
+          {denunciaSelected && !loadingDenuncias && (
+            <TouchableOpacity
+              className="mb-4 rounded-xl bg-[#537CF2] p-4"
+              onPress={() => setShowDenunciaSelector(false)}>
+              <Text className="text-center font-bold text-white">
+                Continuar con denuncia seleccionada
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Lista de denuncias disponibles con estado de selección */}
+          {!loadingDenuncias && !errorDenuncias && denunciasDisponibles.length === 0 && (
+            <View className="items-center py-8">
+              <Ionicons name="document-text-outline" size={48} color="gray" />
+              <Text className="mt-2 text-center text-gray-400">
+                No hay denuncias disponibles
+              </Text>
+            </View>
+          )}
+
+          {!loadingDenuncias && !errorDenuncias && denunciasDisponibles.map((denuncia) => {
+            const isSelected = denunciaSelected?.id === denuncia.id;
+            return (
+              <TouchableOpacity
+                key={denuncia.id}
+                className={`mb-4 rounded-xl p-4 ${
+                  isSelected ? 'border-2 border-[#537CF2] bg-[#537CF2]/20' : 'bg-[#1D212D]'
+                }`}
+                onPress={() => handleSelectDenuncia(denuncia)}>
+                {/* Header de la denuncia con título y votos */}
+                <View className="mb-2 flex-row items-start justify-between">
+                  <View className="flex-1 flex-row items-center">
+                    {/* Ícono de check para denuncias seleccionadas */}
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color="#3B82F6"
+                        style={{ marginRight: 8 }}
+                      />
+                    )}
+                    <Text className="flex-1 pr-2 text-lg font-semibold text-white">
+                      {denuncia.titulo}
+                    </Text>
+                  </View>
+                  {/* Contador de votos con ícono de flecha hacia arriba */}
+                  <View className="flex-row items-center">
+                    <Ionicons name="arrow-up" size={16} color="#60A5FA" />
+                    <Text className="ml-1 font-semibold text-blue-400">{denuncia.votos}</Text>
+                  </View>
+                </View>
+
+                {/* Descripción de la denuncia */}
+                <Text className="mb-3 text-gray-300">{denuncia.descripcion}</Text>
+
+                {/* Ubicación con ícono */}
+                <View className="mb-2 flex-row items-center">
+                  <Ionicons name="location" size={14} color="#9CA3AF" />
+                  <Text className="ml-2 text-sm text-gray-400">{denuncia.ubicacion}</Text>
+                </View>
+
+                {/* Footer con información del usuario y tipo */}
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center">
+                    <Ionicons name="person" size={14} color="#9CA3AF" />
+                    <Text className="ml-1 text-sm text-gray-400">{denuncia.usuario}</Text>
+                    <Text className="ml-3 text-sm text-gray-400">{denuncia.fecha}</Text>
                   </View>
 
-                  <Text className="mb-3 text-gray-300">{denuncia.descripcion}</Text>
-
-                  <View className="mb-2 flex-row items-center">
-                    <Ionicons name="location" size={14} color="#9CA3AF" />
-                    <Text className="ml-2 text-sm text-gray-400">{denuncia.ubicacion}</Text>
+                  <View className="flex-row">
+                    <Text className="rounded px-2 py-1 text-xs text-white">
+                      {denuncia.tipoDenuncia}
+                    </Text>
                   </View>
-
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center">
-                      <Ionicons name="person" size={14} color="#9CA3AF" />
-                      <Text className="ml-1 text-sm text-gray-400">{denuncia.usuario}</Text>
-                      <Text className="ml-3 text-sm text-gray-400">{denuncia.fecha}</Text>
-                    </View>
-
-                    <View className="flex-row">
-                      <Text className="rounded px-2 py-1 text-xs text-white">
-                        {denuncia.tipoDenuncia}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        )}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
     );
   }
@@ -450,15 +585,23 @@ export default function CreateProjectScreen({
         {/* Botones de Acción */}
         <View className="mb-6 flex-row">
           {/* Botón Cancelar - Regresa sin guardar cambios */}
-          <TouchableOpacity className="mr-3 flex-1 rounded-lg bg-[#1D212D] p-4" onPress={handleBack}>
+          <TouchableOpacity className="mr-3 flex-1 rounded-lg bg-[#1D212D] p-4" onPress={handleCancel} disabled={isCreating}>
             <Text className="text-center font-semibold text-white">Cancelar</Text>
           </TouchableOpacity>
 
           {/* Botón Crear Proyecto - Ejecuta validaciones y crea el proyecto */}
           <TouchableOpacity
-            className="flex-1 rounded-lg bg-[#537CF2] p-4"
-            onPress={handleCreateProject}>
-            <Text className="text-center font-semibold text-white">Crear Proyecto</Text>
+            className={`flex-1 rounded-lg p-4 ${isCreating ? 'bg-gray-500' : 'bg-[#537CF2]'}`}
+            onPress={handleCreateProject}
+            disabled={isCreating}>
+            {isCreating ? (
+              <View className="flex-row items-center justify-center">
+                <ActivityIndicator size="small" color="white" />
+                <Text className="ml-2 text-center font-semibold text-white">Creando...</Text>
+              </View>
+            ) : (
+              <Text className="text-center font-semibold text-white">Crear Proyecto</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

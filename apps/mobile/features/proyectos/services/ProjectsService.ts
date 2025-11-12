@@ -125,6 +125,40 @@ class ProjectsService {
     this.setCache(key, data);
     return data;
   }
+
+  /**
+   * Crea un nuevo proyecto
+   * @param projectData - Datos del proyecto a crear
+   * @returns El proyecto creado con su ID asignado
+   */
+  async create(projectData: {
+    proy_titulo: string;
+    proy_descripcion: string;
+    denu_id: number;
+    proy_prioridad?: 1 | 2 | 3;
+    proy_fecha_inicio_estimada?: string | null;
+    proy_lugar?: string;
+    proy_tipo_denuncia?: string;
+    proy_estado?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  }): Promise<Project> {
+    try {
+      const resp = await api.post('/api/proyectos/create/', projectData);
+      
+      // Invalidar cache de lista de proyectos
+      this.invalidateByKeyPrefix('project:list');
+      
+      return resp.data;
+    } catch (err: any) {
+      console.error('Error al crear proyecto:', err?.response?.data || err?.message);
+      throw new Error(
+        err?.response?.data?.errors 
+          ? JSON.stringify(err.response.data.errors)
+          : err?.response?.data?.error 
+          || err?.message 
+          || 'Error al crear el proyecto'
+      );
+    }
+  }
 }
 
 export default new ProjectsService(60);
