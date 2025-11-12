@@ -9,9 +9,10 @@ const mapReportToHomeFormat = (report: any): ReportForHome => ({
     author: report.usuario.nombre || 'Usuario Anónimo',
     timeAgo: calculateTimeAgo(report.fecha_creacion),
     image: getMainImage(report.archivos),
-    upvotes: Math.floor(Math.random() * 100) + 5,
+    upvotes: report.votos?.count || 0,
     comments: [],
     categoria: report.tipo_denuncia.nombre,
+    votos: report.votos, // Agregar campo de votos del backend
 });
 
 const getMainImage = (archivos: any[]) => {

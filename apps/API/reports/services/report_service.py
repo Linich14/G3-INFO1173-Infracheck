@@ -8,7 +8,7 @@ import json
 import mimetypes
 import os
 
-from reports.models import ReportModel, DenunciaEstado, TipoDenuncia, Ciudad
+from reports.models import ReportModel, DenunciaEstado, TipoDenuncia, Ciudad, VotoReporte
 from reports.models.report_archivos import ReportArchivo
 from reports.exceptions import ReportNotFoundException, ReportValidationException
 from .validation_service import validation_service
@@ -140,7 +140,7 @@ class ReportService:
         }
     
     @staticmethod
-    def _serialize_report(report: ReportModel) -> Dict[str, Any]:
+    def _serialize_report(report: ReportModel, usuario_id: Optional[int] = None) -> Dict[str, Any]:
         """Serializa un reporte con solo los campos especificados para archivos"""
         coordinates = report.get_coordinates()
         
@@ -161,6 +161,15 @@ class ReportService:
         
         # Obtener estadísticas de archivos
         stats = report.contar_archivos()
+        
+        # Obtener información de votos
+        votos_count = VotoReporte.objects.filter(reporte=report).count()
+        usuario_ha_votado = False
+        if usuario_id:
+            usuario_ha_votado = VotoReporte.objects.filter(
+                reporte=report, 
+                usuario_id=usuario_id
+            ).exists()
         
         return {
             'id': report.id,
@@ -203,6 +212,10 @@ class ReportService:
                 'dias_desde_creacion': report.get_days_since_creation(),
                 'puede_agregar_imagenes': stats.get('imagenes', 0) < ReportService.MAX_IMAGES_PER_REPORT,
                 'puede_agregar_videos': stats.get('videos', 0) < ReportService.MAX_VIDEOS_PER_REPORT
+            },
+            'votos': {
+                'count': votos_count,
+                'usuario_ha_votado': usuario_ha_votado
             }
         }
     
@@ -289,7 +302,8 @@ class ReportService:
     def get_reports_with_cursor_pagination(
         cursor: Optional[str] = None,
         limit: int = 10,
-        filters: Optional[Dict] = None
+        filters: Optional[Dict] = None,
+        usuario_id: Optional[int] = None
     ) -> Dict[str, Any]:
         """Obtiene reportes con paginación usando la nueva estructura"""
         # Construir queryset base
@@ -350,10 +364,10 @@ class ReportService:
                 json.dumps(prev_cursor_data).encode('utf-8')
             ).decode('utf-8')
         
-        # Serializar datos
+        # Serializar datos (incluir usuario_id para calcular votos)
         serialized_reports = []
         for report in reports:
-            serialized_reports.append(ReportService._serialize_report(report))
+            serialized_reports.append(ReportService._serialize_report(report, usuario_id))
         
         return {
             'success': True,

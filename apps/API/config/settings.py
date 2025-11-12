@@ -111,6 +111,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS config
 CORS_ALLOW_ALL_ORIGINS = True
 
+# REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'interfaces.authentication.session_token_auth.SesionTokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Permitir acceso por defecto, proteger endpoints individualmente
+    ],
+    'UNAUTHENTICATED_USER': None,  # No usar AnonymousUser por defecto
+}
+
 # EMAIL Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')

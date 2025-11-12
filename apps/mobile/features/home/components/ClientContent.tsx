@@ -354,6 +354,8 @@ export default function ClientContent({
                                         followLabel={isFollowed ? 'Siguiendo ✓' : 'Seguir'}
                                         isFollowed={isFollowed}
                                         isUpvoted={isUpvoted}
+                                        initialVoteCount={report.votos?.count}
+                                        initialUserHasVoted={report.votos?.usuario_ha_votado}
                                         onComment={() => onCommentPress(report)}
                                         onFollow={() => handleFollow(report.id)}
                                         onMore={() => handleMore(report.title)}

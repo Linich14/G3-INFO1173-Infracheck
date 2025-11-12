@@ -14,6 +14,10 @@ export interface Report {
   upvotes: number;
   comments: Comment[];
   categoria?: string; // Categoría del reporte (Infraestructura, Limpieza, Alumbrado, etc.)
+  votos?: {
+    count: number;
+    usuario_ha_votado: boolean;
+  };
 }
 
 export interface CommentsModalProps {

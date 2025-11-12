@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ImageSourcePropType, Pressable } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ImageSourcePropType, Pressable, ActivityIndicator } from 'react-native';
 import {
     UserCircle2,
     MoreVertical,
@@ -9,6 +9,7 @@ import {
     Share2,
 } from 'lucide-react-native';
 import { ReportCardProps } from '../types';
+import { useReportVotes } from '../hooks/useReportVotes';
 import { useRouter } from 'expo-router';
 
 const ReportCard: React.FC<ReportCardProps> = ({
@@ -17,7 +18,9 @@ const ReportCard: React.FC<ReportCardProps> = ({
     author,
     timeAgo,
     image,
-    upvotes = 0,
+    upvotes = 0, // Mantener como fallback por compatibilidad
+    initialVoteCount = 0,
+    initialUserHasVoted = false,
     onFollow,
     onMore,
     onLocation,
@@ -31,6 +34,13 @@ const ReportCard: React.FC<ReportCardProps> = ({
     const router = useRouter();
     const [imageError, setImageError] = useState(false);
     const hasImage = !!image && !imageError;
+
+    // Hook para manejar votos con datos embebidos
+    const { voteCount, userHasVoted, isLoading: votesLoading, isSubmitting, submitVote } = useReportVotes(
+        id,
+        initialVoteCount,
+        initialUserHasVoted
+    );
 
     const goToDetail = () => {
         router.push(`/report/${id}`);
@@ -131,14 +141,29 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 <View className="flex-row items-center justify-between p-4">
                     <View className="flex-row">
                         <TouchableOpacity
-                            className="mr-4 flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 shadow active:opacity-90"
+                            className={`mr-4 flex-row items-center gap-2 rounded-[32px] border px-4 py-2 shadow active:opacity-90 ${
+                                userHasVoted
+                                    ? 'border-blue-500 bg-[#4A90E2]'
+                                    : 'border-gray-400 bg-[#f0f0f0]'
+                            }`}
                             onPress={(e) => {
                                 e.stopPropagation();
-                                onUpvote?.();
-                            }}>
-                            <ArrowBigUp size={18} color="#fff" />
-                            <Text className="text-center text-base font-medium text-white">
-                                {upvotes}
+                                submitVote();
+                                onUpvote?.(); // Mantener callback por compatibilidad
+                            }}
+                            disabled={votesLoading || isSubmitting || userHasVoted}
+                            accessibilityLabel={`${voteCount} votos${userHasVoted ? ', ya has votado' : ''}`}
+                            accessibilityRole="button"
+                        >
+                            {votesLoading || isSubmitting ? (
+                                <ActivityIndicator size="small" color={userHasVoted ? '#fff' : '#666'} />
+                            ) : (
+                                <ArrowBigUp size={18} color={userHasVoted ? '#fff' : '#666'} />
+                            )}
+                            <Text className={`text-center text-base font-medium ${
+                                userHasVoted ? 'text-white' : 'text-gray-600'
+                            }`}>
+                                {voteCount}
                             </Text>
                         </TouchableOpacity>
 

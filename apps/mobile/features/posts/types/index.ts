@@ -7,6 +7,8 @@ export interface ReportCardProps {
     timeAgo: string; // ej: "3d"
     image?: ImageSourcePropType | null; // opcional
     upvotes?: number;
+    initialVoteCount?: number;
+    initialUserHasVoted?: boolean;
     onFollow?: () => void;
     onMore?: () => void;
     onLocation?: () => void;

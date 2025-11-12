@@ -20,6 +20,10 @@ interface Report {
   };
   votos_count: number;
   comentarios_count: number;
+  votos?: {
+    count: number;
+    usuario_ha_votado: boolean;
+  };
 }
 
 const FollowedReportsScreen: React.FC = () => {
@@ -140,6 +144,8 @@ const FollowedReportsScreen: React.FC = () => {
         upvotes={item.votos_count || 0}
         isFollowed={true}
         followLabel="Dejar de seguir"
+        initialVoteCount={item.votos?.count}
+        initialUserHasVoted={item.votos?.usuario_ha_votado}
         onFollow={() => handleUnfollow(item.id, item.denu_titulo)}
         onUpvote={() => {
           // Implementar lógica de votar si es necesario

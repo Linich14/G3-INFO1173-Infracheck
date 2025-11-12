@@ -214,21 +214,26 @@ class ReportListView(APIView):
             cursor = request.GET.get('cursor')
             limit = min(int(request.GET.get('limit', 10)), 50)  # Máximo 50
             
-            # Construir filtros - removido el filtro automático por usuario autenticado
+            # Construir filtros
             filters = {}
             
-            # Agregar filtro por usuario solo si se especifica en los parámetros
-            if request.GET.get('usuario_id'):
-                filters['usuario_id'] = int(request.GET.get('usuario_id'))
+            # IMPORTANTE: El query string ya NO debe incluir usuario_id para filtrar
+            # El usuario_id autenticado solo se usa para calcular si ha votado
             
-            # Agregar filtro para solo mostrar reportes visibles (a menos que sea el propietario)
-            # Si se especifica un usuario_id y coincide con el autenticado, mostrar todos (visibles e invisibles)
-            if request.GET.get('usuario_id') and int(request.GET.get('usuario_id')) == usuario_id:
-                # Mostrar todos los reportes del usuario autenticado (incluidos los no visibles)
-                pass
+            # Si se especifica 'mis_reportes=true', filtrar por reportes del usuario autenticado
+            if request.GET.get('mis_reportes', '').lower() == 'true':
+                filters['usuario_id'] = usuario_id
+                # Mostrar todos los reportes del usuario (incluidos los no visibles)
             else:
-                # Solo mostrar reportes visibles para otros usuarios
+                # Por defecto, solo mostrar reportes visibles de todos los usuarios
                 filters['visible'] = True
+            
+            # Si se especifica 'autor_id', filtrar por ese autor específico
+            if request.GET.get('autor_id'):
+                filters['usuario_id'] = int(request.GET.get('autor_id'))
+                # Si el autor es el mismo que el autenticado, mostrar todos sus reportes
+                if int(request.GET.get('autor_id')) != usuario_id:
+                    filters['visible'] = True
             
             # Permitir override del filtro visible si se especifica explícitamente
             if request.GET.get('visible'):
@@ -250,11 +255,12 @@ class ReportListView(APIView):
             if request.GET.get('search'):
                 filters['search'] = request.GET.get('search')
             
-            # Obtener reportes con paginación
+            # Obtener reportes con paginación (incluir usuario_id para calcular votos)
             result = ReportService.get_reports_with_cursor_pagination(
                 cursor=cursor,
                 limit=limit,
-                filters=filters
+                filters=filters,
+                usuario_id=usuario_id
             )
             
             return Response(result, status=status.HTTP_200_OK)

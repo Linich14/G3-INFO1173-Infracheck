@@ -7,15 +7,32 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 const api = axios.create({
     baseURL: API_BASE_URL,
     timeout: 30000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
+
+// Rutas públicas que no requieren autenticación
+const PUBLIC_ROUTES = [
+    '/api/v1/login/',
+    '/api/v1/register/',
+    '/api/v1/password-reset/request/',
+    '/api/v1/password-reset/verify-code/',
+    '/api/v1/password-reset/reset/',
+];
 
 // Interceptor para agregar el token automáticamente
 api.interceptors.request.use(
     async (config) => {
         try {
-            const token = await getToken();
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+            // No agregar token a rutas públicas
+            const isPublicRoute = PUBLIC_ROUTES.some(route => config.url?.includes(route));
+            
+            if (!isPublicRoute) {
+                const token = await getToken();
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
             }
         } catch (error) {
             console.error('Error getting token:', error);

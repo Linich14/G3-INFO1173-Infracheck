@@ -154,6 +154,10 @@ export interface ReportsListResponse {
             puede_agregar_imagenes: boolean;
             puede_agregar_videos: boolean;
         };
+        votos?: {
+            count: number;
+            usuario_ha_votado: boolean;
+        };
     }>;
     pagination: {
         nextCursor: string | null;
@@ -172,4 +176,8 @@ export interface ReportForHome {
     upvotes: number;
     comments: any[];
     categoria: string;
+    votos?: {
+        count: number;
+        usuario_ha_votado: boolean;
+    };
 }

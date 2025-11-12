@@ -1,5 +1,5 @@
 import api from '~/shared/api';
-import { isAuthenticated } from '~/features/auth/services/authService';
+import { isAuthenticated, getUserId } from '~/features/auth/services/authService';
 import {
     ReportFormData,
     CreateReportResponse,
@@ -167,10 +167,18 @@ export class ReportService {
                 throw new Error('Sesión expirada. Inicie sesión nuevamente.');
             }
 
+            // Obtener ID del usuario para incluir en la petición
+            const userId = await getUserId();
+
             // Construir parámetros de forma segura
             const params: Record<string, string> = {
                 limit: limit.toString(),
             };
+
+            // Agregar usuario_id si está disponible
+            if (userId) {
+                params.usuario_id = userId;
+            }
 
             // Solo agregar cursor si es válido y no es null/undefined
             if (cursor && cursor.trim() !== '' && cursor !== 'null' && cursor !== 'undefined') {

@@ -116,10 +116,14 @@ def listar_votos_reporte(request, report_id):
         # Contar total de votos
         total_count = VotoReporte.objects.filter(reporte=reporte).count()
 
+        # Verificar si el usuario autenticado ha votado
+        usuario_ha_votado = VotoReporte.ha_votado_reporte(usuario, reporte)
+
         return Response(
             {
                 'count': total_count,
-                'results': results
+                'results': results,
+                'usuario_ha_votado': usuario_ha_votado
             },
             status=status.HTTP_200_OK
         )

@@ -10,6 +10,7 @@ import FloatingButton from '~/features/home/components/Floatingbutton';
 import ClientDrawerMenu from '~/features/home/components/ClientDrawerMenu';
 import FiltersModal from '~/features/home/components/FiltersModal';
 import { useReportsList } from '~/features/report/hooks/useReportsList';
+import { triggerGlobalVotesRefresh } from '~/features/posts/hooks/useReportVotes';
 
 export default function HomeScreen() {
     const insets = useSafeAreaInsets();
@@ -72,6 +73,14 @@ export default function HomeScreen() {
             console.error('Error in reports:', error);
         }
     }, [error]);
+
+    // Función para manejar refresh (reportes y votos)
+    const handleRefresh = async () => {
+        // Disparar refresh global de votos
+        triggerGlobalVotesRefresh();
+        // Refrescar reportes
+        await refresh();
+    };
 
     const openMenu = () => {
         setOpen(true);
@@ -191,7 +200,7 @@ export default function HomeScreen() {
                 onCommentPress={openCommentsModal}
                 insets={insets}
                 refreshing={refreshing}
-                onRefresh={refresh}
+                onRefresh={handleRefresh}
                 selectedReport={selectedReport}
                 commentsModalVisible={commentsModalVisible}
                 onCloseCommentsModal={closeCommentsModal}

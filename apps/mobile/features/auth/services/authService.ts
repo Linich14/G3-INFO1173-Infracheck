@@ -6,6 +6,7 @@ const TOKEN_KEY = 'auth_token';
 const TOKEN_EXPIRY_KEY = 'auth_token_expiry';
 const USER_ROLE_ID_KEY = 'user_role_id';
 const USER_ROLE_NAME_KEY = 'user_role_name';
+const USER_ID_KEY = 'user_id';
 
 // Variable para controlar llamadas simultáneas a isAuthenticated
 let isAuthenticating = false;
@@ -187,6 +188,25 @@ export const saveUserRole = async (rous_id: number, rous_nombre: string): Promis
   }
 };
 
+// Guardar ID del usuario
+export const saveUserId = async (userId: string | number): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(USER_ID_KEY, userId.toString());
+  } catch (error) {
+    console.error('Error saving user ID:', error);
+  }
+};
+
+// Obtener ID del usuario
+export const getUserId = async (): Promise<string | null> => {
+  try {
+    return await AsyncStorage.getItem(USER_ID_KEY);
+  } catch (error) {
+    console.error('Error getting user ID:', error);
+    return null;
+  }
+};
+
 // Obtener datos del rol del usuario
 export const getUserRole = async (): Promise<{rous_id: number, rous_nombre: string} | null> => {
   try {
@@ -259,6 +279,13 @@ export const isAuthenticated = async (): Promise<boolean> => {
 // Login con backend
 export async function loginUser(data: LoginData): Promise<AuthResponse> {
   try {
+    // Verificar si hay un token guardado (no debería haberlo para login)
+    const existingToken = await getToken();
+    console.log('Existing token before login:', existingToken ? 'EXISTS' : 'NONE');
+    
+    console.log('Attempting login with data:', { rut: data.rut, password: '***' });
+    console.log('API URL:', `${API_CONFIG.BASE_URL}/api/v1/login/`);
+    
     const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/login/`, {
       method: 'POST',
       headers: {
@@ -267,7 +294,11 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
       body: JSON.stringify(data),
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+    
     const result = await response.json();
+    console.log('Response result:', result);
 
     // El backend envía token cuando el login es exitoso, no un campo 'success'
     if (response.ok && result.token) {
@@ -279,6 +310,11 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
       // Guardar datos del rol del usuario
       if (result.rous_id && result.rous_nombre) {
         await saveUserRole(result.rous_id, result.rous_nombre);
+      }
+
+      // Guardar ID del usuario
+      if (result.user_id) {
+        await saveUserId(result.user_id);
       }
 
       return {
