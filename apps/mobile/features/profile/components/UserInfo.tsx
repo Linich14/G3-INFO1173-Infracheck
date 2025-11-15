@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
-import { Mail, CreditCard, Phone, Camera, QrCode } from 'lucide-react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, Image, Alert, RefreshControl, ScrollView } from 'react-native';
+import { Mail, CreditCard, Phone, Camera, QrCode, User } from 'lucide-react-native';
 import { ContactField } from './ContactField';
 import { EditEmailModal } from './EditEmailModal';
 import { EditPhoneModal } from './EditPhoneModal';
+import { EditNameModal } from './EditNameModal';
 import { QRSection } from './QRSection';
 import { UserStats } from './UserStats';
 import { UserInfoProps } from '../types';
@@ -13,6 +14,7 @@ import { useProfileStats } from '../hooks/useProfileStats';
 export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
   const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
+  const [isNameModalVisible, setIsNameModalVisible] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const { stats, loading: statsLoading, error: statsError, refresh: refreshStats } = useProfileStats();
   const { updateUser, refreshUser } = useUser();
@@ -86,8 +88,45 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
     }
   };
 
+  // Handler para guardar nombre y apellido
+  const handleSaveName = async (firstName: string, lastName: string): Promise<boolean> => {
+    try {
+      const success = await updateUser({ usua_nombre: firstName, usua_apellido: lastName });
+      if (success) {
+        await refreshUser();
+        Alert.alert(
+          'Nombre actualizado',
+          'Tu nombre y apellido han sido actualizados correctamente',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Error', 'No se pudo actualizar el nombre');
+      }
+      return success;
+    } catch {
+      Alert.alert('Error', 'No se pudo actualizar el nombre');
+      return false;
+    }
+  };
+
+  const handleRefreshAll = useCallback(async () => {
+    // Refresca tanto los datos del usuario como las estadísticas de actividad
+    await Promise.all([refreshUser(), refreshStats()]);
+  }, [refreshUser, refreshStats]);
+
   return (
-    <View className="flex-1 px-3.5 w-full">
+    <ScrollView
+      className="flex-1 px-3.5 w-full"
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={statsLoading}
+          onRefresh={handleRefreshAll}
+          tintColor="#537CF2"
+          colors={["#537CF2"]}
+        />
+      }
+    >
       <View className="self-center mt-8 relative">
         <View className="w-[108px] h-[108px] bg-[#537CF2] rounded-full justify-center items-center shadow-lg">
           {user.avatar ? (
@@ -130,37 +169,21 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
           <QrCode size={24} color="#537CF2" />
         </TouchableOpacity>
       </View>
-
-      {/* User Stats debajo de la info básica, como antes */}
-      {statsLoading && !stats && (
-        <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-white/5">
-          <Text className="text-gray-300 text-sm mb-2">Cargando estadísticas...</Text>
-          {/* Podríamos importar ActivityIndicator aquí si quieres loader visual */}
-        </View>
-      )}
-
-      {statsError && !stats && (
-        <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-red-500/40">
-          <Text className="text-red-400 text-sm mb-3">{statsError}</Text>
-          <TouchableOpacity
-            onPress={refreshStats}
-            className="self-start bg-[#537CF2] px-4 py-2 rounded-lg"
-          >
-            <Text className="text-white text-sm font-semibold">Reintentar</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {stats && (
-        <UserStats
-          reportes_creados={stats.reportes_creados}
-          reportes_seguidos={stats.reportes_seguidos}
-          votos_recibidos={stats.votos_recibidos}
-          votos_realizados={stats.votos_realizados}
-        />
-      )}
-
+      {/* Nombre y apellido en el mismo bloque de contacto que email/teléfono */}
       <View className="px-3.5 py-5 mt-3 w-full">
+        <TouchableOpacity onPress={() => setIsNameModalVisible(true)} activeOpacity={0.7}>
+          <ContactField
+            icon={<User size={24} color="#60A5FA" />}
+            value={
+              user.usua_nombre && user.usua_apellido
+                ? `${user.usua_nombre} ${user.usua_apellido}`
+                : 'Agrega tu nombre y apellido para completar tu perfil'
+            }
+            className="mb-4"
+            showEditIcon={true}
+          />
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={() => setIsEmailModalVisible(true)} activeOpacity={0.7}>
           <ContactField
             icon={<Mail size={24} color="#f6fa00ff" />}
@@ -186,6 +209,34 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </TouchableOpacity>
       </View>
 
+      {/* User Stats debajo de la info básica, como antes */}
+      {statsLoading && !stats && (
+        <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-white/5">
+          <Text className="text-gray-300 text-sm mb-2">Cargando estadísticas...</Text>
+        </View>
+      )}
+
+      {statsError && !stats && (
+        <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-red-500/40">
+          <Text className="text-red-400 text-sm mb-3">{statsError}</Text>
+          <TouchableOpacity
+            onPress={refreshStats}
+            className="self-start bg-[#537CF2] px-4 py-2 rounded-lg"
+          >
+            <Text className="text-white text-sm font-semibold">Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {stats && (
+        <UserStats
+          reportes_creados={stats.reportes_creados}
+          reportes_seguidos={stats.reportes_seguidos}
+          votos_recibidos={stats.votos_recibidos}
+          votos_realizados={stats.votos_realizados}
+        />
+      )}
+
       <EditEmailModal
         isVisible={isEmailModalVisible}
         currentEmail={user.usua_email}
@@ -200,6 +251,14 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         onSave={handleSavePhone}
       />
 
+      <EditNameModal
+        isVisible={isNameModalVisible}
+        currentFirstName={user.usua_nombre}
+        currentLastName={user.usua_apellido}
+        onClose={() => setIsNameModalVisible(false)}
+        onSave={handleSaveName}
+      />
+
       {showQR && (
         <QRSection 
           visible={showQR} 
@@ -207,6 +266,6 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
           userId={user.usua_id}
         />
       )}
-    </View>
+    </ScrollView>
   );
 };

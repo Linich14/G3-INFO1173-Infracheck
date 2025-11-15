@@ -57,3 +57,10 @@ export interface ChangePasswordResponse {
 export interface UserInfoProps {
   user: User;
 }
+
+export interface ContactFieldProps {
+  icon: React.ReactNode;
+  value: string;
+  className?: string;
+  showEditIcon?: boolean;
+}

@@ -1,17 +1,24 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { ArrowLeft, Settings } from 'lucide-react-native';
 import { UserInfo } from '~/features/profile/components/UserInfo';
 import { ChangePasswordSection } from '~/features/profile/components/ChangePasswordSection';
 import { DeleteAccountSection } from '~/features/profile/components/DeleteAccountSection';
 import { useUser } from '~/features/profile/hooks/useUser';
-import { useProfileStats } from '~/features/profile/hooks/useProfileStats';
 
 function ProfileScreen() {
   const { user, loading, error, refreshUser } = useUser();
-  const { stats, loading: statsLoading, error: statsError, refresh: refreshStats } = useProfileStats();
+
+  // Al volver a la pantalla de perfil, refrescamos el usuario para que
+  // los contadores de reportes seguidos/creados se mantengan actualizados.
+  useFocusEffect(
+    useCallback(() => {
+      refreshUser();
+    }, [refreshUser])
+  );
 
   if (loading) {
     return (
@@ -77,7 +84,18 @@ function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refreshUser}
+            tintColor="#537CF2"
+            colors={["#537CF2"]}
+          />
+        }
+      >
         {/* User Information */}
         <UserInfo user={user} />
 
