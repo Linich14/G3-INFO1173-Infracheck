@@ -99,6 +99,14 @@ export interface ReportDetailResponse {
             puede_agregar_imagenes: boolean;
             puede_agregar_videos: boolean;
         };
+        votos?: {
+            count: number;
+            usuario_ha_votado: boolean;
+        };
+        seguimiento?: {
+            is_following: boolean;
+            seguidores_count: number;
+        };
     };
 }
 
@@ -158,6 +166,10 @@ export interface ReportsListResponse {
             count: number;
             usuario_ha_votado: boolean;
         };
+        seguimiento?: {
+            is_following: boolean;
+            seguidores_count: number;
+        };
     }>;
     pagination: {
         nextCursor: string | null;
@@ -179,5 +191,13 @@ export interface ReportForHome {
     votos?: {
         count: number;
         usuario_ha_votado: boolean;
+    };
+    seguimiento?: {
+        is_following: boolean;
+        seguidores_count: number;
+    };
+    ubicacion?: {
+        latitud: number;
+        longitud: number;
     };
 }

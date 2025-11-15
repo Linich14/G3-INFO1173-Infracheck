@@ -52,6 +52,14 @@ interface ApiReportDetails {
         puede_agregar_imagenes: boolean;
         puede_agregar_videos: boolean;
     };
+    votos?: {
+        count: number;
+        usuario_ha_votado: boolean;
+    };
+    seguimiento?: {
+        is_following: boolean;
+        seguidores_count: number;
+    };
 }
 
 // Tipo adaptado para el componente
@@ -83,6 +91,14 @@ export interface ReportDetails {
         dias_desde_creacion: number;
         puede_agregar_imagenes: boolean;
         puede_agregar_videos: boolean;
+    };
+    votos?: {
+        count: number;
+        usuario_ha_votado: boolean;
+    };
+    seguimiento?: {
+        is_following: boolean;
+        seguidores_count: number;
     };
 }
 
@@ -124,6 +140,8 @@ const adaptReportData = (apiData: ApiReportDetails): ReportDetails => {
         usuario: apiData.usuario,
         ciudad: apiData.ciudad.nombre,
         estadisticas: apiData.estadisticas,
+        votos: apiData.votos, // Pasar estructura embebida
+        seguimiento: apiData.seguimiento, // Pasar estructura embebida
     };
 };
 

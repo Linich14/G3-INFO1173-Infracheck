@@ -23,10 +23,12 @@ const ReportCard: React.FC<ReportCardProps> = ({
     author,
     timeAgo,
     image,
-    upvotes = 0, // Mantener como fallback por compatibilidad
-    initialVoteCount = 0,
-    initialUserHasVoted = false,
-    seguimiento,
+    upvotes = 0, // Deprecated fallback
+    initialVoteCount = 0, // Deprecated fallback
+    initialUserHasVoted = false, // Deprecated fallback
+    votos, // Nueva estructura embebida
+    seguimiento, // Nueva estructura embebida
+    ubicacion, // Nueva estructura embebida
     onFollow,
     onMore,
     onLocation,
@@ -42,11 +44,15 @@ const ReportCard: React.FC<ReportCardProps> = ({
     const [imageError, setImageError] = useState(false);
     const hasImage = !!image && !imageError;
 
-    // Hook para manejar votos con datos embebidos
+    // Priorizar datos embebidos sobre props legacy
+    const finalVoteCount = votos?.count ?? initialVoteCount;
+    const finalUserHasVoted = votos?.usuario_ha_votado ?? initialUserHasVoted;
+
+    // Hook para manejar votos con datos embebidos del backend
     const { voteCount, userHasVoted, isLoading: votesLoading, isSubmitting, submitVote } = useReportVotes(
         id,
-        initialVoteCount,
-        initialUserHasVoted
+        finalVoteCount,
+        finalUserHasVoted
     );
 
     // Hook para manejar seguimiento

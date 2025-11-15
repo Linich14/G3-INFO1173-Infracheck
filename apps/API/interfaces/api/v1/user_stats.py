@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from reports.models import ReportModel, VotoReporte
+from reports.models.seguimiento_reporte import SeguimientoReporte
 from domain.entities.usuario import Usuario
 import logging
 
@@ -17,7 +18,9 @@ def user_stats_view(request):
     Respuesta Éxito (200):
     {
         "report_count": 12,
-        "up_votes": 45
+        "up_votes": 45,
+        "reports_followed": 5,
+        "votes_given": 20
     }
     """
     try:
@@ -28,15 +31,26 @@ def user_stats_view(request):
                 status=status.HTTP_401_UNAUTHORIZED
             )
         
-        # Contar reportes del usuario
+        # Contar reportes creados por el usuario (solo visibles)
         report_count = ReportModel.objects.filter(usuario=usuario, visible=True).count()
         
-        # Contar votos recibidos en los reportes del usuario
+        # Contar votos RECIBIDOS en los reportes del usuario
         up_votes = VotoReporte.objects.filter(reporte__usuario=usuario, reporte__visible=True).count()
+        
+        # Contar reportes seguidos por el usuario (solo visibles)
+        reports_followed = SeguimientoReporte.objects.filter(
+            usuario=usuario,
+            reporte__visible=True
+        ).count()
+        
+        # Contar votos DADOS por el usuario
+        votes_given = VotoReporte.objects.filter(usuario=usuario).count()
         
         return Response({
             'report_count': report_count,
-            'up_votes': up_votes
+            'up_votes': up_votes,
+            'reports_followed': reports_followed,
+            'votes_given': votes_given
         }, status=status.HTTP_200_OK)
         
     except Exception as e:
@@ -56,7 +70,9 @@ def public_user_stats_view(request, user_id):
     Respuesta Éxito (200):
     {
         "report_count": 12,
-        "up_votes": 45
+        "up_votes": 45,
+        "reports_followed": 5,
+        "votes_given": 20
     }
     """
     try:
@@ -76,15 +92,26 @@ def public_user_stats_view(request, user_id):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        # Contar reportes del usuario
+        # Contar reportes creados por el usuario (solo visibles)
         report_count = ReportModel.objects.filter(usuario=usuario, visible=True).count()
         
-        # Contar votos recibidos en los reportes del usuario
+        # Contar votos RECIBIDOS en los reportes del usuario
         up_votes = VotoReporte.objects.filter(reporte__usuario=usuario, reporte__visible=True).count()
+        
+        # Contar reportes seguidos por el usuario (solo visibles)
+        reports_followed = SeguimientoReporte.objects.filter(
+            usuario=usuario,
+            reporte__visible=True
+        ).count()
+        
+        # Contar votos DADOS por el usuario
+        votes_given = VotoReporte.objects.filter(usuario=usuario).count()
         
         return Response({
             'report_count': report_count,
-            'up_votes': up_votes
+            'up_votes': up_votes,
+            'reports_followed': reports_followed,
+            'votes_given': votes_given
         }, status=status.HTTP_200_OK)
         
     except Exception as e:

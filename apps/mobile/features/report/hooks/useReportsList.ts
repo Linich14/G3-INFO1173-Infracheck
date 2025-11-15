@@ -12,7 +12,9 @@ const mapReportToHomeFormat = (report: any): ReportForHome => ({
     upvotes: report.votos?.count || 0,
     comments: [],
     categoria: report.tipo_denuncia.nombre,
-    votos: report.votos, // Agregar campo de votos del backend
+    votos: report.votos, // Estructura embebida: { count, usuario_ha_votado }
+    seguimiento: report.seguimiento, // Estructura embebida: { is_following, seguidores_count }
+    ubicacion: report.ubicacion, // Estructura embebida: { latitud, longitud }
 });
 
 const getMainImage = (archivos: any[]) => {

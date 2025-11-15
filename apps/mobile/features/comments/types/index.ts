@@ -25,6 +25,14 @@ export interface Report {
     count: number;
     usuario_ha_votado: boolean;
   };
+  seguimiento?: {
+    is_following: boolean;
+    seguidores_count: number;
+  };
+  ubicacion?: {
+    latitud: number;
+    longitud: number;
+  };
 }
 
 export interface CommentsModalProps {

@@ -1,5 +1,10 @@
 import { ImageSourcePropType } from 'react-native';
 
+export interface VotesInfo {
+    count: number;
+    usuario_ha_votado: boolean;
+}
+
 export interface FollowInfo {
     is_following: boolean;
     seguidores_count: number;
@@ -53,10 +58,12 @@ export interface ReportCardProps {
     author: string;
     timeAgo: string; // ej: "3d"
     image?: ImageSourcePropType | null; // opcional
-    upvotes?: number;
-    initialVoteCount?: number;
-    initialUserHasVoted?: boolean;
+    upvotes?: number; // Deprecated - usar votos?.count
+    initialVoteCount?: number; // Deprecated - usar votos?.count
+    initialUserHasVoted?: boolean; // Deprecated - usar votos?.usuario_ha_votado
+    votos?: VotesInfo; // Nueva estructura embebida desde el backend
     seguimiento?: FollowInfo; // información de seguimiento del backend
+    ubicacion?: UbicacionInfo; // Nueva estructura de ubicación
     onFollow?: () => void;
     onMore?: () => void;
     onLocation?: () => void;
@@ -65,8 +72,8 @@ export interface ReportCardProps {
     onShare?: () => void;
     followLabel?: string; // ej: "Seguir"
     aspectRatio?: number; // ej: 16/9 (default)
-    isFollowed?: boolean; // para cambiar el color del botón seguir (deprecated, usar seguimiento.is_following)
-    isUpvoted?: boolean; // para cambiar el color del botón upvote
+    isFollowed?: boolean; // Deprecated - usar seguimiento?.is_following
+    isUpvoted?: boolean; // Deprecated - usar votos?.usuario_ha_votado
 }
 
 export interface Post {
