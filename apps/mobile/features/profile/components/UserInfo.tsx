@@ -8,23 +8,14 @@ import { QRSection } from './QRSection';
 import { UserStats } from './UserStats';
 import { UserInfoProps } from '../types';
 import { useUser } from '../hooks/useUser';
-import { getUserStats } from '../services/profileService';
+import { useProfileStats } from '../hooks/useProfileStats';
 
 export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
   const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
   const [showQR, setShowQR] = useState(false);
-  const [stats, setStats] = useState({ reportCount: 0, upVotes: 0 });
+  const { stats, loading: statsLoading, error: statsError, refresh: refreshStats } = useProfileStats();
   const { updateUser, refreshUser } = useUser();
-
-  // Cargar estadísticas del usuario
-  useEffect(() => {
-    const loadStats = async () => {
-      const userStats = await getUserStats();
-      setStats(userStats);
-    };
-    loadStats();
-  }, []);
 
   // Función helper para formatear el teléfono
   const formatPhone = (phone: number) => {
@@ -130,7 +121,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </Text>
       </View>
 
-      <View className="flex-row justify-center items-center gap-4 mt-4">
+      <View className="flex-row justify-center items-center gap-4 mt-4 mb-1">
         <TouchableOpacity
           onPress={() => setShowQR(true)}
           className="bg-[#13161E] p-3 rounded-xl"
@@ -140,7 +131,34 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </TouchableOpacity>
       </View>
 
-      <UserStats reportCount={stats.reportCount} upVotes={stats.upVotes} />
+      {/* User Stats debajo de la info básica, como antes */}
+      {statsLoading && !stats && (
+        <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-white/5">
+          <Text className="text-gray-300 text-sm mb-2">Cargando estadísticas...</Text>
+          {/* Podríamos importar ActivityIndicator aquí si quieres loader visual */}
+        </View>
+      )}
+
+      {statsError && !stats && (
+        <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-red-500/40">
+          <Text className="text-red-400 text-sm mb-3">{statsError}</Text>
+          <TouchableOpacity
+            onPress={refreshStats}
+            className="self-start bg-[#537CF2] px-4 py-2 rounded-lg"
+          >
+            <Text className="text-white text-sm font-semibold">Reintentar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {stats && (
+        <UserStats
+          reportes_creados={stats.reportes_creados}
+          reportes_seguidos={stats.reportes_seguidos}
+          votos_recibidos={stats.votos_recibidos}
+          votos_realizados={stats.votos_realizados}
+        />
+      )}
 
       <View className="px-3.5 py-5 mt-3 w-full">
         <TouchableOpacity onPress={() => setIsEmailModalVisible(true)} activeOpacity={0.7}>

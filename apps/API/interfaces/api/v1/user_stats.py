@@ -17,10 +17,10 @@ def user_stats_view(request):
     
     Respuesta Éxito (200):
     {
-        "report_count": 12,
-        "up_votes": 45,
-        "reports_followed": 5,
-        "votes_given": 20
+        "reportes_creados": 12,
+        "reportes_seguidos": 5,
+        "votos_recibidos": 45,
+        "votos_realizados": 20
     }
     """
     try:
@@ -32,25 +32,25 @@ def user_stats_view(request):
             )
         
         # Contar reportes creados por el usuario (solo visibles)
-        report_count = ReportModel.objects.filter(usuario=usuario, visible=True).count()
-        
-        # Contar votos RECIBIDOS en los reportes del usuario
-        up_votes = VotoReporte.objects.filter(reporte__usuario=usuario, reporte__visible=True).count()
+        reportes_creados = ReportModel.objects.filter(usuario=usuario, visible=True).count()
         
         # Contar reportes seguidos por el usuario (solo visibles)
-        reports_followed = SeguimientoReporte.objects.filter(
+        reportes_seguidos = SeguimientoReporte.objects.filter(
             usuario=usuario,
             reporte__visible=True
         ).count()
         
-        # Contar votos DADOS por el usuario
-        votes_given = VotoReporte.objects.filter(usuario=usuario).count()
+        # Contar votos RECIBIDOS en los reportes del usuario
+        votos_recibidos = VotoReporte.objects.filter(reporte__usuario=usuario, reporte__visible=True).count()
+        
+        # Contar votos REALIZADOS/DADOS por el usuario
+        votos_realizados = VotoReporte.objects.filter(usuario=usuario).count()
         
         return Response({
-            'report_count': report_count,
-            'up_votes': up_votes,
-            'reports_followed': reports_followed,
-            'votes_given': votes_given
+            'reportes_creados': reportes_creados,
+            'reportes_seguidos': reportes_seguidos,
+            'votos_recibidos': votos_recibidos,
+            'votos_realizados': votos_realizados
         }, status=status.HTTP_200_OK)
         
     except Exception as e:
@@ -69,10 +69,10 @@ def public_user_stats_view(request, user_id):
     
     Respuesta Éxito (200):
     {
-        "report_count": 12,
-        "up_votes": 45,
-        "reports_followed": 5,
-        "votes_given": 20
+        "reportes_creados": 12,
+        "reportes_seguidos": 5,
+        "votos_recibidos": 45,
+        "votos_realizados": 20
     }
     """
     try:
@@ -93,25 +93,25 @@ def public_user_stats_view(request, user_id):
             )
         
         # Contar reportes creados por el usuario (solo visibles)
-        report_count = ReportModel.objects.filter(usuario=usuario, visible=True).count()
-        
-        # Contar votos RECIBIDOS en los reportes del usuario
-        up_votes = VotoReporte.objects.filter(reporte__usuario=usuario, reporte__visible=True).count()
+        reportes_creados = ReportModel.objects.filter(usuario=usuario, visible=True).count()
         
         # Contar reportes seguidos por el usuario (solo visibles)
-        reports_followed = SeguimientoReporte.objects.filter(
+        reportes_seguidos = SeguimientoReporte.objects.filter(
             usuario=usuario,
             reporte__visible=True
         ).count()
         
-        # Contar votos DADOS por el usuario
-        votes_given = VotoReporte.objects.filter(usuario=usuario).count()
+        # Contar votos RECIBIDOS en los reportes del usuario
+        votos_recibidos = VotoReporte.objects.filter(reporte__usuario=usuario, reporte__visible=True).count()
+        
+        # Contar votos REALIZADOS/DADOS por el usuario
+        votos_realizados = VotoReporte.objects.filter(usuario=usuario).count()
         
         return Response({
-            'report_count': report_count,
-            'up_votes': up_votes,
-            'reports_followed': reports_followed,
-            'votes_given': votes_given
+            'reportes_creados': reportes_creados,
+            'reportes_seguidos': reportes_seguidos,
+            'votos_recibidos': votos_recibidos,
+            'votos_realizados': votos_realizados
         }, status=status.HTTP_200_OK)
         
     except Exception as e:

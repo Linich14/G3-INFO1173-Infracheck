@@ -7,9 +7,11 @@ import { UserInfo } from '~/features/profile/components/UserInfo';
 import { ChangePasswordSection } from '~/features/profile/components/ChangePasswordSection';
 import { DeleteAccountSection } from '~/features/profile/components/DeleteAccountSection';
 import { useUser } from '~/features/profile/hooks/useUser';
+import { useProfileStats } from '~/features/profile/hooks/useProfileStats';
 
 function ProfileScreen() {
   const { user, loading, error, refreshUser } = useUser();
+  const { stats, loading: statsLoading, error: statsError, refresh: refreshStats } = useProfileStats();
 
   if (loading) {
     return (
