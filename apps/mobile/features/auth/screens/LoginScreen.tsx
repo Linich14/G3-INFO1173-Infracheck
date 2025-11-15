@@ -17,6 +17,7 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { loginUser } from '../services/authService';
 import { useAuth } from '~/contexts/AuthContext';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 const LoginScreen: React.FC = () => {
     const router = useRouter();
@@ -27,11 +28,12 @@ const LoginScreen: React.FC = () => {
     const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
     const [feedbackMessage, setFeedbackMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const { t } = useLanguage();
 
     const handleLogin = async () => {
         // Validar que los campos no estén vacíos
         if (!rut.trim() || !password.trim()) {
-            setFeedbackMessage('Por favor, completa todos los campos.');
+            setFeedbackMessage(t('loginEmptyFieldsError'));
             setFeedbackModalVisible(true);
             setLoading(false);
             return;
@@ -52,7 +54,7 @@ const LoginScreen: React.FC = () => {
             console.log('Login result:', result);
 
             if (result.success) {
-                setFeedbackMessage('¡Inicio de sesión exitoso!');
+                setFeedbackMessage(t('loginSuccess'));
                 setLoading(false);
 
                 // Actualizar inmediatamente el estado de autenticación
@@ -69,7 +71,7 @@ const LoginScreen: React.FC = () => {
             }
         } catch (error: any) {
             setFeedbackMessage(
-                'Error al iniciar sesión: ' + (error.message || 'Verifica tus credenciales.')
+                t('loginErrorPrefix') + (error.message || t('loginErrorFallback'))
             );
             setLoading(false);
         }
@@ -82,7 +84,7 @@ const LoginScreen: React.FC = () => {
                 <View className="flex-row justify-between">
                     <View className="left-10 top-5 h-32 w-32 justify-center rounded-full bg-white" />
                     <View className="mr-4 items-end justify-center">
-                        <Text className=" text-4xl font-bold text-white">Inicio Sesión</Text>
+                        <Text className=" text-4xl font-bold text-white">{t('loginTitle')}</Text>
                     </View>
                 </View>
             </View>
@@ -126,13 +128,13 @@ const LoginScreen: React.FC = () => {
                                 onPress={() => router.replace('/')}
                                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                 accessibilityRole="button"
-                                accessibilityLabel="Volver"
+                                accessibilityLabel={t('back')}
                                 activeOpacity={0.6}
                                 className="items-center justify-center rounded-[12px] bg-primary p-3 px-4 ml-2">
                                 <ArrowLeft size={28} color="#fff" />
                             </TouchableOpacity>
                             {/* Texto centrado */}
-                            <Text className="text-6xl font-bold text-white">Hola!</Text>
+                            <Text className="text-6xl font-bold text-white">{t('loginHello')}</Text>
                             {/* View vacío para balancear el espacio */}
                             <View className="w-16" />
                         </View>
@@ -140,7 +142,7 @@ const LoginScreen: React.FC = () => {
                         <View className="mb-8 w-full items-center space-y-6 ">
                             {/* Campo Usuario */}
                             <View className="w-72 space-y-2">
-                                <Text className="text-2xl font-bold text-white ">Usuario</Text>
+                                <Text className="text-2xl font-bold text-white ">{t('loginUserLabel')}</Text>
                                 <RutInput
                                     value={rut}
                                     onChangeText={setRut}
@@ -149,7 +151,7 @@ const LoginScreen: React.FC = () => {
                             </View>
                             {/* Campo Contraseña */}
                             <View className="w-72 space-y-2 pt-8">
-                                <Text className="text-2xl font-bold text-white">Contraseña</Text>
+                                <Text className="text-2xl font-bold text-white">{t('loginPasswordLabel')}</Text>
                                 <View className="relative">
                                     <TextInput
                                         value={password}
@@ -180,12 +182,12 @@ const LoginScreen: React.FC = () => {
                             <TouchableOpacity
                                 className="mb-4 w-48 items-center justify-center rounded-[32px] bg-[#537CF2] py-5 shadow active:opacity-80"
                                 onPress={handleLogin}>
-                                <Text className="text-lg font-bold text-white">Iniciar Sesión</Text>
+                                <Text className="text-lg font-bold text-white">{t('welcomeLogin')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => router.replace('/(auth)/recover-password')}>
                                 <Text className="mt-2 text-lg text-[#537CF2]">
-                                    ¿Olvidaste tu contraseña?
+                                    {t('loginForgotPassword')}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -222,7 +224,7 @@ const LoginScreen: React.FC = () => {
                                     style={{ marginBottom: 16 }}
                                 />
                                 <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                                    Iniciando sesión...
+                                    {t('loginSubmitting')}
                                 </Text>
                             </>
                         ) : (
@@ -240,7 +242,7 @@ const LoginScreen: React.FC = () => {
                                             borderRadius: 8,
                                         }}>
                                         <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                                            Cerrar
+                                            {t('loginErrorClose')}
                                         </Text>
                                     </TouchableOpacity>
                                 )}

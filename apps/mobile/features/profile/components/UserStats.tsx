@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface UserStatsProps {
   reportes_creados: number;
@@ -31,19 +32,21 @@ export const UserStats: React.FC<UserStatsProps> = ({
   const safeVotosRecibidos = Number.isFinite(votos_recibidos) ? votos_recibidos : 0;
   const safeVotosRealizados = Number.isFinite(votos_realizados) ? votos_realizados : 0;
 
+  const { t } = useLanguage();
+
   return (
     <View className="mx-4 mt-4 mb-2 rounded-2xl bg-[#1D212D] px-4 py-5 border border-[#1F2933]">
       <Text className="text-gray-300 text-xs font-semibold mb-3 uppercase tracking-wide">
-        Actividad
+        {t('statsTitle')}
       </Text>
       <View className="flex-row items-stretch">
-        <StatItem label="Reportes creados" value={safeReportesCreados} />
+        <StatItem label={t('statsReportsCreated')} value={safeReportesCreados} />
         <View className="w-px h-10 bg-[#111827] mx-2" />
-        <StatItem label="Reportes seguidos" value={safeReportesSeguidos} />
+        <StatItem label={t('statsReportsFollowed')} value={safeReportesSeguidos} />
         <View className="w-px h-10 bg-[#111827] mx-2" />
-        <StatItem label="Votos recibidos" value={safeVotosRecibidos} />
+        <StatItem label={t('statsVotesReceived')} value={safeVotosRecibidos} />
         <View className="w-px h-10 bg-[#111827] mx-2" />
-        <StatItem label="Votos realizados" value={safeVotosRealizados} />
+        <StatItem label={t('statsVotesMade')} value={safeVotosRealizados} />
       </View>
     </View>
   );

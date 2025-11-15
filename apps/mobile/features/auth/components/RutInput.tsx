@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, TextInput, Text, KeyboardTypeOptions } from 'react-native';
 import { formatRut } from '../../../utils/formatRut';
 import { isValidRut } from '../../../utils/validation';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface RutInputProps {
   value: string;
@@ -16,6 +17,7 @@ interface RutInputProps {
 const RutInput: React.FC<RutInputProps> = ({ value, onChangeText, placeholder, keyboardType, error }) => {
   const [touched, setTouched] = useState(false);
   const valid = isValidRut(value);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (value.length === 0 && touched) setTouched(false);
@@ -32,7 +34,7 @@ const RutInput: React.FC<RutInputProps> = ({ value, onChangeText, placeholder, k
       <TextInput
         value={value}
         onChangeText={handleChange}
-        placeholder={placeholder || '12.345.678-k'}
+        placeholder={placeholder || t('rutPlaceholder')}
         placeholderTextColor="#ccc"
         keyboardType={keyboardType || "default"}
         autoCapitalize="none"
@@ -41,7 +43,7 @@ const RutInput: React.FC<RutInputProps> = ({ value, onChangeText, placeholder, k
       />
           {(error || (touched && value.length > 0 && !valid)) && (
         <Text style={{ color: 'red', fontSize: 14, marginTop: 4}}>
-            {error ? error : 'Ingresa un RUT válido (ej: 12.345.678-9)'}
+      {error ? error : t('rutErrorDefault')}
         </Text>
       )}
     </View>

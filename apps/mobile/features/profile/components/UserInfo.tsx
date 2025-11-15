@@ -11,6 +11,7 @@ import { UserInfoProps } from '../types';
 import { useVoteFeedback } from '~/features/posts/hooks/useVoteFeedback';
 import { useUser } from '../hooks/useUser';
 import { useProfileStats } from '../hooks/useProfileStats';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
@@ -20,6 +21,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   const { stats, loading: statsLoading, error: statsError, refresh: refreshStats } = useProfileStats();
   const { updateUser, refreshUser } = useUser();
   const { showSuccess, showError } = useVoteFeedback();
+  const { t } = useLanguage();
 
   // Función helper para formatear el teléfono
   const formatPhone = (phone: number) => {
@@ -42,7 +44,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   // Handler para cambiar foto de perfil
   const handleChangePhoto = () => {
     Alert.alert(
-      'Cambiar foto de perfil',
+      t('changePasswordTitle'),
       'Esta funcionalidad estará disponible próximamente',
       [{ text: 'OK' }]
     );
@@ -164,7 +166,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         <>
           {statsLoading && !stats && (
             <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-white/5">
-              <Text className="text-gray-300 text-sm mb-2">Cargando estadísticas...</Text>
+              <Text className="text-gray-300 text-sm mb-2">{t('statsLoading')}</Text>
             </View>
           )}
 
@@ -175,7 +177,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
                 onPress={refreshStats}
                 className="self-start bg-[#537CF2] px-4 py-2 rounded-lg"
               >
-                <Text className="text-white text-sm font-semibold">Reintentar</Text>
+                <Text className="text-white text-sm font-semibold">{t('statsRetry')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -200,7 +202,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
             value={
               user.usua_nombre && user.usua_apellido
                 ? `${user.usua_nombre} ${user.usua_apellido}`
-                : 'Agrega tu nombre y apellido para completar tu perfil'
+                : t('nameFieldPlaceholder')
             }
             className="mb-4"
             showEditIcon={true}

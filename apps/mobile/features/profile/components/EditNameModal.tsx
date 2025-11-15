@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
 import { X, User, Check } from 'lucide-react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface EditNameModalProps {
   isVisible: boolean;
@@ -20,6 +21,7 @@ export const EditNameModal: React.FC<EditNameModalProps> = ({
   const [firstName, setFirstName] = useState(currentFirstName || '');
   const [lastName, setLastName] = useState(currentLastName || '');
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useLanguage();
 
   const handleSave = async () => {
     const trimmedFirst = firstName.trim();
@@ -68,7 +70,7 @@ export const EditNameModal: React.FC<EditNameModalProps> = ({
         <View className="bg-[#13161E] rounded-2xl p-6 w-full max-w-sm">
           {/* Header */}
           <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-white text-xl font-bold">Editar nombre</Text>
+            <Text className="text-white text-xl font-bold">{t('editNameTitle')}</Text>
             <TouchableOpacity onPress={resetAndClose} activeOpacity={0.7}>
               <X size={24} color="white" />
             </TouchableOpacity>
@@ -76,13 +78,13 @@ export const EditNameModal: React.FC<EditNameModalProps> = ({
 
           {/* Nombre */}
           <View className="mb-4">
-            <Text className="text-gray-300 text-sm mb-2">Nombre</Text>
+            <Text className="text-gray-300 text-sm mb-2">{t('firstNameLabel')}</Text>
             <View className="flex-row items-center bg-[#1D212D] rounded-lg px-4 py-3">
               <User size={20} color="#537CF2" />
               <TextInput
                 value={firstName}
                 onChangeText={setFirstName}
-                placeholder="Nombre"
+                placeholder={t('firstNameLabel')}
                 placeholderTextColor="#6B7280"
                 className="flex-1 text-white ml-3"
                 autoCapitalize="words"
@@ -94,13 +96,13 @@ export const EditNameModal: React.FC<EditNameModalProps> = ({
 
           {/* Apellido */}
           <View className="mb-6">
-            <Text className="text-gray-300 text-sm mb-2">Apellido</Text>
+            <Text className="text-gray-300 text-sm mb-2">{t('lastNameLabel')}</Text>
             <View className="flex-row items-center bg-[#1D212D] rounded-lg px-4 py-3">
               <User size={20} color="#537CF2" />
               <TextInput
                 value={lastName}
                 onChangeText={setLastName}
-                placeholder="Apellido"
+                placeholder={t('lastNameLabel')}
                 placeholderTextColor="#6B7280"
                 className="flex-1 text-white ml-3"
                 autoCapitalize="words"
@@ -118,7 +120,7 @@ export const EditNameModal: React.FC<EditNameModalProps> = ({
               activeOpacity={0.8}
               disabled={isLoading}
             >
-              <Text className="text-white text-center font-medium">Cancelar</Text>
+              <Text className="text-white text-center font-medium">{t('cancel')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -131,7 +133,7 @@ export const EditNameModal: React.FC<EditNameModalProps> = ({
             >
               <Check size={16} color="white" />
               <Text className="text-white font-medium ml-2">
-                {isLoading ? 'Guardando...' : 'Guardar'}
+                {isLoading ? t('saving') : t('save')}
               </Text>
             </TouchableOpacity>
           </View>

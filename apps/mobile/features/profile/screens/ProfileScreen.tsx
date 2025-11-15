@@ -8,9 +8,11 @@ import { UserInfo } from '~/features/profile/components/UserInfo';
 import { ChangePasswordSection } from '~/features/profile/components/ChangePasswordSection';
 import { DeleteAccountSection } from '~/features/profile/components/DeleteAccountSection';
 import { useUser } from '~/features/profile/hooks/useUser';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 function ProfileScreen() {
   const { user, loading, error, refreshUser } = useUser();
+  const { t } = useLanguage();
 
   // Al volver a la pantalla de perfil, refrescamos el usuario para que
   // los contadores de reportes seguidos/creados se mantengan actualizados.
@@ -25,7 +27,7 @@ function ProfileScreen() {
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#537CF2" />
-          <Text className="text-white mt-4">Cargando perfil...</Text>
+          <Text className="text-white mt-4">{t('profileTitle')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -36,20 +38,20 @@ function ProfileScreen() {
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
         <View className="flex-1 justify-center items-center px-4">
           <Text className="text-red-500 text-center text-lg mb-4">
-            {error || 'Error al cargar el perfil'}
+            {error || t('profileLoadError')}
           </Text>
           <View className="flex-row space-x-4">
             <TouchableOpacity 
               onPress={refreshUser}
               className="bg-[#537CF2] px-6 py-3 rounded-lg"
             >
-              <Text className="text-white font-bold">Reintentar</Text>
+              <Text className="text-white font-bold">{t('retry')}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               onPress={() => router.back()}
               className="bg-gray-600 px-6 py-3 rounded-lg"
             >
-              <Text className="text-white font-bold">Volver</Text>
+              <Text className="text-white font-bold">{t('back')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -65,13 +67,13 @@ function ProfileScreen() {
           onPress={() => router.back()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
-          accessibilityLabel="Volver"
+          accessibilityLabel={t('back')}
           activeOpacity={0.6}
         >
           <ArrowLeft size={26} color="white" />
         </TouchableOpacity>
         
-        <Text className="text-[#537CF2] font-bold text-2xl">Perfil de usuario</Text>
+  <Text className="text-[#537CF2] font-bold text-2xl">{t('profileTitle')}</Text>
         
         <TouchableOpacity
           onPress={() => console.log('Configuración')}

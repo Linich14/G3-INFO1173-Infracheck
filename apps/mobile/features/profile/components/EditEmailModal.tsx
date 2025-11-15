@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
 import { X, Mail, Check } from 'lucide-react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface EditEmailModalProps {
   isVisible: boolean;
@@ -17,6 +18,7 @@ export const EditEmailModal: React.FC<EditEmailModalProps> = ({
 }) => {
   const [email, setEmail] = useState(currentEmail);
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useLanguage();
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -69,7 +71,7 @@ export const EditEmailModal: React.FC<EditEmailModalProps> = ({
         <View className="bg-[#13161E] rounded-2xl p-6 w-full max-w-sm">
           {/* Header */}
           <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-white text-xl font-bold">Editar Email</Text>
+            <Text className="text-white text-xl font-bold">{t('editEmailTitle')}</Text>
             <TouchableOpacity onPress={resetAndClose} activeOpacity={0.7}>
               <X size={24} color="white" />
             </TouchableOpacity>
@@ -77,13 +79,13 @@ export const EditEmailModal: React.FC<EditEmailModalProps> = ({
 
           {/* Email Input */}
           <View className="mb-6">
-            <Text className="text-gray-300 text-sm mb-2">Nuevo email</Text>
+            <Text className="text-gray-300 text-sm mb-2">{t('editEmailLabel')}</Text>
             <View className="flex-row items-center bg-[#1D212D] rounded-lg px-4 py-3">
               <Mail size={20} color="#537CF2" />
               <TextInput
                 value={email}
                 onChangeText={setEmail}
-                placeholder="ejemplo@correo.com"
+                placeholder={t('editEmailPlaceholder')}
                 placeholderTextColor="#6B7280"
                 className="flex-1 text-white ml-3"
                 keyboardType="email-address"
@@ -102,7 +104,7 @@ export const EditEmailModal: React.FC<EditEmailModalProps> = ({
               activeOpacity={0.8}
               disabled={isLoading}
             >
-              <Text className="text-white text-center font-medium">Cancelar</Text>
+              <Text className="text-white text-center font-medium">{t('cancel')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -115,7 +117,7 @@ export const EditEmailModal: React.FC<EditEmailModalProps> = ({
             >
               <Check size={16} color="white" />
               <Text className="text-white font-medium ml-2">
-                {isLoading ? 'Guardando...' : 'Guardar'}
+                {isLoading ? t('saving') : t('save')}
               </Text>
             </TouchableOpacity>
           </View>

@@ -87,9 +87,9 @@ const VoteToast: React.FC<VoteToastProps> = ({
         };
       case 'unvote':
         return {
-          bgColor: 'bg-gray-600',
+          bgColor: 'bg-red-500',
           icon: <ArrowBigUp size={24} color="#fff" />,
-          borderColor: 'border-gray-500',
+          borderColor: 'border-red-400',
         };
       case 'success':
         return {

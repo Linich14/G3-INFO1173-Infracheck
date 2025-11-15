@@ -7,9 +7,11 @@ import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { requestPasswordReset } from '../services/authService';
 import { isValidIdentifier } from '~/utils/validation';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 const RecoverPasswordScreen: React.FC = () => {
   const router = useRouter();
+  const { t } = useLanguage();
   const [rut, setRut] = useState('');
   const [email, setEmail] = useState('');
   const [method, setMethod] = useState<'rut' | 'email'>('rut');
@@ -24,7 +26,7 @@ const RecoverPasswordScreen: React.FC = () => {
     
     // Validar que el campo no esté vacío
     if (!identifier.trim()) {
-      setFeedbackMessage('Por favor, completa el campo requerido.');
+  setFeedbackMessage(t('recoverFieldRequired'));
       setIsSuccess(false);
       setFeedbackModalVisible(true);
       return;
@@ -34,9 +36,9 @@ const RecoverPasswordScreen: React.FC = () => {
     const validation = isValidIdentifier(identifier);
     if (!validation.isValid) {
       setFeedbackMessage(
-        method === 'rut' 
-          ? 'Por favor, ingresa un RUT válido (ej: 12.345.678-9)'
-          : 'Por favor, ingresa un email válido'
+        method === 'rut'
+          ? t('rutErrorDefault')
+          : t('emailErrorDefault')
       );
       setIsSuccess(false);
       setFeedbackModalVisible(true);
@@ -69,7 +71,7 @@ const RecoverPasswordScreen: React.FC = () => {
     } catch (error: any) {
       setLoading(false);
       setIsSuccess(false);
-      setFeedbackMessage('Error de conexión. Verifica tu conexión a internet.');
+  setFeedbackMessage(t('recoverConnectionError'));
     }
   };
 
@@ -80,7 +82,7 @@ const RecoverPasswordScreen: React.FC = () => {
         <View className='flex-row justify-between'>
           <View className="top-5 left-10 w-32 h-32 bg-white rounded-full justify-center" />
           <View className='justify-center items-end mr-4'>
-            <Text className=" text-white text-2xl font-bold">Recuperar Contraseña</Text>
+            <Text className=" text-white text-2xl font-bold">{t('recoverTitle')}</Text>
           </View>
         </View>
       </View>
@@ -113,14 +115,14 @@ const RecoverPasswordScreen: React.FC = () => {
               onPress={() => router.replace('/(auth)/sign-in')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               accessibilityRole="button"
-              accessibilityLabel="Volver"
+              accessibilityLabel={t('back')}
               activeOpacity={0.6}
               className="items-center justify-center bg-primary p-3 px-4 rounded-[12px]"
             >
               <ArrowLeft size={28} color="#fff" />
             </TouchableOpacity>
             
-            <Text className="text-white text-2xl font-bold text-center flex-1 mx-4">¿Olvidaste tu{'\n'}contraseña?</Text>
+            <Text className="text-white text-2xl font-bold text-center flex-1 mx-4">{t('recoverHeaderQuestion')}</Text>
             
             {/* Espacio vacío para balancear el layout */}
             <View className="w-16" />
@@ -128,7 +130,7 @@ const RecoverPasswordScreen: React.FC = () => {
 
           {/* Selector y campo centrados */}
           <View className="w-full items-center space-y-6">
-            <Text className="text-white text-lg text-center py-2">Selecciona cómo buscar tu cuenta</Text>
+            <Text className="text-white text-lg text-center py-2">{t('recoverSelectMethod')}</Text>
             
             <View className="flex-row gap-4 mb-6">
               <TouchableOpacity
@@ -137,7 +139,7 @@ const RecoverPasswordScreen: React.FC = () => {
                 activeOpacity={0.8}
               >
                 <View className={`w-5 h-5 mr-3 rounded-full border-2 ${method === 'rut' ? 'bg-white border-blue-600' : 'border-gray-400'}`} />
-                <Text className="text-white text-base font-medium">RUT</Text>
+                <Text className="text-white text-base font-medium">{t('recoverMethodRut')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
@@ -146,19 +148,19 @@ const RecoverPasswordScreen: React.FC = () => {
                 activeOpacity={0.8}
               >
                 <View className={`w-5 h-5 mr-3 rounded-full border-2 ${method === 'email' ? 'bg-white border-blue-600' : 'border-gray-400'}`} />
-                <Text className="text-white text-base font-medium">Email</Text>
+                <Text className="text-white text-base font-medium">{t('recoverMethodEmail')}</Text>
               </TouchableOpacity>
             </View>
 
             {method === 'rut' ? (
               <View className="w-full max-w-xs">
-                <Text className="text-white text-xl font-bold mb-3">RUT</Text>
+                <Text className="text-white text-xl font-bold mb-3">{t('recoverMethodRut')}</Text>
                 <RutInput value={rut} onChangeText={setRut} keyboardType="numeric" />
               </View>
             ) : (
               <View className="w-full max-w-xs">
-                <Text className="text-white text-xl font-bold mb-3">Correo Electrónico</Text>
-                <EmailInput value={email} onChangeText={setEmail} placeholder="usuarioinfracheck@correo.cl" />
+                <Text className="text-white text-xl font-bold mb-3">{t('registerEmailLabel')}</Text>
+                <EmailInput value={email} onChangeText={setEmail} />
               </View>
             )}
           </View>
@@ -171,7 +173,7 @@ const RecoverPasswordScreen: React.FC = () => {
               disabled={loading}
             >
               <Text className="text-white text-lg font-bold">
-                {loading ? 'Enviando...' : 'Recuperar'}
+                {loading ? t('recoverButtonSending') : t('recoverButton')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -190,8 +192,8 @@ const RecoverPasswordScreen: React.FC = () => {
             {loading ? (
               <>
                 <ActivityIndicator size="large" color="#537CF2" style={{ marginBottom: 16 }} />
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>Enviando código...</Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>Por favor espera mientras procesamos tu solicitud</Text>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>{t('recoverSendingCodeTitle')}</Text>
+                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>{t('recoverSendingCodeBody')}</Text>
               </>
             ) : (
               <>
@@ -209,7 +211,7 @@ const RecoverPasswordScreen: React.FC = () => {
                   </Text>
                 </View>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  {isSuccess ? '¡Código enviado!' : 'Error'}
+                  {isSuccess ? t('recoverCodeSentTitle') : t('recoverErrorTitle')}
                 </Text>
                 <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 }}>
                   {feedbackMessage}
@@ -219,7 +221,7 @@ const RecoverPasswordScreen: React.FC = () => {
                     onPress={() => setFeedbackModalVisible(false)}
                     style={{ backgroundColor: '#537CF2', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
                   >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Entendido</Text>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{t('recoverModalUnderstand')}</Text>
                   </TouchableOpacity>
                 )}
               </>
