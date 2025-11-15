@@ -8,6 +8,7 @@ import { EditNameModal } from './EditNameModal';
 import { QRSection } from './QRSection';
 import { UserStats } from './UserStats';
 import { UserInfoProps } from '../types';
+import { useVoteFeedback } from '~/features/posts/hooks/useVoteFeedback';
 import { useUser } from '../hooks/useUser';
 import { useProfileStats } from '../hooks/useProfileStats';
 
@@ -18,6 +19,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   const [showQR, setShowQR] = useState(false);
   const { stats, loading: statsLoading, error: statsError, refresh: refreshStats } = useProfileStats();
   const { updateUser, refreshUser } = useUser();
+  const { showSuccess, showError } = useVoteFeedback();
 
   // Función helper para formatear el teléfono
   const formatPhone = (phone: number) => {
@@ -52,17 +54,13 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
       const success = await updateUser({ usua_email: newEmail });
       if (success) {
         await refreshUser();
-        Alert.alert(
-          'Email actualizado', 
-          'Tu email ha sido actualizado correctamente',
-          [{ text: 'OK' }]
-        );
+        showSuccess('Tu email ha sido actualizado correctamente');
       } else {
-        Alert.alert('Error', 'No se pudo actualizar el email');
+        showError('No se pudo actualizar el email');
       }
       return success;
-    } catch {
-      Alert.alert('Error', 'No se pudo actualizar el email');
+    } catch (e: any) {
+      showError(e?.message || 'No se pudo actualizar el email');
       return false;
     }
   };
@@ -73,17 +71,13 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
       const success = await updateUser({ usua_telefono: newPhone });
       if (success) {
         await refreshUser();
-        Alert.alert(
-          'Teléfono actualizado', 
-          'Tu teléfono ha sido actualizado correctamente',
-          [{ text: 'OK' }]
-        );
+        showSuccess('Tu teléfono ha sido actualizado correctamente');
       } else {
-        Alert.alert('Error', 'No se pudo actualizar el teléfono');
+        showError('No se pudo actualizar el teléfono');
       }
       return success;
-    } catch {
-      Alert.alert('Error', 'No se pudo actualizar el teléfono');
+    } catch (e: any) {
+      showError(e?.message || 'No se pudo actualizar el teléfono');
       return false;
     }
   };
@@ -94,17 +88,13 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
       const success = await updateUser({ usua_nombre: firstName, usua_apellido: lastName });
       if (success) {
         await refreshUser();
-        Alert.alert(
-          'Nombre actualizado',
-          'Tu nombre y apellido han sido actualizados correctamente',
-          [{ text: 'OK' }]
-        );
+        showSuccess('Tu nombre y apellido han sido actualizados correctamente');
       } else {
-        Alert.alert('Error', 'No se pudo actualizar el nombre');
+        showError('No se pudo actualizar el nombre');
       }
       return success;
-    } catch {
-      Alert.alert('Error', 'No se pudo actualizar el nombre');
+    } catch (e: any) {
+      showError(e?.message || 'No se pudo actualizar el nombre');
       return false;
     }
   };
@@ -169,6 +159,39 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
           <QrCode size={24} color="#537CF2" />
         </TouchableOpacity>
       </View>
+  {/* Stats de actividad solo para usuarios ciudadanos (rous_id === 3) */}
+  {user.rous_id === 3 && (
+        <>
+          {statsLoading && !stats && (
+            <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-white/5">
+              <Text className="text-gray-300 text-sm mb-2">Cargando estadísticas...</Text>
+            </View>
+          )}
+
+          {statsError && !stats && (
+            <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-red-500/40">
+              <Text className="text-red-400 text-sm mb-3">{statsError}</Text>
+              <TouchableOpacity
+                onPress={refreshStats}
+                className="self-start bg-[#537CF2] px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white text-sm font-semibold">Reintentar</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {stats && (
+            <UserStats
+              reportes_creados={stats.reportes_creados}
+              reportes_seguidos={stats.reportes_seguidos}
+              votos_recibidos={stats.votos_recibidos}
+              votos_realizados={stats.votos_realizados}
+            />
+          )}
+        </>
+      )}
+
+
       {/* Nombre y apellido en el mismo bloque de contacto que email/teléfono */}
       <View className="px-3.5 py-5 mt-3 w-full">
         <TouchableOpacity onPress={() => setIsNameModalVisible(true)} activeOpacity={0.7}>
@@ -209,33 +232,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </TouchableOpacity>
       </View>
 
-      {/* User Stats debajo de la info básica, como antes */}
-      {statsLoading && !stats && (
-        <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-white/5">
-          <Text className="text-gray-300 text-sm mb-2">Cargando estadísticas...</Text>
-        </View>
-      )}
 
-      {statsError && !stats && (
-        <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-red-500/40">
-          <Text className="text-red-400 text-sm mb-3">{statsError}</Text>
-          <TouchableOpacity
-            onPress={refreshStats}
-            className="self-start bg-[#537CF2] px-4 py-2 rounded-lg"
-          >
-            <Text className="text-white text-sm font-semibold">Reintentar</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {stats && (
-        <UserStats
-          reportes_creados={stats.reportes_creados}
-          reportes_seguidos={stats.reportes_seguidos}
-          votos_recibidos={stats.votos_recibidos}
-          votos_realizados={stats.votos_realizados}
-        />
-      )}
 
       <EditEmailModal
         isVisible={isEmailModalVisible}

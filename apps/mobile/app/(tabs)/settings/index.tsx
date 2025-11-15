@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { UserCircle2, Bell, Globe, Sun, Check, ChevronDown } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SonidosNotificacion } from '~/components/SonidosNotificacion';
@@ -122,7 +123,7 @@ export default function SettingsPag() {
         <SettingRow
           icon={<UserCircle2 size={28} color="#FF8C2A" />}
           label={t.account}
-          onPress={() => {}}
+          onPress={() => router.push('/profile')}
         />
 
         {/* Notificaciones / Notifications */}

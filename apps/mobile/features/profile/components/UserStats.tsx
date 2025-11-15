@@ -32,17 +32,17 @@ export const UserStats: React.FC<UserStatsProps> = ({
   const safeVotosRealizados = Number.isFinite(votos_realizados) ? votos_realizados : 0;
 
   return (
-    <View className="mx-4 mt-4 mb-2 rounded-2xl bg-[#13161E] px-4 py-5 border border-[#1F2933]">
+    <View className="mx-4 mt-4 mb-2 rounded-2xl bg-[#1D212D] px-4 py-5 border border-[#1F2933]">
       <Text className="text-gray-300 text-xs font-semibold mb-3 uppercase tracking-wide">
         Actividad
       </Text>
       <View className="flex-row items-stretch">
         <StatItem label="Reportes creados" value={safeReportesCreados} />
-        <View className="w-px h-10 bg-[#1F2933] mx-2" />
+        <View className="w-px h-10 bg-[#111827] mx-2" />
         <StatItem label="Reportes seguidos" value={safeReportesSeguidos} />
-        <View className="w-px h-10 bg-[#1F2933] mx-2" />
+        <View className="w-px h-10 bg-[#111827] mx-2" />
         <StatItem label="Votos recibidos" value={safeVotosRecibidos} />
-        <View className="w-px h-10 bg-[#1F2933] mx-2" />
+        <View className="w-px h-10 bg-[#111827] mx-2" />
         <StatItem label="Votos realizados" value={safeVotosRealizados} />
       </View>
     </View>
