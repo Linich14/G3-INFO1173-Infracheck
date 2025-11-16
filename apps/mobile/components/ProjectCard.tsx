@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { Project } from '../features/proyectos/services/ProjectsService';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 type Props = {
   project: Project;
@@ -10,6 +11,7 @@ type Props = {
 
 export default function ProjectCard({ project, onPress }: Props) {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const open = () => {
     if (onPress) return onPress(project);
@@ -30,13 +32,13 @@ export default function ProjectCard({ project, onPress }: Props) {
       <View className="flex-row items-start justify-between">
         <View className="flex-1">
           <View className="mb-2 flex-row items-center">
-            <Text className="ml-2 flex-1 font-medium text-white">{project.lugar || project.titulo || 'Sin título'}</Text>
+            <Text className="ml-2 flex-1 font-medium text-white">{project.lugar || project.titulo || t('projectUntitled')}</Text>
           </View>
 
           <View className="mb-2 flex-row items-center">
-            <Text className={`rounded-md px-2 py-1 text-xs text-white ${project.color || 'bg-gray-700'}`}>{project.estado || 'Desconocido'}</Text>
+            <Text className={`rounded-md px-2 py-1 text-xs text-white ${project.color || 'bg-gray-700'}`}>{project.estado || t('projectUnknownStatus')}</Text>
             <Text className={`ml-2 rounded-md px-2 py-1 text-xs text-white ${project.color || 'bg-gray-700'}`}>
-              {project.prioridad || 'Normal'}
+              {project.prioridad || t('projectPriorityNormal')}
             </Text>
           </View>
 
@@ -57,12 +59,12 @@ export default function ProjectCard({ project, onPress }: Props) {
 
       <View className="flex-row justify-between mt-3">
         <TouchableOpacity onPress={open} className="px-3 py-1">
-          <Text className="text-primary-600">Ver detalle</Text>
+          <Text className="text-primary-600">{t('projectViewDetails')}</Text>
         </TouchableOpacity>
 
         {project.denuncia_id ? (
           <TouchableOpacity onPress={openReport} className="px-3 py-1">
-            <Text className="text-gray-600 underline text-sm">Reporte origen</Text>
+            <Text className="text-gray-600 underline text-sm">{t('projectOriginReport')}</Text>
           </TouchableOpacity>
         ) : null}
       </View>

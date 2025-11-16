@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { QrCode } from 'lucide-react-native';
 import { UserStats } from '../components/UserStats';
 import { FollowButton } from '../components/FollowButton';
 import { QRSection } from '../components/QRSection';
 import { ContactField } from '../components/ContactField';
 import { getUserStats } from '../services/profileService';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface PublicProfileScreenProps {
   userId: string | number;
@@ -13,6 +14,7 @@ interface PublicProfileScreenProps {
 }
 
 export default function PublicProfileScreen({ userId, nickname }: PublicProfileScreenProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ reportCount: 0, upVotes: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
@@ -39,8 +41,8 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
     // TODO: Implementar lógica de seguir/dejar de seguir usuario
     setIsFollowing(!isFollowing);
     Alert.alert(
-      'Información',
-      isFollowing ? 'Has dejado de seguir a este usuario' : 'Ahora sigues a este usuario'
+      t('profileInfoTitle'),
+      isFollowing ? t('profileUnfollowSuccess') : t('profileFollowSuccess')
     );
   };
 
@@ -67,7 +69,7 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
             </Text>
           </View>
           <Text className="text-2xl font-bold text-gray-800 mb-2">
-            {nickname || 'Usuario'}
+            {nickname || t('profileUserLabel')}
           </Text>
           <Text className="text-gray-500 mb-4">ID: {userId}</Text>
           
@@ -80,16 +82,21 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
         </View>
 
         {/* Estadísticas */}
-        <UserStats reportCount={stats.reportCount} upVotes={stats.upVotes} />
+        <UserStats 
+          reportes_creados={stats.reportCount} 
+          reportes_seguidos={0}
+          votos_recibidos={stats.upVotes}
+          votos_realizados={0}
+        />
 
         {/* Botón QR */}
         <View className="mt-6">
-          <ContactField
-            icon={QrCode}
-            label="Código QR"
-            value="Ver código QR del usuario"
-            onPress={handleQRPress}
-          />
+          <TouchableOpacity onPress={handleQRPress} activeOpacity={0.7}>
+            <ContactField
+              icon={<QrCode size={24} color="#537CF2" />}
+              value={t('profileQRViewLabel')}
+            />
+          </TouchableOpacity>
         </View>
 
         {/* Información de contacto (opcional, solo si está disponible públicamente) */}

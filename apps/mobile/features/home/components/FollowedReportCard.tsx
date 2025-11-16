@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { UserCircle2, Clock, AlertCircle, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface FollowedReportCardProps {
   id: number;
@@ -27,10 +28,16 @@ const FollowedReportCard: React.FC<FollowedReportCardProps> = ({
   onUnfollow
 }) => {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const getUrgencyLabel = (level: number): string => {
-    const labels = { 1: 'Baja', 2: 'Media', 3: 'Alta', 4: 'Crítica' };
-    return labels[level as keyof typeof labels] || 'Desconocida';
+    const labels = { 
+      1: t('homeCardUrgencyLow'), 
+      2: t('homeCardUrgencyMedium'), 
+      3: t('homeCardUrgencyHigh'), 
+      4: t('homeCardUrgencyCritical') 
+    };
+    return labels[level as keyof typeof labels] || t('homeCardUrgencyUnknown');
   };
 
   const getUrgencyColor = (level: number): string => {
@@ -44,12 +51,11 @@ const FollowedReportCard: React.FC<FollowedReportCardProps> = ({
   };
 
   const getStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-      'Nuevo': '#3B82F6',
-      'En Proceso': '#F59E0B',
-      'Resuelto': '#10B981',
-      'Rechazado': '#EF4444'
-    };
+    const colors: Record<string, string> = {};
+    colors[t('homeCardStatusNew')] = '#3B82F6';
+    colors[t('homeCardStatusInProgress')] = '#F59E0B';
+    colors[t('homeCardStatusResolved')] = '#10B981';
+    colors[t('homeCardStatusRejected')] = '#EF4444';
     return colors[status] || '#6B7280';
   };
 
@@ -59,29 +65,29 @@ const FollowedReportCard: React.FC<FollowedReportCardProps> = ({
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (days === 0) return 'Hoy';
-    if (days === 1) return 'Ayer';
-    if (days < 7) return `Hace ${days} días`;
-    if (days < 30) return `Hace ${Math.floor(days / 7)} semanas`;
+    if (days === 0) return t('homeCardDateToday');
+    if (days === 1) return t('homeCardDateYesterday');
+    if (days < 7) return t('homeCardDateDaysAgo').replace('{days}', days.toString());
+    if (days < 30) return t('homeCardDateWeeksAgo').replace('{weeks}', Math.floor(days / 7).toString());
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
   };
 
   const handleUnfollow = () => {
     Alert.alert(
-      'Dejar de seguir',
-      '¿Estás seguro que deseas dejar de seguir este reporte?',
+      t('homeCardUnfollowTitle'),
+      t('homeCardUnfollowMessage'),
       [
         {
-          text: 'Cancelar',
+          text: t('homeCardUnfollowCancel'),
           style: 'cancel'
         },
         {
-          text: 'Dejar de seguir',
+          text: t('homeCardUnfollowConfirm'),
           style: 'destructive',
           onPress: async () => {
             const success = await onUnfollow(id);
             if (!success) {
-              Alert.alert('Error', 'No se pudo dejar de seguir el reporte');
+              Alert.alert(t('homeCardUnfollowError'), t('homeCardUnfollowErrorMessage'));
             }
           }
         }
@@ -167,7 +173,7 @@ const FollowedReportCard: React.FC<FollowedReportCardProps> = ({
       {/* Categoría */}
       <View className="mt-2">
         <Text className="text-xs text-gray-500">
-          Categoría: <Text className="text-gray-400 font-medium">{categoria}</Text>
+          {t('homeCardCategoryLabel')} <Text className="text-gray-400 font-medium">{categoria}</Text>
         </Text>
       </View>
     </TouchableOpacity>

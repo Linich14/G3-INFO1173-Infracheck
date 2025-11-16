@@ -17,8 +17,6 @@ function RootLayoutNav() {
   useNavigationBreadcrumb();
 
   useEffect(() => {
-    console.log('Layout navigation check:', { isLoading, isLoggedIn, segments }); // Debug log
-    
     if (isLoading) return; // Esperar a que termine de verificar la autenticación
 
     const inAuthGroup = segments[0] === '(auth)';
@@ -26,15 +24,15 @@ function RootLayoutNav() {
 
     if (!isLoggedIn && !inAuthGroup && !inWelcomeScreen) {
       // Usuario no autenticado, no está en auth ni en welcome -> redirigir al login
-      console.log('Redirecting to login'); // Debug log
+
       router.replace('/(auth)/sign-in');
     } else if (isLoggedIn && inAuthGroup) {
       // Usuario autenticado pero está en páginas de auth -> redirigir al home del cliente
-      console.log('Redirecting to home from auth'); // Debug log
+
       router.replace('/(tabs)/home');
     } else if (isLoggedIn && inWelcomeScreen) {
       // Usuario autenticado en la raíz -> redirigir al home del cliente
-      console.log('Redirecting to home from root'); // Debug log
+
       router.replace('/(tabs)/home');
     }
   }, [isLoggedIn, isLoading, segments, router]);

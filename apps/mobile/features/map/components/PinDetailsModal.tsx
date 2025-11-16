@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Modal, ScrollView, ActivityIndicator, Text, Pressable, Image } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { PinDetails } from '../types';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface PinDetailsModalProps {
     cargando: boolean;
@@ -18,6 +19,7 @@ const PinDetailsModal = ({
     onClose,
     onOpenFullScreen,
 }: PinDetailsModalProps) => {
+    const { t } = useLanguage();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [imageLoading, setImageLoading] = useState<boolean>(false);
     const [imageError, setImageError] = useState<boolean>(false);
@@ -77,7 +79,7 @@ const PinDetailsModal = ({
     // Función para formatear fecha
     const formatDate = (dateString: string | undefined) => {
         try {
-            if (!dateString) return { fecha: 'Fecha no disponible', hora: 'Hora no disponible' };
+            if (!dateString) return { fecha: t('pinDetailsDateNotAvailable'), hora: t('pinDetailsTimeNotAvailable') };
 
             const date = new Date(dateString);
             const meses = [
@@ -107,8 +109,8 @@ const PinDetailsModal = ({
             };
         } catch {
             return {
-                fecha: 'Fecha no disponible',
-                hora: 'Hora no disponible',
+                fecha: t('pinDetailsDateNotAvailable'),
+                hora: t('pinDetailsTimeNotAvailable'),
             };
         }
     };
@@ -119,7 +121,7 @@ const PinDetailsModal = ({
             return (
                 <View className="items-center justify-center">
                     <ActivityIndicator size="large" color="#007AFF" />
-                    <Text className="mt-2 text-gray-400">Cargando imagen...</Text>
+                    <Text className="mt-2 text-gray-400">{t('pinDetailsLoadingImage')}</Text>
                 </View>
             );
         }
@@ -128,7 +130,7 @@ const PinDetailsModal = ({
             return (
                 <View className="items-center justify-center">
                     <MaterialCommunityIcons name="image-off" size={48} color="#666" />
-                    <Text className="mt-2 text-gray-400">Imagen no disponible</Text>
+                    <Text className="mt-2 text-gray-400">{t('pinDetailsImageNotAvailable')}</Text>
                 </View>
             );
         }
@@ -151,7 +153,7 @@ const PinDetailsModal = ({
                     {/* Header del modal */}
                     <View className="flex-row items-center border-b border-gray-500 px-4 py-3">
                         <Text className="text-lg font-semibold text-white">
-                            Detalles del reporte
+                            {t('pinDetailsTitle')}
                         </Text>
                         <View className="ml-auto flex-row space-x-2">
                             {/* Botón para abrir en pantalla completa */}
@@ -171,7 +173,7 @@ const PinDetailsModal = ({
                     {cargando ? (
                         <View className="flex-1 items-center justify-center">
                             <ActivityIndicator size="large" color="#007AFF" />
-                            <Text className="mt-2 text-gray-600">Cargando detalles...</Text>
+                            <Text className="mt-2 text-gray-600">{t('pinDetailsLoading')}</Text>
                         </View>
                     ) : pinDetails ? (
                         <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={true}>
@@ -181,47 +183,47 @@ const PinDetailsModal = ({
                                 </Text>
 
                                 <View className={styles.container_card}>
-                                    <Text className={styles.title_card}>Categoría</Text>
+                                    <Text className={styles.title_card}>{t('pinDetailsCategory')}</Text>
                                     <Text className={styles.text_card}>
                                         {pinDetails.tipoDenuncia}
                                     </Text>
                                 </View>
 
                                 <View className={styles.container_card}>
-                                    <Text className={styles.title_card}>Descripción</Text>
+                                    <Text className={styles.title_card}>{t('pinDetailsDescription')}</Text>
                                     <Text className={styles.text_card}>
                                         {pinDetails.descripcion}
                                     </Text>
                                 </View>
 
                                 <View className={styles.container_card}>
-                                    <Text className={styles.title_card}>Información básica</Text>
+                                    <Text className={styles.title_card}>{t('pinDetailsBasicInfo')}</Text>
                                     <Text className={styles.text_card}>
-                                        Fecha: {formatDate(pinDetails.fecha).fecha}
+                                        {t('pinDetailsDate')}: {formatDate(pinDetails.fecha).fecha}
                                     </Text>
                                     <Text className={styles.text_card}>
-                                        Hora: {formatDate(pinDetails.fecha).hora}
+                                        {t('pinDetailsTime')}: {formatDate(pinDetails.fecha).hora}
                                     </Text>
                                     <Text className={styles.text_card}>
-                                        Urgencia: {pinDetails.nivelUrgencia}
-                                    </Text>
-                                </View>
-
-                                <View className={styles.container_card}>
-                                    <Text className={styles.title_card}>Ubicación</Text>
-                                    <Text className={styles.text_card}>
-                                        Latitud: {pinDetails.ubicacion.latitud}
-                                    </Text>
-                                    <Text className={styles.text_card}>
-                                        Longitud: {pinDetails.ubicacion.longitud}
-                                    </Text>
-                                    <Text className={styles.text_card}>
-                                        Dirección: {pinDetails.ubicacion.direccion}
+                                        {t('pinDetailsUrgency')}: {pinDetails.nivelUrgencia}
                                     </Text>
                                 </View>
 
                                 <View className={styles.container_card}>
-                                    <Text className={styles.title_card}>Evidencia fotográfica</Text>
+                                    <Text className={styles.title_card}>{t('pinDetailsLocation')}</Text>
+                                    <Text className={styles.text_card}>
+                                        {t('pinDetailsLatitude')}: {pinDetails.ubicacion.latitud}
+                                    </Text>
+                                    <Text className={styles.text_card}>
+                                        {t('pinDetailsLongitude')}: {pinDetails.ubicacion.longitud}
+                                    </Text>
+                                    <Text className={styles.text_card}>
+                                        {t('pinDetailsAddress')}: {pinDetails.ubicacion.direccion}
+                                    </Text>
+                                </View>
+
+                                <View className={styles.container_card}>
+                                    <Text className={styles.title_card}>{t('pinDetailsEvidence')}</Text>
                                     <View className="h-48 w-full items-center justify-center rounded-lg bg-gray-800">
                                         {renderImageContent()}
                                     </View>
@@ -230,7 +232,7 @@ const PinDetailsModal = ({
                         </ScrollView>
                     ) : (
                         <View className="flex-1 items-center justify-center">
-                            <Text className="text-gray-600">No hay detalles disponibles</Text>
+                            <Text className="text-gray-600">{t('pinDetailsNoDetails')}</Text>
                         </View>
                     )}
                 </View>

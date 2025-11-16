@@ -31,17 +31,17 @@ export const ChangePasswordSection: React.FC = () => {
     const handleChangePassword = async () => {
         // Validaciones básicas
         if (!currentPassword || !newPassword || !confirmPassword) {
-            Alert.alert('Error', 'Todos los campos son obligatorios');
+            Alert.alert(t('profilePasswordErrorTitle'), t('profilePasswordErrorAllFields'));
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            Alert.alert('Error', 'La nueva contraseña y su confirmación no coinciden');
+            Alert.alert(t('profilePasswordErrorTitle'), t('profilePasswordErrorMismatch'));
             return;
         }
 
         if (!isValidPassword(newPassword)) {
-            Alert.alert('Error', 'La contraseña no cumple con los requisitos de seguridad');
+            Alert.alert(t('profilePasswordErrorTitle'), t('profilePasswordErrorRequirements'));
             return;
         }
 
@@ -56,7 +56,7 @@ export const ChangePasswordSection: React.FC = () => {
             const result = await changePassword(passwordData);
 
             if (result.success) {
-                Alert.alert('Contraseña Cambiada', result.message, [
+                Alert.alert(t('profilePasswordSuccessTitle'), result.message, [
                     {
                         text: 'OK',
                         onPress: () => {
@@ -66,10 +66,10 @@ export const ChangePasswordSection: React.FC = () => {
                     },
                 ]);
             } else {
-                Alert.alert('Error', result.message);
+                Alert.alert(t('profilePasswordErrorTitle'), result.message);
             }
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Error de conexión. Intenta nuevamente.');
+            Alert.alert(t('profilePasswordErrorTitle'), error.message || t('profilePasswordErrorConnection'));
         } finally {
             setIsLoading(false);
             setShowModal(false);

@@ -2,27 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Edit, UserCheck, UserX } from 'lucide-react-native';
 import { User } from '../services/usersService';
-
-// Helper para convertir rol numérico a texto
-const getRoleName = (rous_id: number): string => {
-  switch (rous_id) {
-    case 1: return 'Usuario';
-    case 2: return 'Administrador';
-    case 3: return 'Municipal';
-    default: return 'Desconocido';
-  }
-};
-
-// Helper para convertir estado numérico a texto
-const getStatusName = (usua_estado: number): string => {
-  return usua_estado === 1 ? 'Habilitado' : 'Deshabilitado';
-};
-
-// Helper para formatear fecha
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('es-CL');
-};
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface UserCardProps {
   user: User;
@@ -30,6 +10,28 @@ interface UserCardProps {
 }
 
 export default function UserCard({ user, onToggleStatus }: UserCardProps) {
+  const { t } = useLanguage();
+
+  // Helper para convertir rol numérico a texto
+  const getRoleName = (rous_id: number): string => {
+    switch (rous_id) {
+      case 1: return t('usersRoleUser');
+      case 2: return t('usersRoleAdmin');
+      case 3: return t('usersRoleMunicipal');
+      default: return t('usersRoleUnknown');
+    }
+  };
+
+  // Helper para convertir estado numérico a texto
+  const getStatusName = (usua_estado: number): string => {
+    return usua_estado === 1 ? t('usersStatusEnabled') : t('usersStatusDisabled');
+  };
+
+  // Helper para formatear fecha
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-CL');
+  };
   // Obtener la inicial del nombre
   const getInitial = (nickname: string): string => {
     return nickname ? nickname.charAt(0).toUpperCase() : '?';

@@ -40,7 +40,7 @@ export const createComment = async (
 ): Promise<CreateCommentResponse> => {
   try {
     const url = `${API_URL}/api/reports/${reportId}/comments/`;
-    console.log('Creating comment:', { url, reportId, hasToken: !!token });
+    
     
     const response = await axios.post<CreateCommentResponse>(
       url,
@@ -56,7 +56,7 @@ export const createComment = async (
     console.log('Comment created successfully:', response.data);
     return response.data;
   } catch (error: any) {
-    console.error('Error creating comment:', error.response?.data || error.message);
+    
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data?.error || error.response?.data?.errors?.[0] || 'Error al crear el comentario';
       throw new Error(errorMessage);
@@ -94,7 +94,7 @@ export const getComments = async (
 }> => {
   try {
     const url = `${API_URL}/api/reports/${reportId}/comments/list/`;
-    console.log('Fetching comments:', { url, reportId, page, limit, hasToken: !!token });
+    
     
     const response = await axios.get(
       url,
@@ -106,15 +106,10 @@ export const getComments = async (
       }
     );
 
-    console.log('Comments fetched successfully:', response.data);
+    
     return response.data;
   } catch (error: any) {
-    console.error('Error fetching comments - Full error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-    });
+
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data?.error || error.response?.data?.errors?.[0] || 'Error al obtener los comentarios';
       throw new Error(errorMessage);
@@ -135,7 +130,7 @@ export const deleteComment = async (
 ): Promise<{ message: string }> => {
   try {
     const url = `${API_URL}/api/reports/comments/${commentId}/delete/`;
-    console.log('Deleting comment:', { url, commentId, hasToken: !!token });
+    
     
     const response = await axios.delete(
       url,
@@ -146,14 +141,10 @@ export const deleteComment = async (
       }
     );
 
-    console.log('Comment deleted successfully:', response.data);
+    
     return response.data;
   } catch (error: any) {
-    console.error('Error deleting comment - Full error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    });
+
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data?.error || 'Error al eliminar el comentario';
       throw new Error(errorMessage);

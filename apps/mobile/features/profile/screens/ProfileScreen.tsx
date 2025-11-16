@@ -79,7 +79,7 @@ function ProfileScreen() {
           onPress={() => console.log('Configuración')}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
-          accessibilityLabel="Configuración"
+          accessibilityLabel={t('profileSettingsAccessibility')}
           activeOpacity={0.6}
         >
           <Settings size={26} color="white" />

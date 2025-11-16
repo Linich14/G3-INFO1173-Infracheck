@@ -12,11 +12,13 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { createNotification } from '~/services/notificationService';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 type NotificationType = 'info' | 'success' | 'warning' | 'error';
 
 export default function CreateNotificationScreen() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [loading, setLoading] = useState(false);
     
     // Form state
@@ -28,24 +30,24 @@ export default function CreateNotificationScreen() {
 
     // Tipos de notificación con sus configuraciones
     const tiposNotificacion = [
-        { value: 'info', label: 'Información', icon: 'information-circle', color: '#537CF2' },
-        { value: 'success', label: 'Éxito', icon: 'checkmark-circle', color: '#10b981' },
-        { value: 'warning', label: 'Advertencia', icon: 'warning', color: '#f59e0b' },
-        { value: 'error', label: 'Error', icon: 'close-circle', color: '#ef4444' },
+        { value: 'info', label: t('notifyTypeInfo'), icon: 'information-circle', color: '#537CF2' },
+        { value: 'success', label: t('notifyTypeSuccess'), icon: 'checkmark-circle', color: '#10b981' },
+        { value: 'warning', label: t('notifyTypeWarning'), icon: 'warning', color: '#f59e0b' },
+        { value: 'error', label: t('notifyTypeError'), icon: 'close-circle', color: '#ef4444' },
     ] as const;
 
     const handleCreate = async () => {
         // Validaciones
         if (!usuarioIdentifier.trim()) {
-            Alert.alert('Error', 'Debes ingresar el RUT o ID del usuario');
+            Alert.alert(t('notifyErrorTitle'), t('notifyErrorUserRequired'));
             return;
         }
         if (!titulo.trim()) {
-            Alert.alert('Error', 'Debes ingresar un título');
+            Alert.alert(t('notifyErrorTitle'), t('notifyErrorTitleRequired'));
             return;
         }
         if (!mensaje.trim()) {
-            Alert.alert('Error', 'Debes ingresar un mensaje');
+            Alert.alert(t('notifyErrorTitle'), t('notifyErrorMessageRequired'));
             return;
         }
 
@@ -64,11 +66,11 @@ export default function CreateNotificationScreen() {
 
             if (response.success) {
                 Alert.alert(
-                    'Éxito',
-                    'Notificación creada correctamente',
+                    t('notifySuccessTitle'),
+                    t('notifySuccessMessage'),
                     [
                         {
-                            text: 'Crear otra',
+                            text: t('notifySuccessCreateAnother'),
                             onPress: () => {
                                 setUsuarioIdentifier('');
                                 setTitulo('');
@@ -78,7 +80,7 @@ export default function CreateNotificationScreen() {
                             },
                         },
                         {
-                            text: 'Volver',
+                            text: t('notifySuccessGoBack'),
                             onPress: () => router.back(),
                         },
                     ]
@@ -86,7 +88,7 @@ export default function CreateNotificationScreen() {
             }
         } catch (error: any) {
             console.error('Error creando notificación:', error);
-            Alert.alert('Error', error.message || 'No se pudo crear la notificación');
+            Alert.alert(t('notifyErrorTitle'), error.message || t('notifyErrorDefault'));
         } finally {
             setLoading(false);
         }
@@ -102,8 +104,8 @@ export default function CreateNotificationScreen() {
                             <Ionicons name="arrow-back" size={24} color="#fff" />
                         </TouchableOpacity>
                         <View className="flex-1">
-                            <Text className="text-white text-xl font-bold">Crear Notificación</Text>
-                            <Text className="text-gray-400 text-sm">Panel Administrativo</Text>
+                            <Text className="text-white text-xl font-bold">{t('notifyCreateTitle')}</Text>
+                            <Text className="text-gray-400 text-sm">{t('notifyCreateSubtitle')}</Text>
                         </View>
                         <Ionicons name="notifications" size={24} color="#537CF2" />
                     </View>
@@ -114,10 +116,10 @@ export default function CreateNotificationScreen() {
                     <View className="bg-[#537CF2]/10 border border-[#537CF2]/30 rounded-lg p-4 mb-6">
                         <View className="flex-row items-center mb-2">
                             <Ionicons name="information-circle" size={20} color="#537CF2" />
-                            <Text className="text-[#537CF2] font-semibold ml-2">Información</Text>
+                            <Text className="text-[#537CF2] font-semibold ml-2">{t('notifyInfoTitle')}</Text>
                         </View>
                         <Text className="text-gray-300 text-sm">
-                            Esta función permite crear notificaciones de prueba para cualquier usuario del sistema.
+                            {t('notifyInfoBody')}
                         </Text>
                     </View>
 
@@ -126,46 +128,46 @@ export default function CreateNotificationScreen() {
                         {/* RUT o ID Usuario */}
                         <View className="mb-4">
                             <Text className="text-white font-semibold mb-2">
-                                RUT o ID del Usuario <Text className="text-red-500">*</Text>
+                                {t('notifyUserIdLabel')} <Text className="text-red-500">*</Text>
                             </Text>
                             <TextInput
                                 className="bg-secondary text-white px-4 py-3 rounded-lg border border-gray-700"
-                                placeholder="Ej: 12345678-9 o 5"
+                                placeholder={t('notifyUserIdPlaceholder')}
                                 placeholderTextColor="#6b7280"
                                 value={usuarioIdentifier}
                                 onChangeText={setUsuarioIdentifier}
                             />
                             <Text className="text-gray-500 text-xs mt-1">
-                                Puedes ingresar el RUT (con o sin guión) o el ID numérico
+                                {t('notifyUserIdHint')}
                             </Text>
                         </View>
 
                         {/* Título */}
                         <View className="mb-4">
                             <Text className="text-white font-semibold mb-2">
-                                Título <Text className="text-red-500">*</Text>
+                                {t('notifyTitleLabel')} <Text className="text-red-500">*</Text>
                             </Text>
                             <TextInput
                                 className="bg-secondary text-white px-4 py-3 rounded-lg border border-gray-700"
-                                placeholder="Ej: Actualización importante"
+                                placeholder={t('notifyTitlePlaceholder')}
                                 placeholderTextColor="#6b7280"
                                 value={titulo}
                                 onChangeText={setTitulo}
                                 maxLength={200}
                             />
                             <Text className="text-gray-500 text-xs mt-1">
-                                {titulo.length}/200 caracteres
+                                {t('notifyTitleCharCount').replace('{count}', titulo.length.toString())}
                             </Text>
                         </View>
 
                         {/* Mensaje */}
                         <View className="mb-4">
                             <Text className="text-white font-semibold mb-2">
-                                Mensaje <Text className="text-red-500">*</Text>
+                                {t('notifyMessageLabel')} <Text className="text-red-500">*</Text>
                             </Text>
                             <TextInput
                                 className="bg-secondary text-white px-4 py-3 rounded-lg border border-gray-700"
-                                placeholder="Escribe el mensaje de la notificación..."
+                                placeholder={t('notifyMessagePlaceholder')}
                                 placeholderTextColor="#6b7280"
                                 value={mensaje}
                                 onChangeText={setMensaje}
@@ -178,7 +180,7 @@ export default function CreateNotificationScreen() {
                         {/* Tipo de Notificación */}
                         <View className="mb-4">
                             <Text className="text-white font-semibold mb-2">
-                                Tipo de Notificación <Text className="text-red-500">*</Text>
+                                {t('notifyTypeLabel')} <Text className="text-red-500">*</Text>
                             </Text>
                             <View className="flex-row flex-wrap gap-2">
                                 {tiposNotificacion.map((tipoOption) => (
@@ -222,18 +224,18 @@ export default function CreateNotificationScreen() {
                         {/* ID Denuncia (Opcional) */}
                         <View className="mb-6">
                             <Text className="text-white font-semibold mb-2">
-                                ID del Reporte (Opcional)
+                                {t('notifyReportIdLabel')}
                             </Text>
                             <TextInput
                                 className="bg-secondary text-white px-4 py-3 rounded-lg border border-gray-700"
-                                placeholder="Ej: 123"
+                                placeholder={t('notifyReportIdPlaceholder')}
                                 placeholderTextColor="#6b7280"
                                 value={denunciaId}
                                 onChangeText={setDenunciaId}
                                 keyboardType="numeric"
                             />
                             <Text className="text-gray-500 text-xs mt-1">
-                                Si la notificación está relacionada con un reporte específico
+                                {t('notifyReportIdHint')}
                             </Text>
                         </View>
 
@@ -245,7 +247,7 @@ export default function CreateNotificationScreen() {
                                 disabled={loading}
                             >
                                 <Text className="text-white text-center font-semibold">
-                                    Cancelar
+                                    {t('notifyButtonCancel')}
                                 </Text>
                             </TouchableOpacity>
 
@@ -259,7 +261,7 @@ export default function CreateNotificationScreen() {
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <Text className="text-white text-center font-semibold">
-                                        Crear Notificación
+                                        {t('notifyButtonCreate')}
                                     </Text>
                                 )}
                             </TouchableOpacity>

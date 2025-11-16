@@ -4,9 +4,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Users2, BarChart3, Bell } from "lucide-react-native";
 import { router } from "expo-router";
 import { SystemMetrics } from "~/components/SystemMetrics";
+import { useLanguage } from "~/contexts/LanguageContext";
 
 export default function AdminContent() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
 
   return (
     <ScrollView
@@ -17,17 +19,17 @@ export default function AdminContent() {
       }}
     >
       {/* Métricas del Sistema */}
-      <SystemMetrics title="Estado del Sistema" />
+      <SystemMetrics title={t('adminSystemStatus')} />
 
       {/* Gestión de Usuarios */}
       <View className="bg-[#13161E] rounded-[12px] p-4">
-        <Text className="text-white text-xl font-bold mb-4">Gestión de Usuarios</Text>
+        <Text className="text-white text-xl font-bold mb-4">{t('adminUserManagement')}</Text>
         
         <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
           <View className="flex-row justify-between items-center">
             <View>
-              <Text className="text-white font-bold">Nuevos Registros Hoy</Text>
-              <Text className="text-gray-400">23 usuarios nuevos</Text>
+              <Text className="text-white font-bold">{t('adminNewRegistrationsToday')}</Text>
+              <Text className="text-gray-400">{t('adminNewUsers')}</Text>
             </View>
             <View className="bg-green-500 px-3 py-1 rounded-full">
               <Text className="text-white text-xs">+15%</Text>
@@ -38,11 +40,11 @@ export default function AdminContent() {
         <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
           <View className="flex-row justify-between items-center">
             <View>
-              <Text className="text-white font-bold">Usuarios Activos</Text>
-              <Text className="text-gray-400">892 en las últimas 24h</Text>
+              <Text className="text-white font-bold">{t('adminActiveUsers')}</Text>
+              <Text className="text-gray-400">{t('adminActiveUsersLast24h')}</Text>
             </View>
             <View className="bg-blue-500 px-3 py-1 rounded-full">
-              <Text className="text-white text-xs">Estable</Text>
+              <Text className="text-white text-xs">{t('adminStable')}</Text>
             </View>
           </View>
         </View>
@@ -50,7 +52,7 @@ export default function AdminContent() {
 
       {/* Panel de Control */}
       <View className="bg-[#13161E] rounded-[12px] p-4">
-        <Text className="text-white text-xl font-bold mb-4">Panel de Control</Text>
+        <Text className="text-white text-xl font-bold mb-4">{t('adminControlPanel')}</Text>
         
         <View className="flex-row flex-wrap gap-3 justify-center">
           <TouchableOpacity 
@@ -59,7 +61,7 @@ export default function AdminContent() {
             style={{ width: '47%', height: 120 }}
           >
             <Users2 size={24} color="white" />
-            <Text className="text-white mt-2 text-center">Gestionar Usuarios</Text>
+            <Text className="text-white mt-2 text-center">{t('adminManageUsers')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -68,7 +70,7 @@ export default function AdminContent() {
             style={{ width: '47%', height: 120 }}
           >
             <BarChart3 size={24} color="white" />
-            <Text className="text-white mt-2 text-center">Analytics</Text>
+            <Text className="text-white mt-2 text-center">{t('adminAnalytics')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -77,7 +79,7 @@ export default function AdminContent() {
             style={{ width: '47%', height: 120 }}
           >
             <Bell size={24} color="white" />
-            <Text className="text-white mt-2 text-center">Crear Notificación</Text>
+            <Text className="text-white mt-2 text-center">{t('adminCreateNotification')}</Text>
           </TouchableOpacity>
         </View>
       </View>

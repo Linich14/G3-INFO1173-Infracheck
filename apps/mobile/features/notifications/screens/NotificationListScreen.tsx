@@ -5,9 +5,11 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, CheckCheck, Bell, AlertCircle, CheckCircle, Info, XCircle } from 'lucide-react-native';
 import { useNotifications } from '~/hooks/useNotifications';
 import { Notification } from '~/services/notificationService';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 const NotificationListScreen: React.FC = () => {
   const router = useRouter();
+  const { t } = useLanguage();
   const {
     notifications,
     unreadCount,
@@ -72,7 +74,7 @@ const NotificationListScreen: React.FC = () => {
       <SafeAreaView className="flex-1 bg-[#090A0D]">
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#537CF2" />
-          <Text className="text-white mt-4">Cargando notificaciones...</Text>
+          <Text className="text-white mt-4">{t('notifyListLoading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -88,7 +90,7 @@ const NotificationListScreen: React.FC = () => {
           <ArrowLeft size={26} color="white" />
         </TouchableOpacity>
         
-        <Text className="text-[#537CF2] font-bold text-2xl">Notificaciones</Text>
+        <Text className="text-[#537CF2] font-bold text-2xl">{t('notifyListTitle')}</Text>
         
         {unreadCount > 0 ? (
           <TouchableOpacity
@@ -106,7 +108,7 @@ const NotificationListScreen: React.FC = () => {
         <View className="bg-[#13161E] mx-4 mt-3 p-3 rounded-lg flex-row items-center">
           <Bell size={18} color="#537CF2" />
           <Text className="text-white ml-2">
-            Tienes <Text className="font-bold text-[#537CF2]">{unreadCount}</Text> notificación{unreadCount !== 1 ? 'es' : ''} sin leer
+            {t('notifyListUnreadCount').replace('{count}', unreadCount.toString())}
           </Text>
         </View>
       )}
@@ -131,7 +133,7 @@ const NotificationListScreen: React.FC = () => {
         {notifications.length === 0 ? (
           <View className="flex-1 justify-center items-center py-20">
             <Bell size={64} color="#4B5563" />
-            <Text className="text-gray-400 text-lg mt-4">No tienes notificaciones</Text>
+            <Text className="text-gray-400 text-lg mt-4">{t('notifyListEmpty')}</Text>
           </View>
         ) : (
           <View className="px-4 py-3">

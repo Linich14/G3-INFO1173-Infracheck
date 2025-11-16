@@ -27,12 +27,12 @@ export const EditEmailModal: React.FC<EditEmailModalProps> = ({
 
   const handleSave = async () => {
     if (!email.trim()) {
-      Alert.alert('Error', 'El email no puede estar vacío');
+      Alert.alert(t('notifyErrorTitle'), t('profileEditEmailErrorEmpty'));
       return;
     }
 
     if (!validateEmail(email)) {
-      Alert.alert('Error', 'Por favor ingresa un email válido');
+      Alert.alert(t('notifyErrorTitle'), t('profileEditEmailErrorInvalid'));
       return;
     }
 

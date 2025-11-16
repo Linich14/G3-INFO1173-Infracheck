@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ReportListItem from '../components/ReportListItem';
 import { ReportListItem as ReportListItemType, ReportsListFilters, ReportStatus, UrgencyLevel } from '../types';
 import { useReports } from '../hooks/useReports';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -15,6 +16,8 @@ const ALL_URGENCIES: (UrgencyLevel | 'todos')[] = ['todos', 'Bajo', 'Medio', 'Al
 const ALL_TYPES = ['todos', 'Alumbrado público', 'Baches', 'Limpieza', 'Área verde', 'Seguridad', 'Otro'];
 
 export default function ReportsListScreen() {
+  const { t } = useLanguage();
+  
   // Estados UI locales
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<ReportsListFilters>({
@@ -60,20 +63,20 @@ export default function ReportsListScreen() {
 
   // Obtener etiquetas para mostrar en los selectores
   const getStatusLabel = (status: ReportStatus | 'todos') => 
-    status === 'todos' ? 'Todos los estados' : status;
+    status === 'todos' ? t('listReportAllStatuses') : status;
   
   const getTypeLabel = (type: string) => 
-    type === 'todos' ? 'Todos los tipos' : type;
+    type === 'todos' ? t('listReportAllTypes') : type;
   
   const getUrgencyLabel = (urgency: UrgencyLevel | 'todos') => 
-    urgency === 'todos' ? 'Todas las urgencias' : urgency;
+    urgency === 'todos' ? t('listReportAllUrgencies') : urgency;
   
   const getSortLabel = () => {
-    if (filters.sortBy === 'fecha' && filters.sortOrder === 'desc') return 'Más recientes';
-    if (filters.sortBy === 'fecha' && filters.sortOrder === 'asc') return 'Más antiguos';
-    if (filters.sortBy === 'urgencia') return 'Más urgentes';
-    if (filters.sortBy === 'votos') return 'Más votados';
-    return 'Ordenar por';
+    if (filters.sortBy === 'fecha' && filters.sortOrder === 'desc') return t('listReportSortByRecent');
+    if (filters.sortBy === 'fecha' && filters.sortOrder === 'asc') return t('listReportSortByOldest');
+    if (filters.sortBy === 'urgencia') return t('listReportSortByUrgency');
+    if (filters.sortBy === 'votos') return t('listReportSortByVotes');
+    return t('listReportSortBy');
   };
 
   // Filtrar y ordenar reportes (client-side)
@@ -199,7 +202,7 @@ export default function ReportsListScreen() {
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text className="flex-1 text-center text-xl font-bold text-white">
-          Lista de Reportes
+          {t('listReportTitle')}
         </Text>
         {/* Espaciador para centrar título */}
         <View className="w-10" />
@@ -221,7 +224,7 @@ export default function ReportsListScreen() {
             <Ionicons name="search" size={20} color="gray" />
             <TextInput
               className="ml-3 flex-1 text-white"
-              placeholder="Buscar reportes..."
+              placeholder={t('listReportSearchPlaceholder')}
               placeholderTextColor="gray"
               value={filters.searchQuery}
               onChangeText={(text) => handleFilterChange('searchQuery', text)}
@@ -238,7 +241,7 @@ export default function ReportsListScreen() {
           </View>
           {filters.searchQuery.length > 0 && (
             <Text className="mt-2 text-xs text-blue-400">
-              Buscando: "{filters.searchQuery}" - {filteredAndSortedReports.length} resultado{filteredAndSortedReports.length !== 1 ? 's' : ''}
+              {t('listReportSearching')} "{filters.searchQuery}" - {filteredAndSortedReports.length} {filteredAndSortedReports.length !== 1 ? t('listReportResults') : t('listReportResult')}
             </Text>
           )}
         </View>
@@ -246,13 +249,13 @@ export default function ReportsListScreen() {
         {/* Filtros en Grid 2x2 */}
         <View className="mb-4 rounded-xl bg-[#13161E] p-4">
           <View className="mb-3 flex-row items-center justify-between">
-            <Text className="text-sm font-bold text-blue-400">Filtros</Text>
+            <Text className="text-sm font-bold text-blue-400">{t('listReportFilters')}</Text>
             {hasActiveFilters() && (
               <TouchableOpacity
                 className="rounded-lg bg-red-500/20 px-3 py-1"
                 onPress={clearFilters}
               >
-                <Text className="text-xs text-red-400">Limpiar</Text>
+                <Text className="text-xs text-red-400">{t('listReportClearFilters')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -266,7 +269,7 @@ export default function ReportsListScreen() {
                 className="flex-1 rounded-lg bg-[#1D212D] p-3"
                 onPress={() => setShowStatusModal(true)}
               >
-                <Text className="mb-1 text-xs text-gray-400">Estado</Text>
+                <Text className="mb-1 text-xs text-gray-400">{t('listReportStatus')}</Text>
                 <View className="flex-row items-center justify-between">
                   <Text className="flex-1 text-sm text-white" numberOfLines={1}>
                     {getStatusLabel(filters.status)}
@@ -280,7 +283,7 @@ export default function ReportsListScreen() {
                 className="flex-1 rounded-lg bg-[#1D212D] p-3"
                 onPress={() => setShowTypeModal(true)}
               >
-                <Text className="mb-1 text-xs text-gray-400">Tipo</Text>
+                <Text className="mb-1 text-xs text-gray-400">{t('listReportType')}</Text>
                 <View className="flex-row items-center justify-between">
                   <Text className="flex-1 text-sm text-white" numberOfLines={1}>
                     {getTypeLabel(filters.type)}
@@ -297,7 +300,7 @@ export default function ReportsListScreen() {
                 className="flex-1 rounded-lg bg-[#1D212D] p-3"
                 onPress={() => setShowUrgencyModal(true)}
               >
-                <Text className="mb-1 text-xs text-gray-400">Urgencia</Text>
+                <Text className="mb-1 text-xs text-gray-400">{t('listReportUrgency')}</Text>
                 <View className="flex-row items-center justify-between">
                   <Text className="flex-1 text-sm text-white" numberOfLines={1}>
                     {getUrgencyLabel(filters.urgency)}
@@ -311,7 +314,7 @@ export default function ReportsListScreen() {
                 className="flex-1 rounded-lg bg-[#1D212D] p-3"
                 onPress={() => setShowSortModal(true)}
               >
-                <Text className="mb-1 text-xs text-gray-400">Ordenar</Text>
+                <Text className="mb-1 text-xs text-gray-400">{t('listReportSort')}</Text>
                 <View className="flex-row items-center justify-between">
                   <Text className="flex-1 text-sm text-white" numberOfLines={1}>
                     {getSortLabel()}
@@ -327,10 +330,10 @@ export default function ReportsListScreen() {
         <View className="mb-4 rounded-xl bg-[#13161E] p-4">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-lg font-bold text-blue-400">
-              Reportes ({filteredAndSortedReports.length})
+              {t('listReportReportsCount').replace('{count}', filteredAndSortedReports.length.toString())}
             </Text>
             <Text className="text-sm text-gray-400">
-              Página {currentPage} de {totalPages}
+              {t('listReportPage')} {currentPage} {t('listReportOf')} {totalPages}
             </Text>
           </View>
 
@@ -339,7 +342,7 @@ export default function ReportsListScreen() {
             <View className="items-center py-8">
               <ActivityIndicator size="large" color="#537CF2" />
               <Text className="mt-2 text-center text-gray-400">
-                Cargando reportes...
+                {t('listReportLoading')}
               </Text>
             </View>
           )}
@@ -355,7 +358,7 @@ export default function ReportsListScreen() {
                 className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2"
                 onPress={handleRefresh}
               >
-                <Text className="text-white">Reintentar</Text>
+                <Text className="text-white">{t('listReportRetry')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -380,14 +383,14 @@ export default function ReportsListScreen() {
             <View className="items-center py-8">
               <Ionicons name="document-text-outline" size={48} color="gray" />
               <Text className="mt-2 text-center text-gray-400">
-                No se encontraron reportes con los filtros aplicados
+                {t('listReportNoResults')}
               </Text>
               {hasActiveFilters() && (
                 <TouchableOpacity
                   className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2"
                   onPress={clearFilters}
                 >
-                  <Text className="text-white">Limpiar filtros</Text>
+                  <Text className="text-white">{t('listReportClearFiltersButton')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -406,7 +409,7 @@ export default function ReportsListScreen() {
               className="mt-4 items-center rounded-lg bg-[#537CF2] py-3"
               onPress={loadMore}
             >
-              <Text className="text-white font-semibold">Cargar más reportes</Text>
+              <Text className="text-white font-semibold">{t('listReportLoadMore')}</Text>
             </TouchableOpacity>
           )}
 
@@ -422,7 +425,7 @@ export default function ReportsListScreen() {
               >
                 <Ionicons name="chevron-back" size={16} color={currentPage === 1 ? 'gray' : 'white'} />
                 <Text className={`ml-1 text-sm ${currentPage === 1 ? 'text-gray-400' : 'text-white'}`}>
-                  Anterior
+                  {t('listReportPrevious')}
                 </Text>
               </TouchableOpacity>
 
@@ -434,7 +437,7 @@ export default function ReportsListScreen() {
                 disabled={currentPage === totalPages}
               >
                 <Text className={`mr-1 text-sm ${currentPage === totalPages ? 'text-gray-400' : 'text-white'}`}>
-                  Siguiente
+                  {t('listReportNext')}
                 </Text>
                 <Ionicons name="chevron-forward" size={16} color={currentPage === totalPages ? 'gray' : 'white'} />
               </TouchableOpacity>
@@ -457,7 +460,7 @@ export default function ReportsListScreen() {
         >
           <View className="bg-[#13161E] rounded-t-3xl p-4">
             <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-lg font-bold text-white">Filtrar por estado</Text>
+              <Text className="text-lg font-bold text-white">{t('listReportFilterByStatus')}</Text>
               <TouchableOpacity onPress={() => setShowStatusModal(false)}>
                 <Ionicons name="close" size={24} color="white" />
               </TouchableOpacity>
@@ -496,7 +499,7 @@ export default function ReportsListScreen() {
         >
           <View className="bg-[#13161E] rounded-t-3xl p-4">
             <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-lg font-bold text-white">Tipo de denuncia</Text>
+              <Text className="text-lg font-bold text-white">{t('listReportTypeOfComplaint')}</Text>
               <TouchableOpacity onPress={() => setShowTypeModal(false)}>
                 <Ionicons name="close" size={24} color="white" />
               </TouchableOpacity>
@@ -535,7 +538,7 @@ export default function ReportsListScreen() {
         >
           <View className="bg-[#13161E] rounded-t-3xl p-4">
             <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-lg font-bold text-white">Nivel de urgencia</Text>
+              <Text className="text-lg font-bold text-white">{t('listReportUrgencyLevel')}</Text>
               <TouchableOpacity onPress={() => setShowUrgencyModal(false)}>
                 <Ionicons name="close" size={24} color="white" />
               </TouchableOpacity>
@@ -574,7 +577,7 @@ export default function ReportsListScreen() {
         >
           <View className="bg-[#13161E] rounded-t-3xl p-4">
             <View className="mb-4 flex-row items-center justify-between">
-              <Text className="text-lg font-bold text-white">Ordenar por</Text>
+              <Text className="text-lg font-bold text-white">{t('listReportSortBy')}</Text>
               <TouchableOpacity onPress={() => setShowSortModal(false)}>
                 <Ionicons name="close" size={24} color="white" />
               </TouchableOpacity>
@@ -590,7 +593,7 @@ export default function ReportsListScreen() {
                   setShowSortModal(false);
                 }}
               >
-                <Text className="text-white">Más recientes</Text>
+                <Text className="text-white">{t('listReportSortByRecent')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className={`mb-2 rounded-lg p-4 ${
@@ -602,7 +605,7 @@ export default function ReportsListScreen() {
                   setShowSortModal(false);
                 }}
               >
-                <Text className="text-white">Más antiguos</Text>
+                <Text className="text-white">{t('listReportSortByOldest')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className={`mb-2 rounded-lg p-4 ${
@@ -613,7 +616,7 @@ export default function ReportsListScreen() {
                   setShowSortModal(false);
                 }}
               >
-                <Text className="text-white">Más urgentes</Text>
+                <Text className="text-white">{t('listReportSortByUrgency')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className={`mb-2 rounded-lg p-4 ${
@@ -624,7 +627,7 @@ export default function ReportsListScreen() {
                   setShowSortModal(false);
                 }}
               >
-                <Text className="text-white">Más votados</Text>
+                <Text className="text-white">{t('listReportSortByVotes')}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>

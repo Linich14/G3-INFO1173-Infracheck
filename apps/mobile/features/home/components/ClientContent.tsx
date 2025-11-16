@@ -16,6 +16,7 @@ import { SearchModal } from '~/features/search';
 import { X, MapPin, AlertTriangle } from 'lucide-react-native';
 import CategoryFilter from './CategoryFilter';
 import FollowedReportsList from './FollowedReportsList';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface ClientContentProps {
     reports: Report[];
@@ -65,6 +66,7 @@ export default function ClientContent({
     loadMoreError,
     retryLoadMore,
 }: ClientContentProps) {
+    const { t } = useLanguage();
     // Estados para manejar las interacciones
     const [upvotedReports, setUpvotedReports] = useState<Set<string>>(new Set());
     const [followedReports, setFollowedReports] = useState<Set<string>>(new Set());
@@ -131,8 +133,8 @@ export default function ClientContent({
     const handleShare = async (reportTitle: string, reportId: string) => {
         try {
             await Share.share({
-                message: `Mira este reporte: "${reportTitle}" - ID: ${reportId}`,
-                title: 'Compartir Reporte',
+                message: `${t('homeShareMessage').replace('{title}', reportTitle).replace('{id}', reportId)}`,
+                title: t('homeShareTitle'),
             });
         } catch (error) {
             console.log('Error al compartir:', error);
@@ -141,16 +143,16 @@ export default function ClientContent({
 
     // Función para reportar (más opciones)
     const handleMore = (reportTitle: string) => {
-        Alert.alert('Reportar Contenido', `¿Quieres reportar el contenido "${reportTitle}"?`, [
+        Alert.alert(t('homeReportContentTitle'), t('homeReportContentMessage').replace('{title}', reportTitle), [
             {
-                text: 'Cancelar',
+                text: t('cancel'),
                 style: 'cancel',
             },
             {
-                text: 'Reportar',
+                text: t('homeReportButton'),
                 style: 'destructive',
                 onPress: () => {
-                    Alert.alert('Reportado', 'El contenido ha sido reportado exitosamente.');
+                    Alert.alert(t('homeReportedTitle'), t('homeReportedMessage'));
                 },
             },
         ]);
@@ -278,7 +280,7 @@ export default function ClientContent({
                         className={`text-center text-base font-semibold ${
                             activeTab === 'todos' ? 'text-white' : 'text-gray-400'
                         }`}>
-                        Todos
+                        {t('homeTabAll')}
                     </Text>
                 </TouchableOpacity>
 
@@ -291,7 +293,7 @@ export default function ClientContent({
                         className={`text-center text-base font-semibold ${
                             activeTab === 'seguidos' ? 'text-white' : 'text-gray-400'
                         }`}>
-                        Seguidos
+                        {t('homeTabFollowed')}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -330,16 +332,16 @@ export default function ClientContent({
                         /* Indicador de carga inicial */
                         <View className="flex-1 items-center justify-center py-20">
                             <ActivityIndicator size="large" color="#537CF2" />
-                            <Text className="mt-4 text-gray-400">Cargando reportes...</Text>
+                            <Text className="mt-4 text-gray-400">{t('homeLoadingReports')}</Text>
                         </View>
                     ) : reports.length === 0 ? (
                         /* Estado vacío sin error */
                         <View className="flex-1 items-center justify-center py-20">
                             <Text className="text-lg text-gray-400">
-                                No hay reportes disponibles
+                                {t('homeNoReportsAvailable')}
                             </Text>
                             <Text className="mt-2 text-sm text-gray-500">
-                                Desliza hacia abajo para actualizar
+                                {t('homeSwipeToRefresh')}
                             </Text>
                         </View>
                     ) : (
@@ -359,7 +361,7 @@ export default function ClientContent({
                                         timeAgo={report.timeAgo}
                                         image={report.image}
                                         upvotes={currentUpvotes}
-                                        followLabel={isFollowed ? 'Siguiendo ✓' : 'Seguir'}
+                                        followLabel={isFollowed ? t('homeFollowingLabel') : t('homeFollowLabel')}
                                         isFollowed={isFollowed}
                                         isUpvoted={isUpvoted}
                                         votos={report.votos} // Pasar estructura completa
@@ -433,11 +435,11 @@ export default function ClientContent({
                                 <TouchableOpacity
                                     className="items-center rounded-lg bg-[#537CF2] py-4"
                                     onPress={() => {
-                                        Alert.alert('Navegación', 'Abriendo en Google Maps...');
+                                        Alert.alert(t('homeNavigationTitle'), t('homeNavigationMaps'));
                                         setLocationModalVisible(false);
                                     }}>
                                     <Text className="text-base font-semibold text-white">
-                                        Ver en Mapa
+                                        {t('homeViewOnMap')}
                                     </Text>
                                 </TouchableOpacity>
                             </>

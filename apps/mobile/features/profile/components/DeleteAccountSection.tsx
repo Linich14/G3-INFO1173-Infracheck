@@ -28,7 +28,7 @@ export const DeleteAccountSection: React.FC = () => {
 
     const handleDelete = async () => {
         if (confirmText !== 'ELIMINAR') {
-            Alert.alert('Error', 'Debes escribir "ELIMINAR" exactamente para confirmar');
+            Alert.alert(t('notifyErrorTitle'), t('profileDeleteErrorConfirm'));
             return;
         }
 
@@ -37,7 +37,7 @@ export const DeleteAccountSection: React.FC = () => {
             const result = await deleteAccount();
 
             if (result.success) {
-                Alert.alert('Cuenta Eliminada', result.message, [
+                Alert.alert(t('profileDeleteSuccessTitle'), result.message, [
                     {
                         text: 'OK',
                         onPress: () => {
@@ -47,10 +47,10 @@ export const DeleteAccountSection: React.FC = () => {
                     },
                 ]);
             } else {
-                Alert.alert('Error', result.message);
+                Alert.alert(t('profileDeleteErrorTitle'), result.message);
             }
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Error de conexión. Intenta nuevamente.');
+            Alert.alert(t('profileDeleteErrorTitle'), error.message || t('profileDeleteErrorConnection'));
         } finally {
             setIsLoading(false);
             setShowSecondConfirm(false);

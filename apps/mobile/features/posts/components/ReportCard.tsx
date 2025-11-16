@@ -16,6 +16,7 @@ import { useReportFollow } from '../hooks/useReportFollow';
 import { useToast } from '../contexts/ToastContext';
 import { useRouter } from 'expo-router';
 import VoteButton from './VoteButton';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 const ReportCard: React.FC<ReportCardProps> = ({
     id,
@@ -40,6 +41,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
     isFollowed = false,
 }) => {
     const router = useRouter();
+    const { t } = useLanguage();
     const toast = useToast();
     const [imageError, setImageError] = useState(false);
     const hasImage = !!image && !imageError;
@@ -67,9 +69,9 @@ const ReportCard: React.FC<ReportCardProps> = ({
         seguimiento?.seguidores_count ?? 0,
         (nowFollowing) => {
             if (nowFollowing) {
-                toast.showSuccess('¡Ahora sigues este reporte!');
+                toast.showSuccess(t('postsFollowToast'));
             } else {
-                toast.showInfo('Dejaste de seguir este reporte');
+                toast.showInfo(t('postsUnfollowToast'));
             }
             onFollow?.();
         },
@@ -136,7 +138,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                                 <Text className={`text-center text-base font-medium ${
                                     isFollowing ? 'text-[#537CF2]' : 'text-white'
                                 }`}>
-                                    {isFollowing ? 'Siguiendo' : followLabel}
+                                    {isFollowing ? t('postsFollowing') : t('postsFollow')}
                                 </Text>
                                 {followersCount > 0 && (
                                     <View className={`ml-1 rounded-full px-2 py-0.5 ${
@@ -172,7 +174,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                             style={{ width: '100%', aspectRatio }}
                             className="items-center justify-center bg-[#0f172a]">
                             <Text className="text-white/40">
-                                {imageError ? 'Error al cargar imagen' : 'Sin imagen'}
+                                {imageError ? t('postsImageError') : t('postsNoImage')}
                             </Text>
                         </View>
                     )}
@@ -232,7 +234,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                         }}>
                         <Share2 size={18} color="#fff" />
                         <Text className="text-center text-base font-medium text-white">
-                            Compartir
+                            {t('postsShare')}
                         </Text>
                     </TouchableOpacity>
                 </View>

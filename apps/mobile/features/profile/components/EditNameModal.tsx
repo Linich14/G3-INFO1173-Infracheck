@@ -28,7 +28,7 @@ export const EditNameModal: React.FC<EditNameModalProps> = ({
     const trimmedLast = lastName.trim();
 
     if (!trimmedFirst || !trimmedLast) {
-      Alert.alert('Datos incompletos', 'Por favor ingresa nombre y apellido.');
+      Alert.alert(t('profileEditNameError'), t('profileEditNameErrorBody'));
       return;
     }
 

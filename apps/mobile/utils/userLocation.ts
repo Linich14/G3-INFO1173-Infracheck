@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 import { useState, useEffect } from 'react';
 
+// Hook helper para obtener el traductor (necesitará ser usado desde un componente React)
 export function useUserLocation() {
     const [location, setLocation] = useState<Location.LocationObject | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -10,7 +11,8 @@ export function useUserLocation() {
     const requestLocationPermission = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-            setErrorMsg('Permiso de ubicación denegado');
+            // Mensaje genérico en inglés, será traducido donde se use
+            setErrorMsg('location_permission_denied');
             return false;
         }
 
@@ -56,7 +58,7 @@ export function useUserLocation() {
             setLocation(loc);
             return loc;
         } catch (error) {
-            console.error('Error al obtener la ubicación del usuario:', error);
+            
             throw error;
         }
     };
@@ -70,7 +72,8 @@ export function useUserLocation() {
     const handleCancelPermission = () => {
         setShowPermissionModal(false);
         setPermissionAsked(true);
-        setErrorMsg('Permiso de ubicación denegado por el usuario');
+        // Mensaje genérico en inglés, será traducido donde se use
+        setErrorMsg('location_permission_denied_by_user');
     };
 
     return { 

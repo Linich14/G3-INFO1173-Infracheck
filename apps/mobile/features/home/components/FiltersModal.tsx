@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, Modal, TouchableOpacity, ScrollView } from 'react-native';
 import { X } from 'lucide-react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface FiltersModalProps {
   visible: boolean;
@@ -17,26 +18,6 @@ export interface FilterValues {
   urgencia: number;
 }
 
-const CATEGORIAS = [
-  'Infraestructura',
-  'Señalización',
-  'Alumbrado',
-  'Limpieza',
-  'Seguridad',
-  'Transporte',
-  'Otro'
-];
-
-const ESTADOS = [
-  { label: 'Todos', value: null },
-  { label: 'Nuevo', value: 'nuevo' },
-  { label: 'En Proceso', value: 'en_proceso' },
-  { label: 'Resuelto', value: 'resuelto' },
-  { label: 'Rechazado', value: 'rechazado' }
-];
-
-const URGENCIA_LABELS = ['Baja', 'Media', 'Alta', 'Crítica'];
-
 export default function FiltersModal({ 
   visible, 
   onClose, 
@@ -45,9 +26,49 @@ export default function FiltersModal({
   onClear,
   initialFilters 
 }: FiltersModalProps) {
+  const { t, locale } = useLanguage();
   const [categoria, setCategoria] = useState<string | null>(initialFilters?.categoria || null);
   const [estado, setEstado] = useState<string | null>(initialFilters?.estado || null);
   const [urgencia, setUrgencia] = useState<number>(initialFilters?.urgencia || 1);
+
+  // Traducción dinámica de categorías
+  const getCategoryTranslation = useMemo(() => {
+    const categoryMap: Record<string, { es: string; en: string }> = {
+      'Infraestructura': { es: 'Infraestructura', en: 'Infrastructure' },
+      'Señalización': { es: 'Señalización', en: 'Signage' },
+      'Alumbrado': { es: 'Alumbrado', en: 'Lighting' },
+      'Limpieza': { es: 'Limpieza', en: 'Cleaning' },
+      'Seguridad': { es: 'Seguridad', en: 'Security' },
+      'Transporte': { es: 'Transporte', en: 'Transportation' },
+      'Otro': { es: 'Otro', en: 'Other' }
+    };
+    return (cat: string): string => categoryMap[cat]?.[locale] || cat;
+  }, [locale]);
+
+  const CATEGORIAS = useMemo(() => [
+    'Infraestructura',
+    'Señalización',
+    'Alumbrado',
+    'Limpieza',
+    'Seguridad',
+    'Transporte',
+    'Otro'
+  ], []);
+
+  const ESTADOS = useMemo(() => [
+    { label: t('filtersStatusAll'), value: null },
+    { label: t('filtersStatusNew'), value: 'nuevo' },
+    { label: t('filtersStatusInProgress'), value: 'en_proceso' },
+    { label: t('filtersStatusResolved'), value: 'resuelto' },
+    { label: t('filtersStatusRejected'), value: 'rechazado' }
+  ], [t]);
+
+  const URGENCIA_LABELS = useMemo(() => [
+    t('filtersUrgencyLow'),
+    t('filtersUrgencyMedium'),
+    t('filtersUrgencyHigh'),
+    t('filtersUrgencyCritical')
+  ], [t]);
 
   const handleApply = () => {
     const filterValues = { categoria, estado, urgencia };
@@ -80,7 +101,7 @@ export default function FiltersModal({
         <View className="max-h-[85%] rounded-t-3xl bg-[#13161E] p-6">
           {/* Header */}
           <View className="mb-6 flex-row items-center justify-between">
-            <Text className="text-2xl font-bold text-white">Filtros</Text>
+            <Text className="text-2xl font-bold text-white">{t('filtersTitle')}</Text>
             <TouchableOpacity onPress={onClose} className="rounded-full bg-[#1D212D] p-2">
               <X size={24} color="white" />
             </TouchableOpacity>
@@ -89,7 +110,7 @@ export default function FiltersModal({
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Categorías con chips */}
             <View className="mb-6">
-              <Text className="mb-3 text-lg font-semibold text-white">Categoría</Text>
+              <Text className="mb-3 text-lg font-semibold text-white">{t('filtersCategory')}</Text>
               <View className="flex-row flex-wrap gap-2">
                 {CATEGORIAS.map((cat) => (
                   <TouchableOpacity
@@ -100,7 +121,7 @@ export default function FiltersModal({
                     }`}
                   >
                     <Text className={`text-sm ${categoria === cat ? 'text-white font-semibold' : 'text-gray-400'}`}>
-                      {cat}
+                      {getCategoryTranslation(cat)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -109,7 +130,7 @@ export default function FiltersModal({
 
             {/* Estados con radio buttons */}
             <View className="mb-6">
-              <Text className="mb-3 text-lg font-semibold text-white">Estado</Text>
+              <Text className="mb-3 text-lg font-semibold text-white">{t('filtersStatus')}</Text>
               {ESTADOS.map((est) => (
                 <TouchableOpacity
                   key={est.label}
@@ -133,7 +154,7 @@ export default function FiltersModal({
             {/* Slider de urgencia */}
             <View className="mb-8">
               <Text className="mb-3 text-lg font-semibold text-white">
-                Urgencia: <Text className="text-[#537CF2]">{URGENCIA_LABELS[urgencia - 1]}</Text>
+                {t('filtersUrgency')}: <Text className="text-[#537CF2]">{URGENCIA_LABELS[urgencia - 1]}</Text>
               </Text>
               
               {/* Slider personalizado con botones */}
@@ -172,7 +193,7 @@ export default function FiltersModal({
               className="flex-1 rounded-xl bg-[#1D212D] py-4"
             >
               <Text className="text-center text-base font-semibold text-gray-400">
-                Limpiar
+                {t('filtersClear')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -180,7 +201,7 @@ export default function FiltersModal({
               className="flex-1 rounded-xl bg-[#537CF2] py-4"
             >
               <Text className="text-center text-base font-semibold text-white">
-                Aplicar Filtros
+                {t('filtersApply')}
               </Text>
             </TouchableOpacity>
           </View>

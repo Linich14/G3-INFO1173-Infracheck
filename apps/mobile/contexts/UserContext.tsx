@@ -50,9 +50,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       const userData = mapProfileResponseToUser(profileData);
       setUser(userData);
       
-      console.log('User profile loaded in context:', userData.usua_nickname);
+      
     } catch (err: any) {
-      console.error('Error loading user profile in context:', err);
+      
       
       if (err.message?.includes('Session expired')) {
         await handleSessionExpired();
@@ -81,10 +81,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       const updatedUserData = mapProfileResponseToUser(updatedProfileData);
       setUser(updatedUserData);
       
-      console.log('User profile updated in context:', updatedUserData.usua_nickname);
+     
       return true;
     } catch (err: any) {
-      console.error('Error updating user profile in context:', err);
+      
       
       if (err.message?.includes('Session expired')) {
         await handleSessionExpired();

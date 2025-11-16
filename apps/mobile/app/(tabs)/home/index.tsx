@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { isAuthenticated, getUserRole } from '~/features/auth/services/authService';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 // Importar todos los screens directamente
 import AdminHomeScreen from '~/features/home/screens/Homeadminscreen';
@@ -11,6 +12,7 @@ import ClientHomeScreen from '~/features/home/screens/Homeclientescreen';
 export default function HomeRouter() {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<number | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const checkUserRoleAndAuth = async () => {
@@ -32,7 +34,7 @@ export default function HomeRouter() {
         // 3. Establecer el rol para renderizar el componente correcto
         setUserRole(roleData.rous_id);
       } catch (error) {
-        console.error('Error al verificar rol:', error);
+
         router.replace('/(auth)/sign-in');
       } finally {
         setIsLoading(false);
@@ -45,7 +47,7 @@ export default function HomeRouter() {
   // Efecto para manejar rol inválido
   useEffect(() => {
     if (!isLoading && userRole !== null && userRole !== 1 && userRole !== 2 && userRole !== 3) {
-      console.warn('Rol de usuario inválido:', userRole);
+
       router.replace('/(auth)/sign-in');
     }
   }, [isLoading, userRole]);
@@ -55,7 +57,7 @@ export default function HomeRouter() {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#090A0D' }}>
         <ActivityIndicator size="large" color="#537CF2" />
-        <Text style={{ color: '#fff', marginTop: 16 }}>Cargando...</Text>
+        <Text style={{ color: '#fff', marginTop: 16 }}>{t('loading')}</Text>
       </View>
     );
   }
@@ -73,7 +75,7 @@ export default function HomeRouter() {
       return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#090A0D' }}>
           <ActivityIndicator size="large" color="#537CF2" />
-          <Text style={{ color: '#fff', marginTop: 16 }}>Redirigiendo...</Text>
+          <Text style={{ color: '#fff', marginTop: 16 }}>{t('redirecting')}</Text>
         </View>
       );
   }

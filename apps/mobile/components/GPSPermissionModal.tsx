@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { MapPin, Navigation } from 'lucide-react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface GPSPermissionModalProps {
   visible: boolean;
@@ -9,6 +10,8 @@ interface GPSPermissionModalProps {
 }
 
 export const GPSPermissionModal: React.FC<GPSPermissionModalProps> = ({ visible, onAccept, onCancel }) => {
+  const { t } = useLanguage();
+  
   return (
     <Modal
       animationType="fade"
@@ -27,12 +30,12 @@ export const GPSPermissionModal: React.FC<GPSPermissionModalProps> = ({ visible,
 
           {/* Título */}
           <Text className="text-2xl font-bold text-gray-900 text-center mb-3">
-            Permiso de Ubicación
+            {t('gpsPermissionTitle')}
           </Text>
 
           {/* Explicación */}
           <Text className="text-base text-gray-700 text-center mb-6 leading-6">
-            InfraCheck necesita acceder a tu ubicación para:
+            {t('gpsPermissionDescription')}
           </Text>
 
           {/* Lista de beneficios */}
@@ -42,7 +45,7 @@ export const GPSPermissionModal: React.FC<GPSPermissionModalProps> = ({ visible,
                 <Navigation size={20} color="#537CF2" />
               </View>
               <Text className="flex-1 text-gray-700 leading-5">
-                <Text className="font-semibold">Ubicar reportes</Text> en el mapa de forma precisa
+                <Text className="font-semibold">{t('gpsLocateReports')}</Text> {t('gpsLocateReportsDesc')}
               </Text>
             </View>
 
@@ -51,7 +54,7 @@ export const GPSPermissionModal: React.FC<GPSPermissionModalProps> = ({ visible,
                 <MapPin size={20} color="#537CF2" />
               </View>
               <Text className="flex-1 text-gray-700 leading-5">
-                <Text className="font-semibold">Registrar automáticamente</Text> la dirección del problema reportado
+                <Text className="font-semibold">{t('gpsAutoRegister')}</Text> {t('gpsAutoRegisterDesc')}
               </Text>
             </View>
 
@@ -60,7 +63,7 @@ export const GPSPermissionModal: React.FC<GPSPermissionModalProps> = ({ visible,
                 <MapPin size={20} color="#537CF2" />
               </View>
               <Text className="flex-1 text-gray-700 leading-5">
-                <Text className="font-semibold">Mostrar reportes cercanos</Text> a tu ubicación actual
+                <Text className="font-semibold">{t('gpsShowNearby')}</Text> {t('gpsShowNearbyDesc')}
               </Text>
             </View>
           </View>
@@ -68,7 +71,7 @@ export const GPSPermissionModal: React.FC<GPSPermissionModalProps> = ({ visible,
           {/* Nota de privacidad */}
           <View className="bg-blue-50 rounded-lg p-3 mb-6">
             <Text className="text-xs text-gray-600 text-center">
-              🔒 Tu ubicación solo se usa cuando creas o visualizas reportes. No la compartimos con terceros.
+              {t('gpsPrivacyNote')}
             </Text>
           </View>
 
@@ -79,7 +82,7 @@ export const GPSPermissionModal: React.FC<GPSPermissionModalProps> = ({ visible,
               className="bg-[#537CF2] rounded-xl py-4 items-center"
             >
               <Text className="text-white font-semibold text-base">
-                Permitir Acceso
+                {t('gpsAllowAccess')}
               </Text>
             </TouchableOpacity>
 
@@ -88,7 +91,7 @@ export const GPSPermissionModal: React.FC<GPSPermissionModalProps> = ({ visible,
               className="bg-gray-100 rounded-xl py-4 items-center"
             >
               <Text className="text-gray-700 font-semibold text-base">
-                Ahora No
+                {t('gpsNotNow')}
               </Text>
             </TouchableOpacity>
           </View>

@@ -58,12 +58,12 @@ export const EditPhoneModal: React.FC<EditPhoneModalProps> = ({
     const numbers = phone.replace(/\D/g, '');
     
     if (!numbers) {
-      Alert.alert('Error', 'El teléfono no puede estar vacío');
+      Alert.alert(t('notifyErrorTitle'), t('profileEditPhoneErrorEmpty'));
       return;
     }
 
     if (!validatePhone(phone)) {
-      Alert.alert('Error', 'Por favor ingresa 8 dígitos para el número móvil');
+      Alert.alert(t('notifyErrorTitle'), t('profileEditPhoneErrorInvalid'));
       return;
     }
 

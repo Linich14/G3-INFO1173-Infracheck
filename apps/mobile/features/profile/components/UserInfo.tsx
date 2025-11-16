@@ -45,7 +45,7 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   const handleChangePhoto = () => {
     Alert.alert(
       t('changePasswordTitle'),
-      'Esta funcionalidad estará disponible próximamente',
+      t('profileChangePasswordComingSoon'),
       [{ text: 'OK' }]
     );
   };
@@ -56,13 +56,13 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
       const success = await updateUser({ usua_email: newEmail });
       if (success) {
         await refreshUser();
-        showSuccess('Tu email ha sido actualizado correctamente');
+        showSuccess(t('profileEmailUpdateSuccess'));
       } else {
-        showError('No se pudo actualizar el email');
+        showError(t('profileEmailUpdateError'));
       }
       return success;
     } catch (e: any) {
-      showError(e?.message || 'No se pudo actualizar el email');
+      showError(e?.message || t('profileEmailUpdateError'));
       return false;
     }
   };
@@ -73,13 +73,13 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
       const success = await updateUser({ usua_telefono: newPhone });
       if (success) {
         await refreshUser();
-        showSuccess('Tu teléfono ha sido actualizado correctamente');
+        showSuccess(t('profilePhoneUpdateSuccess'));
       } else {
-        showError('No se pudo actualizar el teléfono');
+        showError(t('profilePhoneUpdateError'));
       }
       return success;
     } catch (e: any) {
-      showError(e?.message || 'No se pudo actualizar el teléfono');
+      showError(e?.message || t('profilePhoneUpdateError'));
       return false;
     }
   };
@@ -90,13 +90,13 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
       const success = await updateUser({ usua_nombre: firstName, usua_apellido: lastName });
       if (success) {
         await refreshUser();
-        showSuccess('Tu nombre y apellido han sido actualizados correctamente');
+        showSuccess(t('profileNameUpdateSuccess'));
       } else {
-        showError('No se pudo actualizar el nombre');
+        showError(t('profileNameUpdateError'));
       }
       return success;
     } catch (e: any) {
-      showError(e?.message || 'No se pudo actualizar el nombre');
+      showError(e?.message || t('profileNameUpdateError'));
       return false;
     }
   };

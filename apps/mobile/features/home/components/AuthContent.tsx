@@ -4,6 +4,7 @@ import { ScrollView, View, Text, TouchableOpacity, ActivityIndicator } from "rea
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BarChart3, FileText, AlertTriangle, FolderOpen, Plus } from "lucide-react-native";
 import ReportsService from "../../listreport/services/ReportsService";
+import { useLanguage } from "~/contexts/LanguageContext";
 
 interface DashboardStats {
   urgentes: number;
@@ -21,6 +22,7 @@ interface CriticalReport {
 
 export default function AuthContent() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   
   const [stats, setStats] = useState<DashboardStats>({ urgentes: 0, pendientes: 0, resueltos: 0 });
   const [criticalReports, setCriticalReports] = useState<CriticalReport[]>([]);
@@ -155,11 +157,11 @@ export default function AuthContent() {
 
           {/* Reportes Críticos */}
           <View className="bg-[#13161E] rounded-[12px] p-4">
-            <Text className="text-white text-xl font-bold mb-4">Reportes Críticos</Text>
+            <Text className="text-white text-xl font-bold mb-4">{t('homeCriticalReportsTitle')}</Text>
             
             {criticalReports.length === 0 ? (
               <View className="bg-[#1D212D] rounded-lg p-4 items-center">
-                <Text className="text-gray-400">No hay reportes críticos pendientes</Text>
+                <Text className="text-gray-400">{t('homeNoCriticalReports')}</Text>
               </View>
             ) : (
               criticalReports.map((report) => (

@@ -132,8 +132,8 @@ export default function MapPopup({ annotation, visible, onPress, position }: Map
                                     {annotation.title}
                                 </Text>
                                 {/* Categoría */}
-                                <Text className="mt-1 text-xs text-gray-500">
-                                    {annotation.tipo_denuncia_nombre || 'Categoría no disponible'}
+                                <Text className="mb-1 text-xs font-medium text-gray-600">
+                                    {annotation.tipo_denuncia_nombre || t('mapCategoryNotAvailable')}
                                 </Text>
                             </View>
                             {/* Estado */}

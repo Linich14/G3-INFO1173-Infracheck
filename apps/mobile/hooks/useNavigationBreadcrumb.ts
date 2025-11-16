@@ -21,13 +21,7 @@ export function useNavigationBreadcrumb() {
       fractionalSecondDigits: 3,
     });
 
-    // Log formateado en terminal
-    console.log('========================================');
-    console.log(`[${timestamp}]`);
-    console.log(`Ruta: ${currentPath}`);
-    console.log(`Breadcrumb: ${breadcrumb}`);
-    console.log(`Segmentos: [${segments.map(s => `"${s}"`).join(', ')}]`);
-    console.log('========================================\n');
+
 
   }, [segments, pathname]);
 }

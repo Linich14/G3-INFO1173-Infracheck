@@ -18,6 +18,7 @@ import { Comment, CommentsModalProps } from '../types';
 import { createComment, getComments, deleteComment } from '../services/commentsService';
 import { getToken } from '~/features/auth/services/authService';
 import * as Haptics from 'expo-haptics';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 const CommentsModal: React.FC<CommentsModalProps> = ({
   visible,
@@ -28,11 +29,12 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   onAddComment,
   onRefreshComments,
 }) => {
+  const { t } = useLanguage();
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [isLoading, setIsLoading] = useState(false);
-  const [emptyMessage, setEmptyMessage] = useState('No hay comentarios aún.\n¡Sé el primero en comentar!');
+  const [emptyMessage, setEmptyMessage] = useState(t('commentsEmpty'));
   
   // Estado para el toast local
   const [localToast, setLocalToast] = useState<{
@@ -104,7 +106,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       const token = await getToken();
       
       if (!token) {
-        showLocalToast('Debes iniciar sesión para ver los comentarios', 'error');
+        showLocalToast(t('commentsErrorLoadLogin'), 'error');
         return;
       }
 
@@ -130,7 +132,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       setComments(transformedComments);
     } catch (error: any) {
       console.error('Error loading comments:', error);
-      showLocalToast(error.message || 'Error al cargar comentarios', 'error');
+      showLocalToast(error.message || t('commentsErrorLoad'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -141,7 +143,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
 
     // Validar longitud del comentario
     if (commentText.trim().length > 1000) {
-      showLocalToast('El comentario no puede exceder los 1000 caracteres', 'error');
+      showLocalToast(t('commentsErrorTooLong'), 'error');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
@@ -151,7 +153,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       const token = await getToken();
       
       if (!token) {
-        showLocalToast('Debes iniciar sesión para comentar', 'error');
+        showLocalToast(t('commentsErrorPublishLogin'), 'error');
         return;
       }
 
@@ -175,7 +177,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       
       // Feedback háptico de éxito
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      showLocalToast('¡Comentario publicado!', 'success');
+      showLocalToast(t('commentsSuccessPublished'), 'success');
       
       // Llamar al callback si existe
       await onAddComment(commentText.trim());
@@ -186,7 +188,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       }
     } catch (error: any) {
       console.error('Error creating comment:', error);
-      showLocalToast(error.message || 'Error al publicar el comentario', 'error');
+      showLocalToast(error.message || t('commentsErrorPublish'), 'error');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsSubmitting(false);
@@ -198,7 +200,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       const token = await getToken();
       
       if (!token) {
-        showLocalToast('Debes iniciar sesión para eliminar comentarios', 'error');
+        showLocalToast(t('commentsErrorDeleteLogin'), 'error');
         return;
       }
 
@@ -211,7 +213,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       
       // Feedback háptico de éxito
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      showLocalToast('Comentario eliminado', 'success');
+      showLocalToast(t('commentsSuccessDeleted'), 'success');
       
       // Refrescar comentarios si hay callback
       if (onRefreshComments) {
@@ -224,22 +226,22 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       // Recargar los comentarios
       await loadComments();
       
-      showLocalToast(error.message || 'Error al eliminar el comentario', 'error');
+      showLocalToast(error.message || t('commentsErrorDelete'), 'error');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
   const confirmDeleteComment = (commentId: string | number, authorName: string) => {
     Alert.alert(
-      'Eliminar comentario',
-      `¿Estás seguro de que quieres eliminar este comentario de ${authorName}?`,
+      t('commentsDeleteTitle'),
+      `${t('commentsDeleteMessage')} ${authorName}?`,
       [
         {
-          text: 'Cancelar',
+          text: t('commentsDeleteCancel'),
           style: 'cancel',
         },
         {
-          text: 'Eliminar',
+          text: t('commentsDeleteConfirm'),
           style: 'destructive',
           onPress: () => handleDeleteComment(commentId),
         },
@@ -264,7 +266,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
             <Text className="text-white font-semibold">{comment.author}</Text>
             {isOwnComment && (
               <View className="ml-2 bg-[#537CF2] px-2 py-0.5 rounded-full">
-                <Text className="text-white text-xs font-semibold">Tú</Text>
+                <Text className="text-white text-xs font-semibold">{t('commentsYouLabel')}</Text>
               </View>
             )}
           </View>
@@ -299,7 +301,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
           {/* Header */}
           <View className="bg-[#13161E] flex-row items-center justify-between p-4 border-b border-gray-700">
             <View className="flex-1">
-              <Text className="text-[#537CF2] font-bold text-lg">Comentarios</Text>
+              <Text className="text-[#537CF2] font-bold text-lg">{t('commentsTitle')}</Text>
               <Text className="text-gray-400 text-sm mt-1" numberOfLines={1}>
                 {postTitle}
               </Text>
@@ -326,7 +328,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
               <View className="flex-1 items-center justify-center py-12">
                 <ActivityIndicator size="large" color="#537CF2" />
                 <Text className="text-gray-400 text-center text-base mt-4">
-                  Cargando comentarios...
+                  {t('commentsLoading')}
                 </Text>
               </View>
             ) : comments.length === 0 ? (
@@ -347,7 +349,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
                 <TextInput
                   value={commentText}
                   onChangeText={setCommentText}
-                  placeholder="Escribe un comentario..."
+                  placeholder={t('commentsPlaceholder')}
                   placeholderTextColor="#6b7280"
                   multiline
                   textAlignVertical="top"

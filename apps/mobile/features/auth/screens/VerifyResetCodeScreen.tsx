@@ -4,10 +4,12 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { verifyResetCode } from '../services/authService';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 const VerifyResetCodeScreen: React.FC = () => {
   const router = useRouter();
   const { identifier } = useLocalSearchParams<{ identifier: string }>();
+  const { t } = useLanguage();
   
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,7 +32,7 @@ const VerifyResetCodeScreen: React.FC = () => {
   const handleVerifyCode = async () => {
     // Validar que el código tenga exactamente 6 dígitos
     if (code.length !== 6 || !/^\d{6}$/.test(code)) {
-      setFeedbackMessage('Ingresa un código de 6 dígitos válido');
+      setFeedbackMessage(t('verifyCodeErrorInvalid'));
       setIsSuccess(false);
       setFeedbackModalVisible(true);
       return;
@@ -62,7 +64,7 @@ const VerifyResetCodeScreen: React.FC = () => {
     } catch (error: any) {
       setLoading(false);
       setIsSuccess(false);
-      setFeedbackMessage('Error de conexión. Verifica tu conexión a internet.');
+      setFeedbackMessage(t('recoverConnectionError'));
     }
   };
 
@@ -80,7 +82,7 @@ const VerifyResetCodeScreen: React.FC = () => {
         <View className='flex-row justify-between'>
           <View className="top-5 left-10 w-32 h-32 bg-white rounded-full justify-center" />
           <View className='justify-center items-end mr-4'>
-            <Text className="text-white text-2xl font-bold">Verificar Código</Text>
+            <Text className="text-white text-2xl font-bold">{t('verifyCodeTitle')}</Text>
           </View>
         </View>
       </View>
@@ -115,7 +117,7 @@ const VerifyResetCodeScreen: React.FC = () => {
               onPress={() => router.replace('/(auth)/recover-password')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               accessibilityRole="button"
-              accessibilityLabel="Volver"
+              accessibilityLabel={t('back')}
               activeOpacity={0.6}
               className="items-center justify-center bg-primary p-3 px-4 rounded-[12px]"
             >
@@ -123,7 +125,7 @@ const VerifyResetCodeScreen: React.FC = () => {
             </TouchableOpacity>
             
             <Text className="text-white text-2xl font-bold text-center flex-1 mx-4">
-              Ingresa el{'\n'}código
+              {t('verifyCodeEnterCode')}
             </Text>
             
             {/* Espacio vacío para balancear el layout */}
@@ -133,7 +135,7 @@ const VerifyResetCodeScreen: React.FC = () => {
           {/* Información del destino */}
           <View className="w-full items-center mb-8">
             <Text className="text-white text-lg text-center mb-2">
-              Código enviado a:
+              {t('verifyCodeSentTo')}
             </Text>
             <Text className="text-[#537CF2] text-base text-center font-mono">
               {maskIdentifier(identifier || '')}
@@ -146,7 +148,7 @@ const VerifyResetCodeScreen: React.FC = () => {
               <TextInput
                 value={code}
                 onChangeText={handleCodeChange}
-                placeholder="000000"
+                placeholder={t('verifyCodePlaceholder')}
                 placeholderTextColor="#666"
                 keyboardType="numeric"
                 maxLength={6}
@@ -162,7 +164,7 @@ const VerifyResetCodeScreen: React.FC = () => {
               />
             </View>
             <Text className="text-gray-400 text-sm text-center mt-2">
-              Ingresa los 6 dígitos del código
+              {t('verifyCodeInstruction')}
             </Text>
           </View>
 
@@ -177,7 +179,7 @@ const VerifyResetCodeScreen: React.FC = () => {
               }}
             >
               <Text className="text-white text-lg font-bold">
-                {loading ? 'Verificando...' : 'Verificar Código'}
+                {loading ? t('verifyCodeVerifying') : t('verifyCodeButton')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -185,7 +187,7 @@ const VerifyResetCodeScreen: React.FC = () => {
           {/* Enlace para reenviar código */}
           <View className='items-center mt-6'>
             <Text className="text-gray-400 text-sm text-center mb-2">
-              ¿No recibiste el código?
+              {t('verifyCodeNoReceived')}
             </Text>
             <TouchableOpacity
               onPress={() => {
@@ -194,7 +196,7 @@ const VerifyResetCodeScreen: React.FC = () => {
               }}
             >
               <Text className="text-[#537CF2] text-sm font-semibold">
-                Enviar nuevamente
+                {t('verifyCodeResend')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -214,10 +216,10 @@ const VerifyResetCodeScreen: React.FC = () => {
               <>
                 <ActivityIndicator size="large" color="#537CF2" style={{ marginBottom: 16 }} />
                 <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  Verificando código...
+                  {t('verifyCodeModalVerifying')}
                 </Text>
                 <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>
-                  Por favor espera mientras validamos tu código
+                  {t('verifyCodeModalWait')}
                 </Text>
               </>
             ) : (
@@ -236,7 +238,7 @@ const VerifyResetCodeScreen: React.FC = () => {
                   </Text>
                 </View>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  {isSuccess ? '¡Código verificado!' : 'Error'}
+                  {isSuccess ? t('verifyCodeModalSuccess') : t('verifyCodeModalError')}
                 </Text>
                 <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 }}>
                   {feedbackMessage}
@@ -246,7 +248,7 @@ const VerifyResetCodeScreen: React.FC = () => {
                     onPress={() => setFeedbackModalVisible(false)}
                     style={{ backgroundColor: '#537CF2', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
                   >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Reintentar</Text>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{t('verifyCodeModalRetry')}</Text>
                   </TouchableOpacity>
                 )}
               </>

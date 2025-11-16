@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, User, Mail, Phone, Lock, Users, Camera, Image as ImageIcon } from 'lucide-react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface AddUserModalProps {
   visible: boolean;
@@ -23,6 +24,7 @@ interface AddUserModalProps {
 }
 
 export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModalProps) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     rut: '',
     nombre: '',
@@ -43,45 +45,45 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
 
     // Validar RUT (formato básico)
     if (!formData.rut.trim()) {
-      newErrors.rut = 'RUT es requerido';
+      newErrors.rut = t('usersAddErrorRutRequired');
     } else if (!/^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/.test(formData.rut)) {
-      newErrors.rut = 'Formato de RUT inválido (ej: 12.345.678-9)';
+      newErrors.rut = t('usersAddErrorRutInvalid');
     }
 
     // Validar nombre
     if (!formData.nombre.trim()) {
-      newErrors.nombre = 'Nombre es requerido';
+      newErrors.nombre = t('usersAddErrorNameRequired');
     }
 
     // Validar apellido
     if (!formData.apellido.trim()) {
-      newErrors.apellido = 'Apellido es requerido';
+      newErrors.apellido = t('usersAddErrorLastNameRequired');
     }
 
     // Validar nickname
     if (!formData.nickname.trim()) {
-      newErrors.nickname = 'Nickname es requerido';
+      newErrors.nickname = t('usersAddErrorNicknameRequired');
     }
 
     // Validar email
     if (!formData.email.trim()) {
-      newErrors.email = 'Email es requerido';
+      newErrors.email = t('usersAddErrorEmailRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email inválido';
+      newErrors.email = t('usersAddErrorEmailInvalid');
     }
 
     // Validar contraseña
     if (!formData.password.trim()) {
-      newErrors.password = 'Contraseña es requerida';
+      newErrors.password = t('usersAddErrorPasswordRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Contraseña debe tener al menos 6 caracteres';
+      newErrors.password = t('usersAddErrorPasswordLength');
     }
 
     // Validar teléfono
     if (!formData.telefono.trim()) {
-      newErrors.telefono = 'Teléfono es requerido';
+      newErrors.telefono = t('usersAddErrorPhoneRequired');
     } else if (!/^\d{8,9}$/.test(formData.telefono.replace(/\s+/g, ''))) {
-      newErrors.telefono = 'Teléfono debe tener 8-9 dígitos';
+      newErrors.telefono = t('usersAddErrorPhoneInvalid');
     }
 
     setErrors(newErrors);
@@ -140,8 +142,8 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
     
     if (cameraStatus !== 'granted' || mediaStatus !== 'granted') {
       Alert.alert(
-        'Permisos necesarios',
-        'Para subir una foto de perfil, necesitamos acceso a tu cámara y galería.',
+        t('usersAddPermissionsTitle'),
+        t('usersAddPermissionsMessage'),
         [{ text: 'OK' }]
       );
       return false;
@@ -199,9 +201,9 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
           {/* Header */}
           <View className="bg-[#14161F] flex-row items-center justify-between p-4 border-b border-gray-700">
             <View className="flex-1">
-              <Text className="text-[#537CF2] font-bold text-xl">Agregar Usuario</Text>
+              <Text className="text-[#537CF2] font-bold text-xl">{t('usersAddTitle')}</Text>
               <Text className="text-gray-400 text-sm mt-1">
-                Completa todos los campos para crear un nuevo usuario
+                {t('usersAddSubtitle')}
               </Text>
             </View>
             <TouchableOpacity
@@ -221,7 +223,7 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
           >
             {/* Imagen de Perfil */}
             <View className="items-center mb-6">
-              <Text className="text-white text-base font-medium mb-4">Foto de Perfil (Opcional)</Text>
+              <Text className="text-white text-base font-medium mb-4">{t('usersAddProfilePicture')}</Text>
               <TouchableOpacity
                 onPress={handleImageSelection}
                 className="w-24 h-24 rounded-full bg-[#13161E] border-2 border-gray-600 items-center justify-center overflow-hidden"
@@ -236,7 +238,7 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
                 ) : (
                   <View className="items-center">
                     <Camera size={32} color="#9CA3AF" />
-                    <Text className="text-gray-400 text-xs mt-1">Agregar</Text>
+                    <Text className="text-gray-400 text-xs mt-1">{t('usersAddAddPhoto')}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -244,13 +246,13 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
 
             {/* RUT */}
             <View className="mb-4">
-              <Text className="text-white text-base font-medium mb-2">RUT *</Text>
+              <Text className="text-white text-base font-medium mb-2">{t('usersAddLabelRut')}</Text>
               <View className="flex-row items-center bg-[#13161E] rounded-lg px-4 py-3 border border-gray-600">
                 <User size={20} color="#9CA3AF" />
                 <TextInput
                   value={formData.rut}
                   onChangeText={(text) => updateField('rut', text)}
-                  placeholder="12.345.678-9"
+                  placeholder={t('usersAddPlaceholderRut')}
                   placeholderTextColor="#9CA3AF"
                   className="flex-1 ml-3 text-white text-base"
                 />
@@ -260,13 +262,13 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
 
             {/* Nombre */}
             <View className="mb-4">
-              <Text className="text-white text-base font-medium mb-2">Nombre *</Text>
+              <Text className="text-white text-base font-medium mb-2">{t('usersAddLabelName')}</Text>
               <View className="flex-row items-center bg-[#13161E] rounded-lg px-4 py-3 border border-gray-600">
                 <User size={20} color="#9CA3AF" />
                 <TextInput
                   value={formData.nombre}
                   onChangeText={(text) => updateField('nombre', text)}
-                  placeholder="Ingresa el nombre"
+                  placeholder={t('usersAddPlaceholderName')}
                   placeholderTextColor="#9CA3AF"
                   className="flex-1 ml-3 text-white text-base"
                 />
@@ -276,13 +278,13 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
 
             {/* Apellido */}
             <View className="mb-4">
-              <Text className="text-white text-base font-medium mb-2">Apellido *</Text>
+              <Text className="text-white text-base font-medium mb-2">{t('usersAddLabelLastName')}</Text>
               <View className="flex-row items-center bg-[#13161E] rounded-lg px-4 py-3 border border-gray-600">
                 <User size={20} color="#9CA3AF" />
                 <TextInput
                   value={formData.apellido}
                   onChangeText={(text) => updateField('apellido', text)}
-                  placeholder="Ingresa el apellido"
+                  placeholder={t('usersAddPlaceholderLastName')}
                   placeholderTextColor="#9CA3AF"
                   className="flex-1 ml-3 text-white text-base"
                 />
@@ -292,13 +294,13 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
 
             {/* Nickname */}
             <View className="mb-4">
-              <Text className="text-white text-base font-medium mb-2">Nickname *</Text>
+              <Text className="text-white text-base font-medium mb-2">{t('usersAddLabelNickname')}</Text>
               <View className="flex-row items-center bg-[#13161E] rounded-lg px-4 py-3 border border-gray-600">
                 <User size={20} color="#9CA3AF" />
                 <TextInput
                   value={formData.nickname}
                   onChangeText={(text) => updateField('nickname', text)}
-                  placeholder="Ingresa el nickname"
+                  placeholder={t('usersAddPlaceholderNickname')}
                   placeholderTextColor="#9CA3AF"
                   className="flex-1 ml-3 text-white text-base"
                 />
@@ -308,13 +310,13 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
 
             {/* Email */}
             <View className="mb-4">
-              <Text className="text-white text-base font-medium mb-2">Email *</Text>
+              <Text className="text-white text-base font-medium mb-2">{t('usersAddLabelEmail')}</Text>
               <View className="flex-row items-center bg-[#13161E] rounded-lg px-4 py-3 border border-gray-600">
                 <Mail size={20} color="#9CA3AF" />
                 <TextInput
                   value={formData.email}
                   onChangeText={(text) => updateField('email', text)}
-                  placeholder="usuario@ejemplo.com"
+                  placeholder={t('usersAddPlaceholderEmail')}
                   placeholderTextColor="#9CA3AF"
                   className="flex-1 ml-3 text-white text-base"
                   keyboardType="email-address"
@@ -326,13 +328,13 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
 
             {/* Contraseña */}
             <View className="mb-4">
-              <Text className="text-white text-base font-medium mb-2">Contraseña *</Text>
+              <Text className="text-white text-base font-medium mb-2">{t('usersAddLabelPassword')}</Text>
               <View className="flex-row items-center bg-[#13161E] rounded-lg px-4 py-3 border border-gray-600">
                 <Lock size={20} color="#9CA3AF" />
                 <TextInput
                   value={formData.password}
                   onChangeText={(text) => updateField('password', text)}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={t('usersAddPlaceholderPassword')}
                   placeholderTextColor="#9CA3AF"
                   className="flex-1 ml-3 text-white text-base"
                   secureTextEntry
@@ -343,14 +345,14 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
 
             {/* Teléfono */}
             <View className="mb-4">
-              <Text className="text-white text-base font-medium mb-2">Teléfono *</Text>
+              <Text className="text-white text-base font-medium mb-2">{t('usersAddLabelPhone')}</Text>
               <View className="flex-row items-center bg-[#13161E] rounded-lg px-4 py-3 border border-gray-600">
                 <Phone size={20} color="#9CA3AF" />
                 <Text className="text-white ml-3">+569</Text>
                 <TextInput
                   value={formData.telefono}
                   onChangeText={(text) => updateField('telefono', text)}
-                  placeholder="12345678"
+                  placeholder={t('usersAddPlaceholderPhone')}
                   placeholderTextColor="#9CA3AF"
                   className="flex-1 ml-2 text-white text-base"
                   keyboardType="numeric"
@@ -362,7 +364,7 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
 
             {/* Rol */}
             <View className="mb-6">
-              <Text className="text-white text-base font-medium mb-2">Rol *</Text>
+              <Text className="text-white text-base font-medium mb-2">{t('usersAddLabelRole')}</Text>
               <View className="flex-row items-center bg-[#13161E] rounded-lg border border-gray-600 overflow-hidden">
                 <View className="px-4 py-3">
                   <Users size={20} color="#9CA3AF" />
@@ -378,19 +380,19 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
                   dropdownIconColor="#FFFFFF"
                 >
                   <Picker.Item 
-                    label="Cliente" 
+                    label={t('usersAddRoleClient')} 
                     value="cliente" 
                     style={{ backgroundColor: '#13161E' }}
                     color="#FFFFFF"
                   />
                   <Picker.Item 
-                    label="Administrador" 
+                    label={t('usersAddRoleAdmin')} 
                     value="administrador"
                     style={{ backgroundColor: '#13161E' }}
                     color="#FFFFFF"
                   />
                   <Picker.Item 
-                    label="Autoridad" 
+                    label={t('usersAddRoleAuthority')} 
                     value="autoridad"
                     style={{ backgroundColor: '#13161E' }}
                     color="#FFFFFF"
@@ -408,7 +410,7 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
                 className="flex-1 bg-gray-600 rounded-lg py-4 items-center"
                 activeOpacity={0.8}
               >
-                <Text className="text-white text-base font-semibold">Cancelar</Text>
+                <Text className="text-white text-base font-semibold">{t('usersAddCancel')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -416,7 +418,7 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
                 className="flex-1 bg-[#537CF2] rounded-lg py-4 items-center"
                 activeOpacity={0.8}
               >
-                <Text className="text-white text-base font-semibold">Agregar Usuario</Text>
+                <Text className="text-white text-base font-semibold">{t('usersAddSubmit')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -439,7 +441,7 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
               onTouchEnd={(e) => e.stopPropagation()}
             >
               <Text className="text-white text-lg font-bold mb-4 text-center">
-                Seleccionar imagen
+                {t('usersAddSelectImage')}
               </Text>
 
               <TouchableOpacity
@@ -448,7 +450,7 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
                 activeOpacity={0.8}
               >
                 <Camera size={24} color="#537CF2" />
-                <Text className="text-white ml-3 text-base">Tomar foto</Text>
+                <Text className="text-white ml-3 text-base">{t('usersAddTakePhoto')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -457,7 +459,7 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
                 activeOpacity={0.8}
               >
                 <ImageIcon size={24} color="#537CF2" />
-                <Text className="text-white ml-3 text-base">Seleccionar de galería</Text>
+                <Text className="text-white ml-3 text-base">{t('usersAddPickFromGallery')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -465,7 +467,7 @@ export default function AddUserModal({ visible, onClose, onSubmit }: AddUserModa
                 onPress={() => setShowImageOptions(false)}
                 activeOpacity={0.8}
               >
-                <Text className="text-white text-base font-medium">Cancelar</Text>
+                <Text className="text-white text-base font-medium">{t('usersAddCancel')}</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
