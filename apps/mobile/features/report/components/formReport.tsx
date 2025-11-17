@@ -69,17 +69,6 @@ const FormReport = ({
         onSetShowMapModal(false);
     };
 
-    const getTipoDenunciaLabel = (value: string) => {
-        const tipos: Record<string, string> = {
-            '1': t('reportFormType1'),
-            '2': t('reportFormType2'),
-            '3': t('reportFormType3'),
-            '6': t('reportFormType6'),
-            '7': t('reportFormType7'),
-        };
-        return tipos[value as keyof typeof tipos] || '';
-    };
-
     return (
         <>
             <View className={style.firstContainer}>
@@ -304,6 +293,7 @@ const FormReport = ({
                 onSelectLocation={handleLocationSelect}
                 initialLocation={convertToLocation() || undefined}
                 title={t('reportFormMapTitle')}
+                mode="select"
             />
         </>
     );

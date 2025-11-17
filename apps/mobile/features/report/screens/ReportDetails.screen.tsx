@@ -5,6 +5,7 @@ import { useReportDetails } from '../hooks/useReportDetails';
 import { useState, useCallback, useRef } from 'react';
 import { useUserContext } from '../../../contexts/UserContext'; // Cambiar a UserContext
 import { useLanguage } from '~/contexts/LanguageContext';
+import ModalMap from '../components/modalMap'; // Importar ModalMap
 
 type Props = {
     reportId: string;
@@ -43,6 +44,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
     const { width: screenWidth } = Dimensions.get('window');
     const scrollViewRef = useRef<ScrollView>(null);
 
+    // Estado para controlar el modal del mapa
+    const [showMapModal, setShowMapModal] = useState(false);
+
     // Obtener el usuario actual del UserContext
     const { user } = useUserContext();
 
@@ -70,6 +74,16 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
         },
         [screenWidth]
     );
+
+    // Función para mostrar el mapa
+    const handleShowMap = () => {
+        setShowMapModal(true);
+    };
+
+    // Función para cerrar el modal del mapa
+    const handleCloseMap = () => {
+        setShowMapModal(false);
+    };
 
     // Validación del reportId
     if (!reportId || reportId.trim() === '') {
@@ -99,7 +113,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
             <SafeAreaView className="flex-1 bg-[#0A0E1A]">
                 <View className="flex-1 items-center justify-center">
                     <Text className="text-white">{t('reportDetailsLoading')}</Text>
-                    <Text className="mt-2 text-sm text-gray-400">{t('reportDetailsIdLabel')}: {reportId}</Text>
+                    <Text className="mt-2 text-sm text-gray-400">
+                        {t('reportDetailsIdLabel')}: {reportId}
+                    </Text>
                 </View>
             </SafeAreaView>
         );
@@ -323,7 +339,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                         <Text className="mt-1 text-sm text-gray-400">Ciudad: {report.ciudad}</Text>
                     </View>
 
-                    <TouchableOpacity className="rounded-lg bg-[#537CF2] p-3">
+                    <TouchableOpacity
+                        onPress={handleShowMap}
+                        className="rounded-lg bg-[#537CF2] p-3">
                         <View className="flex-row items-center justify-center">
                             <Ionicons name="map-outline" size={18} color="white" />
                             <Text className="ml-2 font-medium text-white">Ver en mapa</Text>
@@ -457,6 +475,21 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                     </View>
                 )}
             </ScrollView>
+
+            {/* Modal del mapa - Solo mostrar si hay datos de ubicación */}
+            {report && (
+                <ModalMap
+                    visible={showMapModal}
+                    onClose={handleCloseMap}
+                    mode="view"
+                    viewLocation={{
+                        latitude: report.ubicacion.latitud,
+                        longitude: report.ubicacion.longitud,
+                        address: report.ubicacion.direccion,
+                    }}
+                    title="Ubicación del Reporte"
+                />
+            )}
         </SafeAreaView>
     );
 }
