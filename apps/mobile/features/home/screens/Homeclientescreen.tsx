@@ -1,6 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Animated, Dimensions, TouchableWithoutFeedback, Easing } from 'react-native';
+import { Animated, Dimensions, TouchableWithoutFeedback, Easing, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { X } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '~/contexts/AuthContext';
 import { Comment, Report } from '~/features/comments';
@@ -18,14 +19,14 @@ export default function HomeScreen() {
 
     // Usar el hook para manejar los reportes con cursor pagination
     const {
-        reports: fetchedReports,
+        reports,
         loading,
         refreshing,
         hasNext,
         error,
         loadMore,
         refresh,
-        setReports: setFetchedReports,
+        setReports,
         initialLoad,
         isLoadingMore,
         loadMoreError,
@@ -36,13 +37,11 @@ export default function HomeScreen() {
     const [commentsModalVisible, setCommentsModalVisible] = useState(false);
     const [selectedReport, setSelectedReport] = useState<Report | null>(null);
     const [searchModalVisible, setSearchModalVisible] = useState(false);
-    const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
-    const [filteredReports, setFilteredReports] = useState<Report[]>([]);
     const [filtersModalVisible, setFiltersModalVisible] = useState(false);
-    const [filters, setFilters] = useState({
-        categoria: null as string | null,
-        estado: null as string | null,
-        urgencia: 1,
+    const [activeFilters, setActiveFilters] = useState({
+        categoria: 'Todas' as string | null,
+        estado: 'Todos' as string | null,
+        urgencia: 0,
     });
 
     // Animaciones Drawer
@@ -50,22 +49,47 @@ export default function HomeScreen() {
     const backdropOpacity = useRef(new Animated.Value(0)).current;
     const DRAWER_W = Math.min(280, Dimensions.get('window').width * 0.65);
 
-    // Filtrar reportes por categoría
-    const filtrarReportesPorCategoria = (
-        categoria: string | null,
-        reportsList: Report[]
-    ): Report[] => {
-        if (!categoria) {
-            return reportsList;
+    // Función para aplicar todos los filtros activos (usando useMemo para evitar recalcular constantemente)
+    const displayedReports = useMemo(() => {
+        let filtered = reports;
+
+        // Filtrar por categoría
+        if (activeFilters.categoria && activeFilters.categoria !== 'Todas') {
+            filtered = filtered.filter((report) => report.categoria === activeFilters.categoria);
         }
-        return reportsList.filter((report) => report.categoria === categoria);
+
+        // Filtrar por urgencia
+        if (activeFilters.urgencia && activeFilters.urgencia !== 0) {
+            filtered = filtered.filter((report) => Number(report.urgencia) === Number(activeFilters.urgencia));
+        }
+
+        // Filtrar por estado
+        if (activeFilters.estado && activeFilters.estado !== 'Todos') {
+            filtered = filtered.filter((report) => report.estado === activeFilters.estado);
+        }
+
+        return filtered;
+    }, [reports, activeFilters]); // Solo recalcular cuando cambien reports o activeFilters
+
+    // Función para obtener nombre corto de categoría
+    const getShortCategoryName = (categoria: string | null): string => {
+        if (!categoria || categoria === 'Todas') return '';
+        const map: Record<string, string> = {
+            'Calles y Veredas en Mal Estado': 'Calles y Veredas',
+            'Luz o Alumbrado Público Dañado': 'Alumbrado',
+            'Drenaje o Aguas Estancadas': 'Drenaje',
+            'Parques, Plazas o Árboles con Problemas': 'Parques',
+            'Basura, Escombros o Espacios Sucios': 'Limpieza',
+            'Emergencias o Situaciones de Riesgo': 'Emergencias',
+            'Infraestructura o Mobiliario Público Dañado': 'Infraestructura'
+        };
+        return map[categoria] || categoria;
     };
 
-    // Actualizar reportes filtrados
-    useEffect(() => {
-        const reportesFiltrados = filtrarReportesPorCategoria(selectedCategoria, fetchedReports);
-        setFilteredReports(reportesFiltrados);
-    }, [fetchedReports, selectedCategoria]);
+    // Verificar si hay filtros activos
+    const hasActiveFilters = activeFilters.categoria !== 'Todas' || 
+                            activeFilters.estado !== 'Todos' || 
+                            activeFilters.urgencia !== 0;
 
     // Log para debug de errores
     useEffect(() => {
@@ -140,16 +164,15 @@ export default function HomeScreen() {
         estado: string | null;
         urgencia: number;
     }) => {
-        setFilters(newFilters);
+        setActiveFilters(newFilters);
         setFiltersModalVisible(false);
-        // Aquí podrías aplicar los filtros a los reportes
     };
 
     const handleClearFilters = () => {
-        setFilters({
-            categoria: null,
-            estado: null,
-            urgencia: 1,
+        setActiveFilters({
+            categoria: 'Todas',
+            estado: 'Todos',
+            urgencia: 0,
         });
     };
 
@@ -163,7 +186,6 @@ export default function HomeScreen() {
 
     // Handler mejorado para loadMore
     const handleLoadMore = () => {
-        console.log('Handle load more called - hasNext:', hasNext, 'loading:', loading);
         if (hasNext && !loading && !refreshing) {
             loadMore();
         }
@@ -176,12 +198,65 @@ export default function HomeScreen() {
                 onSearchPress={() => setSearchModalVisible(true)}
             />
 
+            {/* Chips de filtros activos */}
+            {hasActiveFilters && (
+                <View className="bg-[#13161E] px-4 py-2 border-b border-gray-800">
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View className="flex-row gap-2">
+                            {activeFilters.categoria !== 'Todas' && (
+                                <View className="flex-row items-center bg-[#537CF2] rounded-full px-3 py-1.5">
+                                    <Text className="text-white text-xs font-semibold mr-1">
+                                        {getShortCategoryName(activeFilters.categoria)}
+                                    </Text>
+                                    <TouchableOpacity 
+                                        onPress={() => setActiveFilters({...activeFilters, categoria: 'Todas'})}
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    >
+                                        <X size={14} color="white" />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                            {activeFilters.estado !== 'Todos' && (
+                                <View className="flex-row items-center bg-[#537CF2] rounded-full px-3 py-1.5">
+                                    <Text className="text-white text-xs font-semibold mr-1">
+                                        {activeFilters.estado}
+                                    </Text>
+                                    <TouchableOpacity 
+                                        onPress={() => setActiveFilters({...activeFilters, estado: 'Todos'})}
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    >
+                                        <X size={14} color="white" />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                            {activeFilters.urgencia !== 0 && (
+                                <View className="flex-row items-center bg-[#537CF2] rounded-full px-3 py-1.5">
+                                    <Text className="text-white text-xs font-semibold mr-1">
+                                        Urgencia {activeFilters.urgencia}
+                                    </Text>
+                                    <TouchableOpacity 
+                                        onPress={() => setActiveFilters({...activeFilters, urgencia: 0})}
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    >
+                                        <X size={14} color="white" />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                            <TouchableOpacity 
+                                onPress={handleClearFilters}
+                                className="bg-[#1D212D] rounded-full px-3 py-1.5"
+                            >
+                                <Text className="text-gray-400 text-xs font-semibold">
+                                    Limpiar todo
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
+            )}
+
             <ClientContent
-                reports={
-                    filteredReports.length > 0 || selectedCategoria
-                        ? filteredReports
-                        : fetchedReports
-                }
+                reports={displayedReports}
                 onCommentPress={openCommentsModal}
                 insets={insets}
                 refreshing={refreshing}
@@ -193,11 +268,8 @@ export default function HomeScreen() {
                 searchModalVisible={searchModalVisible}
                 onCloseSearchModal={() => setSearchModalVisible(false)}
                 onSelectReport={(report: Report) => {
-                    setSelectedReport(report);
-                    setCommentsModalVisible(true);
+                    router.push(`/report/${report.id}`);
                 }}
-                selectedCategoria={selectedCategoria}
-                onCategoriaChange={setSelectedCategoria}
                 onLoadMore={handleLoadMore}
                 hasNext={hasNext}
                 loading={loading || initialLoad}
@@ -242,7 +314,7 @@ export default function HomeScreen() {
                 onClose={() => setFiltersModalVisible(false)}
                 onApply={handleApplyFilters}
                 onClear={handleClearFilters}
-                initialFilters={filters}
+                initialFilters={activeFilters}
             />
         </SafeAreaView>
     );

@@ -21,7 +21,6 @@ export const followReport = async (
 ): Promise<FollowResponse> => {
   try {
     const url = `${API_URL}/api/reports/${reportId}/follow/`;
-    console.log('Following report:', { url, reportId, hasToken: !!token });
     
     const response = await axios.post<FollowResponse>(
       url,
@@ -34,14 +33,9 @@ export const followReport = async (
       }
     );
 
-    console.log('Report followed successfully:', response.data);
     return response.data;
   } catch (error: any) {
-    console.error('Error following report - Full error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    });
+    console.error('Error siguiendo reporte:', error.response?.data?.error || error.message);
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data?.error || 'Error al seguir el reporte';
       throw new Error(errorMessage);
@@ -62,11 +56,9 @@ export const unfollowReport = async (
 ): Promise<FollowResponse> => {
   try {
     const url = `${API_URL}/api/reports/${reportId}/unfollow/`;
-    console.log('Unfollowing report:', { url, reportId, hasToken: !!token });
     
-    const response = await axios.post<FollowResponse>(
+    const response = await axios.delete<FollowResponse>(
       url,
-      {},
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -75,14 +67,9 @@ export const unfollowReport = async (
       }
     );
 
-    console.log('Report unfollowed successfully:', response.data);
     return response.data;
   } catch (error: any) {
-    console.error('Error unfollowing report - Full error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-    });
+    console.error('Error dejando de seguir reporte:', error.response?.data?.error || error.message);
     if (axios.isAxiosError(error)) {
       const errorMessage = error.response?.data?.error || 'Error al dejar de seguir el reporte';
       throw new Error(errorMessage);

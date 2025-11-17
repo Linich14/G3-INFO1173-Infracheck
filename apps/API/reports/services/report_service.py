@@ -11,6 +11,7 @@ import os
 from reports.models import ReportModel, DenunciaEstado, TipoDenuncia, Ciudad, VotoReporte
 from reports.models.report_archivos import ReportArchivo
 from reports.models.seguimiento_reporte import SeguimientoReporte
+from reports.models.comentario_reporte import ComentarioReporte
 from reports.exceptions import ReportNotFoundException, ReportValidationException
 from .validation_service import validation_service
 from .notification_service import notification_service
@@ -181,6 +182,9 @@ class ReportService:
             except Usuario.DoesNotExist:
                 pass
         
+        # Obtener contador de comentarios
+        comentarios_count = ComentarioReporte.objects.filter(reporte=report).count()
+        
         return {
             'id': report.id,
             'titulo': report.titulo,
@@ -231,7 +235,8 @@ class ReportService:
             'seguimiento': {
                 'is_following': is_following,
                 'seguidores_count': SeguimientoReporte.objects.filter(reporte=report).count()
-            }
+            },
+            'comentarios_count': comentarios_count
         }
     
     @staticmethod

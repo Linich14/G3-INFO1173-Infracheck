@@ -56,24 +56,34 @@ export interface ReportCardProps {
     id: string;
     title: string;
     author: string;
-    timeAgo: string; // ej: "3d"
-    image?: ImageSourcePropType | null; // opcional
-    upvotes?: number; // Deprecated - usar votos?.count
-    initialVoteCount?: number; // Deprecated - usar votos?.count
-    initialUserHasVoted?: boolean; // Deprecated - usar votos?.usuario_ha_votado
-    votos?: VotesInfo; // Nueva estructura embebida desde el backend
-    seguimiento?: FollowInfo; // información de seguimiento del backend
-    ubicacion?: UbicacionInfo; // Nueva estructura de ubicación
+    timeAgo: string;
+    image?: ImageSourcePropType;
+    upvotes?: number; // Deprecated - use votos.count
+    initialVoteCount?: number; // Deprecated
+    initialUserHasVoted?: boolean; // Deprecated
+    commentsCount?: number; // Contador de comentarios
+    votos?: {
+        count: number;
+        usuario_ha_votado: boolean;
+    };
+    seguimiento?: {
+        is_following: boolean;
+        seguidores_count: number;
+    };
+    ubicacion?: {
+        latitud: number;
+        longitud: number;
+    };
     onFollow?: () => void;
     onMore?: () => void;
     onLocation?: () => void;
     onUpvote?: () => void;
     onComment?: () => void;
     onShare?: () => void;
-    followLabel?: string; // ej: "Seguir"
-    aspectRatio?: number; // ej: 16/9 (default)
-    isFollowed?: boolean; // Deprecated - usar seguimiento?.is_following
-    isUpvoted?: boolean; // Deprecated - usar votos?.usuario_ha_votado
+    followLabel?: string;
+    aspectRatio?: number;
+    isFollowed?: boolean;
+    isUpvoted?: boolean;
 }
 
 export interface Post {

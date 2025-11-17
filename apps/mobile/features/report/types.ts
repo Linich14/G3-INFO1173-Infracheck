@@ -188,6 +188,9 @@ export interface ReportForHome {
     upvotes: number;
     comments: any[];
     categoria: string;
+    urgencia?: number;
+    estado?: string;
+    commentsCount?: number;
     votos?: {
         count: number;
         usuario_ha_votado: boolean;

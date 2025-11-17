@@ -12,6 +12,9 @@ const mapReportToHomeFormat = (report: any): ReportForHome => ({
     upvotes: report.votos?.count || 0,
     comments: [],
     categoria: report.tipo_denuncia.nombre,
+    urgencia: typeof report.urgencia === 'object' ? report.urgencia.valor : report.urgencia,
+    estado: typeof report.estado === 'object' ? report.estado.nombre : report.estado,
+    commentsCount: report.comentarios_count || 0,
     votos: report.votos, // Estructura embebida: { count, usuario_ha_votado }
     seguimiento: report.seguimiento, // Estructura embebida: { is_following, seguidores_count }
     ubicacion: report.ubicacion, // Estructura embebida: { latitud, longitud }

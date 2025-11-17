@@ -14,7 +14,6 @@ import { ReportCard } from '~/features/posts';
 import { CommentsModal, Report } from '~/features/comments';
 import { SearchModal } from '~/features/search';
 import { X, MapPin, AlertTriangle } from 'lucide-react-native';
-import CategoryFilter from './CategoryFilter';
 import FollowedReportsList from './FollowedReportsList';
 import { useLanguage } from '~/contexts/LanguageContext';
 
@@ -31,8 +30,6 @@ interface ClientContentProps {
     searchModalVisible: boolean;
     onCloseSearchModal: () => void;
     onSelectReport: (report: Report) => void;
-    selectedCategoria: string | null;
-    onCategoriaChange: (categoria: string | null) => void;
     // Props para infinite scroll
     onLoadMore: () => void;
     hasNext: boolean;
@@ -56,8 +53,6 @@ export default function ClientContent({
     searchModalVisible,
     onCloseSearchModal,
     onSelectReport,
-    selectedCategoria,
-    onCategoriaChange,
     onLoadMore,
     hasNext,
     loading,
@@ -298,14 +293,6 @@ export default function ClientContent({
                 </TouchableOpacity>
             </View>
 
-            {/* Filtro de categorías solo en pestaña "Todos" */}
-            {activeTab === 'todos' && (
-                <CategoryFilter
-                    selectedCategoria={selectedCategoria}
-                    onCategoriaChange={onCategoriaChange}
-                />
-            )}
-
             {/* Contenido según pestaña activa */}
             {activeTab === 'seguidos' ? (
                 <FollowedReportsList onSwitchToAll={() => setActiveTab('todos')} />
@@ -361,6 +348,7 @@ export default function ClientContent({
                                         timeAgo={report.timeAgo}
                                         image={report.image}
                                         upvotes={currentUpvotes}
+                                        commentsCount={report.commentsCount}
                                         followLabel={isFollowed ? t('homeFollowingLabel') : t('homeFollowLabel')}
                                         isFollowed={isFollowed}
                                         isUpvoted={isUpvoted}

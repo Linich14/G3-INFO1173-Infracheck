@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TouchableOpacity, Text, Animated, ActivityIndicator, View } from 'react-native';
+import { TouchableOpacity, Text, Animated, ActivityIndicator, View, StyleSheet } from 'react-native';
 import { ArrowBigUp } from 'lucide-react-native';
 import FloatingEmoji from './FloatingEmoji';
 
@@ -106,35 +106,29 @@ const VoteButton: React.FC<VoteButtonProps> = ({
         }}
       >
         <TouchableOpacity
-          className={`mr-4 flex-row items-center gap-2 rounded-[32px] border px-4 py-2 shadow active:opacity-90 ${
+          className={`mr-4 flex-row items-center gap-2 rounded-[32px] border px-4 py-2 active:opacity-90 ${
             userHasVoted
-              ? 'border-blue-500 bg-[#4A90E2]'
-              : 'border-gray-400 bg-[#f0f0f0]'
+              ? 'border-[#537CF2] bg-[#537CF2]'
+              : 'border-white bg-[#1D212D]'
           }`}
+          style={styles.buttonShadow}
           onPress={handlePress}
           disabled={isLoading || isSubmitting || disabled}
           accessibilityLabel={`${voteCount} votos${userHasVoted ? ', ya has votado' : ''}`}
           accessibilityRole="button"
-          style={{
-            shadowColor: userHasVoted ? '#4A90E2' : '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: userHasVoted ? 0.3 : 0.1,
-            shadowRadius: userHasVoted ? 4 : 2,
-            elevation: userHasVoted ? 4 : 2,
-          }}
         >
           {isLoading || isSubmitting ? (
-            <ActivityIndicator size="small" color={userHasVoted ? '#fff' : '#666'} />
+            <ActivityIndicator size="small" color={userHasVoted ? '#fff' : '#9CA3AF'} />
           ) : (
             <ArrowBigUp 
               size={18} 
-              color={userHasVoted ? '#fff' : '#666'} 
+              color={userHasVoted ? '#fff' : '#9CA3AF'} 
               fill={userHasVoted ? '#fff' : 'transparent'}
             />
           )}
           <Text
             className={`text-center text-base font-medium ${
-              userHasVoted ? 'text-white' : 'text-gray-600'
+              userHasVoted ? 'text-white' : 'text-gray-400'
             }`}
           >
             {voteCount}
@@ -144,5 +138,20 @@ const VoteButton: React.FC<VoteButtonProps> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  buttonShadow: {
+    // iOS - Sombra para botones
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    // Android
+    elevation: 4,
+  },
+});
 
 export default VoteButton;

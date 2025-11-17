@@ -148,9 +148,6 @@ export class ReportService {
         limit: number = 10
     ): Promise<ReportsListResponse> {
         try {
-            console.log('Getting reports list:', { cursor, limit });
-                // getting reports list
-
             // Verificar autenticación
             const authenticated = await isAuthenticated();
             if (!authenticated) {
@@ -175,18 +172,13 @@ export class ReportService {
                 params.cursor = cursor;
             }
 
-            console.log('Request params:', params);
-                // request params
-
             const response = await api.get('/api/reports/', {
                 params,
             });
 
             return response.data;
         } catch (error: any) {
-            console.error('Error getting reports list:', error);
-            console.error('Error response:', error.response?.data);
-            console.error('Error status:', error.response?.status);
+            console.error('Error obteniendo reportes:', error.response?.status || error.message);
 
             // Re-lanzar el error para que lo maneje el hook
             throw error;
@@ -244,24 +236,22 @@ export class ReportService {
     }
 
     /**
-     * Dejar de seguir un reporte - POST /api/reports/{id}/unfollow/
+     * Dejar de seguir un reporte - DELETE /api/reports/{id}/unfollow/
      */
     static async unfollowReport(
         reportId: string
     ): Promise<{ message: string; seguidores_count: number }> {
         try {
-            console.log('Unfollowing report:', reportId);
-
             // Verificar autenticación
             const authenticated = await isAuthenticated();
             if (!authenticated) {
                 throw new Error('Sesión expirada. Inicie sesión nuevamente.');
             }
 
-            const response = await api.post(`/api/reports/${reportId}/unfollow/`);
+            const response = await api.delete(`/api/reports/${reportId}/unfollow/`);
             return response.data;
         } catch (error: any) {
-            console.error('Error unfollowing report:', error);
+            console.error('Error dejando de seguir:', error.message);
             throw error;
         }
     }

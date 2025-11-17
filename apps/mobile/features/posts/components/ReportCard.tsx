@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ImageSourcePropType, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ImageSourcePropType, Pressable, ActivityIndicator, Platform, StyleSheet } from 'react-native';
 import {
     UserCircle2,
     MoreVertical,
@@ -27,6 +27,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
     upvotes = 0, // Deprecated fallback
     initialVoteCount = 0, // Deprecated fallback
     initialUserHasVoted = false, // Deprecated fallback
+    commentsCount = 0, // Contador de comentarios
     votos, // Nueva estructura embebida
     seguimiento, // Nueva estructura embebida
     ubicacion, // Nueva estructura embebida
@@ -101,8 +102,9 @@ const ReportCard: React.FC<ReportCardProps> = ({
     }, [image]);
 
     return (
-        <View className="overflow-hidden rounded-[12px] bg-[#13161E]">
-            <View className="flex-row items-center gap-2 px-4 py-2" pointerEvents="box-none">
+        <View className="mb-4" style={styles.cardShadow}>
+            <View className="overflow-hidden rounded-[12px] bg-[#13161E]">
+                <View className="flex-row items-center gap-2 px-4 py-2" pointerEvents="box-none">
                 <View className="flex-shrink-0">
                     <UserCircle2 size={28} color="#537CF2" />
                 </View>
@@ -182,7 +184,8 @@ const ReportCard: React.FC<ReportCardProps> = ({
                     {hasImage && !imageError && (
                         <View className="absolute bottom-3 right-3">
                             <TouchableOpacity
-                                className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-[#537CF2] shadow active:opacity-80"
+                                className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-[#537CF2] active:opacity-80"
+                                style={styles.buttonShadow}
                                 onPress={(e) => {
                                     e.stopPropagation();
                                     onMore?.();
@@ -191,7 +194,8 @@ const ReportCard: React.FC<ReportCardProps> = ({
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                className="h-12 w-12 items-center justify-center rounded-full bg-[#537CF2] shadow active:opacity-80"
+                                className="h-12 w-12 items-center justify-center rounded-full bg-[#537CF2] active:opacity-80"
+                                style={styles.buttonShadow}
                                 onPress={(e) => {
                                     e.stopPropagation();
                                     onLocation?.();
@@ -217,17 +221,24 @@ const ReportCard: React.FC<ReportCardProps> = ({
                         />
 
                         <TouchableOpacity
-                            className="flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 shadow active:opacity-90"
+                            className="flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 active:opacity-90"
+                            style={styles.buttonShadow}
                             onPress={(e) => {
                                 e.stopPropagation();
                                 onComment?.();
                             }}>
                             <MessageCircle size={18} color="#fff" />
+                            {commentsCount > 0 && (
+                                <Text className="text-white text-sm font-semibold">
+                                    {commentsCount}
+                                </Text>
+                            )}
                         </TouchableOpacity>
                     </View>
 
                     <TouchableOpacity
-                        className="flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 shadow active:opacity-90"
+                        className="flex-row items-center gap-2 rounded-[32px] border border-white bg-[#537CF2] px-4 py-2 active:opacity-90"
+                        style={styles.buttonShadow}
                         onPress={(e) => {
                             e.stopPropagation();
                             onShare?.();
@@ -239,8 +250,37 @@ const ReportCard: React.FC<ReportCardProps> = ({
                     </TouchableOpacity>
                 </View>
             </Pressable>
+            </View>
         </View>
     );
 };
+
+// Estilos para sombras que funcionan en iOS y Android
+const styles = StyleSheet.create({
+    cardShadow: {
+        // iOS - Sombra sutil pero visible
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        // Android
+        elevation: 6,
+    },
+    buttonShadow: {
+        // iOS - Sombra para botones
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        // Android
+        elevation: 4,
+    },
+});
 
 export default ReportCard;

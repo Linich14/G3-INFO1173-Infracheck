@@ -637,8 +637,14 @@ const TRANSLATIONS: Record<Locale, {
   homeNavigationTitle: string;
   homeViewOnMap: string;
   // Home - Filters Modal
+  filtersTitle: string;
   filtersCategory: string;
   filtersStatus: string;
+  filtersStatusAll: string;
+  filtersStatusNew: string;
+  filtersStatusInProgress: string;
+  filtersStatusResolved: string;
+  filtersStatusRejected: string;
   filtersUrgency: string;
   filtersAll: string;
   filtersNew: string;
@@ -1275,8 +1281,14 @@ const TRANSLATIONS: Record<Locale, {
     homeNavigationTitle: 'Navegación',
     homeViewOnMap: 'Ver en Mapa',
     // Home - Filters Modal
+    filtersTitle: 'Filtros Avanzados',
     filtersCategory: 'Categoría',
     filtersStatus: 'Estado',
+    filtersStatusAll: 'Todos',
+    filtersStatusNew: 'Nuevo',
+    filtersStatusInProgress: 'En Proceso',
+    filtersStatusResolved: 'Resuelto',
+    filtersStatusRejected: 'Rechazado',
     filtersUrgency: 'Urgencia',
     filtersAll: 'Todos',
     filtersNew: 'Nuevo',
@@ -1913,8 +1925,14 @@ const TRANSLATIONS: Record<Locale, {
     homeNavigationTitle: 'Navigation',
     homeViewOnMap: 'View on Map',
     // Home - Filters Modal
+    filtersTitle: 'Advanced Filters',
     filtersCategory: 'Category',
     filtersStatus: 'Status',
+    filtersStatusAll: 'All',
+    filtersStatusNew: 'New',
+    filtersStatusInProgress: 'In Progress',
+    filtersStatusResolved: 'Resolved',
+    filtersStatusRejected: 'Rejected',
     filtersUrgency: 'Urgency',
     filtersAll: 'All',
     filtersNew: 'New',
