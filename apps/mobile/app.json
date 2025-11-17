@@ -45,14 +45,15 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.InfraCheck",
+      "bundleIdentifier": "com.tallerintegra.InfraCheck",
       "infoPlist": {
         "NSLocationTemporaryUsageDescriptionDictionary": {
           "precision": "Se requiere precisión temporal para mejorar la calibración del mapa."
         },
         "NSLocationWhenInUseUsageDescription": "InfraCheck necesita acceso a tu ubicación para mostrar tu posición actual y geolocalizar los reportes.",
         "NSPhotoLibraryUsageDescription": "InfraCheck necesita acceso a tu galería de fotos para permitirte seleccionar imágenes de los problemas de infraestructura que quieres reportar.",
-        "NSCameraUsageDescription": "InfraCheck necesita acceso a la cámara para permitirte tomar fotos de los problemas de infraestructura que quieres reportar."
+        "NSCameraUsageDescription": "InfraCheck necesita acceso a la cámara para permitirte tomar fotos de los problemas de infraestructura que quieres reportar.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -60,11 +61,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.InfraCheck",
+      "package": "com.tallerintegra.InfraCheck",
       "permissions": [
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.RECORD_AUDIO"
@@ -76,12 +74,12 @@
         "projectId": "a63dadf7-0898-44d7-ba36-0e3ce94c8dd7"
       }
     },
-    "owner": "delkira554",
+    "owner": "taller-integra",
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/a63dadf7-0898-44d7-ba36-0e3ce94c8dd7"
+      "url": "https://u.expo.dev"
     }
   }
 }
