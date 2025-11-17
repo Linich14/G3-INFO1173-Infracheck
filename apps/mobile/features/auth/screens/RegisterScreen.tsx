@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     Image,
     ScrollView,
-    Modal,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
@@ -20,6 +19,7 @@ import { registerUser } from '../services/registerService';
 import { RegisterData } from '../types/RegisterData';
 import { validateRegisterData, getPasswordValidationState } from '../../../utils/validation';
 import { useLanguage } from '~/contexts/LanguageContext';
+import { useToast } from '~/features/posts/contexts/ToastContext';
 
 const RegisterScreen: React.FC = () => {
     const router = useRouter();
@@ -34,37 +34,32 @@ const RegisterScreen: React.FC = () => {
     const [phone, setPhone] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
-    const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-    const [feedbackMessage, setFeedbackMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const { t } = useLanguage();
+    const { showSuccess, showError } = useToast();
 
     const handleConfirm = async () => {
         const data: RegisterData = getRegisterData();
         setShowModal(false);
-        setFeedbackModalVisible(true);
         setLoading(true);
-        // Espera artificial para mostrar el modal de carga antes de enviar los datos
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        
         try {
             const result = await registerUser(data);
             if (result.success) {
-                setFeedbackMessage(t('registerSuccess'));
-                setLoading(false);
+                showSuccess(t('registerSuccess'));
                 setTimeout(() => {
-                    setFeedbackModalVisible(false);
                     router.replace('/(auth)/sign-in');
-                }, 1800);
+                }, 1500);
             } else {
-                setFeedbackMessage(
+                showError(
                     t('registerErrorPrefix') + (result.message || 'Intenta nuevamente.')
                 );
-                setLoading(false);
             }
         } catch (error: any) {
-            setFeedbackMessage(
+            showError(
                 t('registerErrorPrefix') + (error.message || 'Intenta nuevamente.')
             );
+        } finally {
             setLoading(false);
         }
     };
@@ -107,9 +102,7 @@ const RegisterScreen: React.FC = () => {
             return;
         }
         setFieldErrors({});
-        setFeedbackModalVisible(true); // Mostrar modal de feedback inmediatamente
-        setLoading(true); // Mostrar spinner inmediatamente
-        handleConfirm(); // Llamar a la lógica de registro (con delay artificial)
+        handleConfirm();
     };
 
     return (
@@ -412,63 +405,6 @@ const RegisterScreen: React.FC = () => {
         </View>
       </Modal>
       */}
-
-            {/* Modal de feedback de registro */}
-            <Modal
-                visible={feedbackModalVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setFeedbackModalVisible(false)}>
-                <View
-                    style={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        backgroundColor: 'rgba(0,0,0,0.4)',
-                    }}>
-                    <View
-                        style={{
-                            backgroundColor: 'white',
-                            padding: 24,
-                            borderRadius: 12,
-                            minWidth: 220,
-                            alignItems: 'center',
-                        }}>
-                        {loading ? (
-                            <>
-                                <ActivityIndicator
-                                    size="large"
-                                    color="#2563eb"
-                                    style={{ marginBottom: 16 }}
-                                />
-                                <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                                    {t('registerSubmitting')}
-                                </Text>
-                            </>
-                        ) : (
-                            <>
-                                <Text style={{ fontSize: 16, marginBottom: 16 }}>
-                                    {feedbackMessage}
-                                </Text>
-                                {!feedbackMessage.includes('exitoso') && (
-                                    <TouchableOpacity
-                                        onPress={() => setFeedbackModalVisible(false)}
-                                        style={{
-                                            backgroundColor: '#2563eb',
-                                            paddingVertical: 8,
-                                            paddingHorizontal: 24,
-                                            borderRadius: 8,
-                                        }}>
-                                        <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                                            {t('loginErrorClose')}
-                                        </Text>
-                                    </TouchableOpacity>
-                                )}
-                            </>
-                        )}
-                    </View>
-                </View>
-            </Modal>
         </SafeAreaView>
     );
 };

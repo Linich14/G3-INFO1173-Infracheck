@@ -1,25 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { resetPassword } from '../services/authService';
 import { isValidPassword, getPasswordValidationState } from '~/utils/validation';
 import { useLanguage } from '~/contexts/LanguageContext';
+import { useToast } from '~/features/posts/contexts/ToastContext';
 
 const ResetPasswordScreen: React.FC = () => {
   const router = useRouter();
   const { reset_token } = useLocalSearchParams<{ reset_token: string }>();
   const { t } = useLanguage();
+  const { showSuccess, showError } = useToast();
   
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
   // Estado de validación de contraseña en tiempo real
@@ -29,39 +28,29 @@ const ResetPasswordScreen: React.FC = () => {
   const handleResetPassword = async () => {
     // Validar que los campos no estén vacíos
     if (!newPassword.trim() || !confirmPassword.trim()) {
-      setFeedbackMessage(t('resetPasswordErrorEmpty'));
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('resetPasswordErrorEmpty'));
       return;
     }
 
     // Validar que la contraseña cumpla con los requisitos
     if (!isValidPassword(newPassword)) {
-      setFeedbackMessage(t('resetPasswordErrorRequirements'));
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('resetPasswordErrorRequirements'));
       return;
     }
 
     // Validar que las contraseñas coincidan
     if (newPassword !== confirmPassword) {
-      setFeedbackMessage(t('resetPasswordErrorNoMatch'));
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('resetPasswordErrorNoMatch'));
       return;
     }
 
     // Validar que tenemos el token
     if (!reset_token) {
-      setFeedbackMessage(t('resetPasswordErrorNoToken'));
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('resetPasswordErrorNoToken'));
       return;
     }
 
-    // Mostrar modal de carga
     setLoading(true);
-    setFeedbackModalVisible(true);
     
     try {
       const result = await resetPassword({ 
@@ -70,21 +59,19 @@ const ResetPasswordScreen: React.FC = () => {
         confirm_password: confirmPassword
       });
       
-      setLoading(false);
-      setIsSuccess(result.success);
-      setFeedbackMessage(result.message);
-      
       if (result.success) {
+        showSuccess(result.message);
         // Esperar un momento antes de navegar al login
         setTimeout(() => {
-          setFeedbackModalVisible(false);
           router.replace('/(auth)/sign-in');
-        }, 3000);
+        }, 2000);
+      } else {
+        showError(result.message);
       }
     } catch (error: any) {
+      showError(t('recoverConnectionError'));
+    } finally {
       setLoading(false);
-      setIsSuccess(false);
-      setFeedbackMessage(t('recoverConnectionError'));
     }
   };
 
@@ -264,64 +251,6 @@ const ResetPasswordScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Modal de feedback */}
-      <Modal
-        visible={feedbackModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFeedbackModalVisible(false)}
-      >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, minWidth: 300, alignItems: 'center', maxWidth: '90%' }}>
-            {loading ? (
-              <>
-                <ActivityIndicator size="large" color="#537CF2" style={{ marginBottom: 16 }} />
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  {t('resetPasswordModalUpdating')}
-                </Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>
-                  {t('resetPasswordModalUpdatingBody')}
-                </Text>
-              </>
-            ) : (
-              <>
-                <View style={{ 
-                  width: 60, 
-                  height: 60, 
-                  borderRadius: 30, 
-                  backgroundColor: isSuccess ? '#10B981' : '#EF4444',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: 16
-                }}>
-                  <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>
-                    {isSuccess ? '✓' : '✕'}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  {isSuccess ? t('resetPasswordModalSuccess') : t('resetPasswordModalError')}
-                </Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 }}>
-                  {feedbackMessage}
-                </Text>
-                {isSuccess ? (
-                  <Text style={{ fontSize: 12, color: '#666', textAlign: 'center' }}>
-                    {t('resetPasswordModalRedirecting')}
-                  </Text>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => setFeedbackModalVisible(false)}
-                    style={{ backgroundColor: '#537CF2', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
-                  >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{t('resetPasswordModalRetry')}</Text>
-                  </TouchableOpacity>
-                )}
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };

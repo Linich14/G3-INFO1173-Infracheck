@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     Image,
     ScrollView,
-    Modal,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
@@ -18,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { loginUser } from '../services/authService';
 import { useAuth } from '~/contexts/AuthContext';
 import { useLanguage } from '~/contexts/LanguageContext';
+import { useToast } from '~/features/posts/contexts/ToastContext';
 
 const LoginScreen: React.FC = () => {
     const router = useRouter();
@@ -25,54 +25,39 @@ const LoginScreen: React.FC = () => {
     const [rut, setRut] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-    const [feedbackMessage, setFeedbackMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const { t } = useLanguage();
+    const { showSuccess, showError } = useToast();
 
     const handleLogin = async () => {
         // Validar que los campos no estén vacíos
         if (!rut.trim() || !password.trim()) {
-            setFeedbackMessage(t('loginEmptyFieldsError'));
-            setFeedbackModalVisible(true);
-            setLoading(false);
+            showError(t('loginEmptyFieldsError'));
             return;
         }
 
-        // Mostrar modal de carga inmediatamente
-        setFeedbackModalVisible(true);
         setLoading(true);
-
-        // Espera artificial para mostrar el modal de carga
-        await new Promise((resolve) => setTimeout(resolve, 1500));
 
         try {
             // Llamada real al backend de login
             const result = await loginUser({ rut, password });
 
-            // Debug: Log the result to understand what we're getting
-            console.log('Login result:', result);
-
             if (result.success) {
-                setFeedbackMessage(t('loginSuccess'));
-                setLoading(false);
-
+                showSuccess(t('loginSuccess'));
                 // Actualizar inmediatamente el estado de autenticación
                 await checkAuthStatus();
-
+                
                 setTimeout(() => {
-                    setFeedbackModalVisible(false);
-                    // Forzar redirección si el contexto no la maneja automáticamente
                     router.replace('/(tabs)/home');
-                }, 1500);
+                }, 1000);
             } else {
-                setFeedbackMessage(result.message);
-                setLoading(false);
+                showError(result.message);
             }
         } catch (error: any) {
-            setFeedbackMessage(
+            showError(
                 t('loginErrorPrefix') + (error.message || t('loginErrorFallback'))
             );
+        } finally {
             setLoading(false);
         }
     };
@@ -194,63 +179,6 @@ const LoginScreen: React.FC = () => {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-
-            {/* Modal de feedback de login */}
-            <Modal
-                visible={feedbackModalVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setFeedbackModalVisible(false)}>
-                <View
-                    style={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        backgroundColor: 'rgba(0,0,0,0.4)',
-                    }}>
-                    <View
-                        style={{
-                            backgroundColor: 'white',
-                            padding: 24,
-                            borderRadius: 12,
-                            minWidth: 220,
-                            alignItems: 'center',
-                        }}>
-                        {loading ? (
-                            <>
-                                <ActivityIndicator
-                                    size="large"
-                                    color="#2563eb"
-                                    style={{ marginBottom: 16 }}
-                                />
-                                <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                                    {t('loginSubmitting')}
-                                </Text>
-                            </>
-                        ) : (
-                            <>
-                                <Text style={{ fontSize: 16, marginBottom: 16 }}>
-                                    {feedbackMessage}
-                                </Text>
-                                {!feedbackMessage.includes('exitoso') && (
-                                    <TouchableOpacity
-                                        onPress={() => setFeedbackModalVisible(false)}
-                                        style={{
-                                            backgroundColor: '#2563eb',
-                                            paddingVertical: 8,
-                                            paddingHorizontal: 24,
-                                            borderRadius: 8,
-                                        }}>
-                                        <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                                            {t('loginErrorClose')}
-                                        </Text>
-                                    </TouchableOpacity>
-                                )}
-                            </>
-                        )}
-                    </View>
-                </View>
-            </Modal>
         </SafeAreaView>
     );
 };

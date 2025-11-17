@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { verifyResetCode } from '../services/authService';
 import { useLanguage } from '~/contexts/LanguageContext';
+import { useToast } from '~/features/posts/contexts/ToastContext';
 
 const VerifyResetCodeScreen: React.FC = () => {
   const router = useRouter();
   const { identifier } = useLocalSearchParams<{ identifier: string }>();
   const { t } = useLanguage();
+  const { showSuccess, showError } = useToast();
   
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
 
   // Función para ocultar parcialmente el identifier
   const maskIdentifier = (id: string) => {
@@ -32,39 +31,31 @@ const VerifyResetCodeScreen: React.FC = () => {
   const handleVerifyCode = async () => {
     // Validar que el código tenga exactamente 6 dígitos
     if (code.length !== 6 || !/^\d{6}$/.test(code)) {
-      setFeedbackMessage(t('verifyCodeErrorInvalid'));
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('verifyCodeErrorInvalid'));
       return;
     }
 
-    // Mostrar modal de carga
     setLoading(true);
-    setFeedbackModalVisible(true);
     
     try {
       const result = await verifyResetCode({ identifier: identifier!, code });
       
-      setLoading(false);
-      setIsSuccess(result.success);
-      setFeedbackMessage(result.message);
-      
       if (result.success && result.reset_token) {
+        showSuccess(result.message);
         // Esperar un momento antes de navegar
         setTimeout(() => {
-          setFeedbackModalVisible(false);
-          // Navegar a la pantalla de reset de contraseña
-          console.log('Navegando a reset password con token:', result.reset_token);
           router.push({
             pathname: '/(auth)/reset-password',
             params: { reset_token: result.reset_token }
           });
-        }, 2000);
+        }, 1500);
+      } else {
+        showError(result.message);
       }
     } catch (error: any) {
+      showError(t('recoverConnectionError'));
+    } finally {
       setLoading(false);
-      setIsSuccess(false);
-      setFeedbackMessage(t('recoverConnectionError'));
     }
   };
 
@@ -202,60 +193,6 @@ const VerifyResetCodeScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Modal de feedback */}
-      <Modal
-        visible={feedbackModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFeedbackModalVisible(false)}
-      >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, minWidth: 280, alignItems: 'center', maxWidth: '90%' }}>
-            {loading ? (
-              <>
-                <ActivityIndicator size="large" color="#537CF2" style={{ marginBottom: 16 }} />
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  {t('verifyCodeModalVerifying')}
-                </Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>
-                  {t('verifyCodeModalWait')}
-                </Text>
-              </>
-            ) : (
-              <>
-                <View style={{ 
-                  width: 60, 
-                  height: 60, 
-                  borderRadius: 30, 
-                  backgroundColor: isSuccess ? '#10B981' : '#EF4444',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: 16
-                }}>
-                  <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>
-                    {isSuccess ? '✓' : '✕'}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  {isSuccess ? t('verifyCodeModalSuccess') : t('verifyCodeModalError')}
-                </Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 }}>
-                  {feedbackMessage}
-                </Text>
-                {!isSuccess && (
-                  <TouchableOpacity
-                    onPress={() => setFeedbackModalVisible(false)}
-                    style={{ backgroundColor: '#537CF2', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
-                  >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{t('verifyCodeModalRetry')}</Text>
-                  </TouchableOpacity>
-                )}
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };

@@ -488,6 +488,160 @@ const TRANSLATIONS: Record<Locale, {
   homeCardUnfollowError: string;
   homeCardUnfollowErrorMessage: string;
   homeCardCategoryLabel: string;
+  // Report - Form
+  reportFormDescriptionPlaceholder: string;
+  reportFormTypePlaceholder: string;
+  reportFormType1: string;
+  reportFormType2: string;
+  reportFormType3: string;
+  reportFormType6: string;
+  reportFormType7: string;
+  reportFormCityPlaceholder: string;
+  reportFormSelectLocation: string;
+  reportFormAddressPlaceholder: string;
+  reportFormPublicLabel: string;
+  reportFormPublicDescription: string;
+  reportFormPrivateDescription: string;
+  reportFormMapTitle: string;
+  // Report - Create Screen
+  reportCreateErrorAuth: string;
+  reportCreateSuccessTitle: string;
+  reportCreateSuccessMessage: string;
+  reportCreateDiscardTitle: string;
+  reportCreateDiscardMessage: string;
+  reportCreateDiscardCancel: string;
+  reportCreateDiscardConfirm: string;
+  reportCreateSubmittingTitle: string;
+  reportCreateSubmittingMessage: string;
+  reportCreateSubmittingContinue: string;
+  reportCreateSubmittingCancel: string;
+  reportCreatePreviewTitle: string;
+  reportCreateProcessing: string;
+  reportCreateScreenTitle: string;
+  reportCreateInfoTitle: string;
+  reportCreateInfoConfidential: string;
+  reportCreateInfoReviewTime: string;
+  reportCreateInfoNotifications: string;
+  reportCreateInfoEmergencies: string;
+  reportCreateEditModeTitle: string;
+  reportCreateEditModeMessage: string;
+  reportCreateEditModeUnderstand: string;
+  // Report - Camera/Media
+  reportMediaPermissionsTitle: string;
+  reportMediaPermissionsMessage: string;
+  reportMediaLimitImages: string;
+  reportMediaLimitVideo: string;
+  reportMediaErrorPhoto: string;
+  reportMediaErrorImage: string;
+  reportMediaErrorVideo: string;
+  reportMediaAddImage: string;
+  reportMediaAddVideo: string;
+  reportMediaTakePhoto: string;
+  reportMediaSelectGallery: string;
+  reportMediaRecordVideo: string;
+  // Report - Validation
+  reportValidationTitle: string;
+  reportValidationDescription: string;
+  reportValidationAddress: string;
+  reportValidationType: string;
+  reportValidationUrgency: string;
+  reportValidationCity: string;
+  reportValidationLocation: string;
+  reportValidationFormError: string;
+  reportValidationFilesError: string;
+  reportValidationNetworkError: string;
+  reportValidationUnexpectedError: string;
+  // Report - Details
+  reportDetailsNotFound: string;
+  reportDetailsError: string;
+  // Report - Preview
+  reportPreviewTitle: string;
+  reportPreviewType: string;
+  reportPreviewUrgency: string;
+  reportPreviewCity: string;
+  reportPreviewPublic: string;
+  reportPreviewPrivate: string;
+  reportPreviewLocation: string;
+  reportPreviewNoAddress: string;
+  reportPreviewImages: string;
+  reportPreviewVideo: string;
+  reportPreviewVideoAttached: string;
+  reportPreviewSending: string;
+  reportPreviewEdit: string;
+  reportPreviewConfirmSend: string;
+  reportPreviewConfirmTitle: string;
+  reportPreviewConfirmMessage: string;
+  reportPreviewConfirmReview: string;
+  reportPreviewConfirmButton: string;
+  reportPreviewCloseTitle: string;
+  reportPreviewCloseMessage: string;
+  reportPreviewCloseContinue: string;
+  reportPreviewCloseCancel: string;
+  reportPreviewEditDisabledTitle: string;
+  reportPreviewEditDisabledMessage: string;
+  reportPreviewNotSelected: string;
+  // Report - Form sections
+  reportFormMediaTitle: string;
+  reportFormLocationTitle: string;
+  reportFormSelectCity: string;
+  // Report - Followed screen
+  reportFollowedError: string;
+  reportFollowedUnfollowTitle: string;
+  reportFollowedUnfollowMessage: string;
+  reportFollowedUnfollowButton: string;
+  reportFollowedUnfollowError: string;
+  reportFollowedUnfollowSuccess: string;
+  reportFollowedUnknownUser: string;
+  reportFollowedUnfollowLabel: string;
+  reportFollowedTimeNow: string;
+  // Report - Service errors
+  reportServiceSessionExpired: string;
+  reportServiceInvalidUrgency: string;
+  reportServiceInvalidType: string;
+  reportServiceInvalidCity: string;
+  reportServiceSuccess: string;
+  reportServiceErrorCreate: string;
+  reportServiceTimeoutLoadMore: string;
+  reportServiceErrorLoadMore: string;
+  // Report - Map
+  reportMapSelectTitle: string;
+  reportMapLocationError: string;
+  // Report - Details hooks
+  reportDetailsLoadError: string;
+  reportDetailsLoadErrorMessage: string;
+  reportDetailsInvalidDate: string;
+  reportDetailsUnknownError: string;
+  // Report - Details Screen
+  reportDetailsIdRequired: string;
+  reportDetailsIdRequiredMessage: string;
+  reportDetailsLoading: string;
+  reportDetailsIdLabel: string;
+  reportDetailsRetry: string;
+  reportDetailsBack: string;
+  reportDetailsTitle: string;
+  // Report - Media Section
+  reportMediaSectionImage: string;
+  reportMediaSectionVideo: string;
+  reportMediaSectionImagesSelected: string;
+  reportMediaSectionVideoSelected: string;
+  reportMediaSectionVideoLabel: string;
+  reportMediaSectionMaxImages: string;
+  reportMediaSectionRemaining: string;
+  reportMediaSectionMaxVideo: string;
+  // Report - Urgency Selector
+  reportUrgencyTitle: string;
+  reportUrgencyLow: string;
+  reportUrgencyMedium: string;
+  reportUrgencyHigh: string;
+  reportUrgencyCritical: string;
+  // Projects - Card
+  projectCardNoTitle: string;
+  projectCardStatusUnknown: string;
+  projectCardStatusPlanning: string;
+  projectCardStatusInProgress: string;
+  projectCardStatusCompleted: string;
+  projectCardPriorityImportant: string;
+  projectCardPriorityUrgent: string;
   // Profile - Public Profile Additional
   profileInfoTitle: string;
   profileFollowSuccess: string;
@@ -1131,6 +1285,160 @@ const TRANSLATIONS: Record<Locale, {
     homeCardUnfollowError: 'Error',
     homeCardUnfollowErrorMessage: 'No se pudo dejar de seguir el reporte',
     homeCardCategoryLabel: 'Categoría:',
+    // Report - Form
+    reportFormDescriptionPlaceholder: 'Descripción del problema',
+    reportFormTypePlaceholder: 'Seleccione el tipo de denuncia',
+    reportFormType1: 'Calles y Veredas en Mal Estado',
+    reportFormType2: 'Luz o Alumbrado Público Dañado',
+    reportFormType3: 'Drenaje o Aguas Estancadas',
+    reportFormType6: 'Emergencias o Situaciones de Riesgo',
+    reportFormType7: 'Infraestructura o Mobiliario Público Dañado',
+    reportFormCityPlaceholder: 'Seleccione Ciudad',
+    reportFormSelectLocation: 'Seleccionar en el mapa',
+    reportFormAddressPlaceholder: 'Dirección',
+    reportFormPublicLabel: 'Publicar',
+    reportFormPublicDescription: 'Su reporte será visible para otros usuarios',
+    reportFormPrivateDescription: 'Su reporte será privado',
+    reportFormMapTitle: 'Seleccionar Ubicación del Problema',
+    // Report - Create Screen
+    reportCreateErrorAuth: 'Debe iniciar sesión para crear un reporte',
+    reportCreateSuccessTitle: 'Reporte Creado',
+    reportCreateSuccessMessage: 'Su reporte ha sido enviado exitosamente',
+    reportCreateDiscardTitle: 'Descartar Cambios',
+    reportCreateDiscardMessage: '¿Está seguro que desea salir? Los cambios no guardados se perderán',
+    reportCreateDiscardCancel: 'Cancelar',
+    reportCreateDiscardConfirm: 'Salir',
+    reportCreateSubmittingTitle: 'Reporte en proceso',
+    reportCreateSubmittingMessage: 'El reporte se está enviando. ¿Desea cancelar?',
+    reportCreateSubmittingContinue: 'Continuar enviando',
+    reportCreateSubmittingCancel: 'Cancelar envío',
+    reportCreatePreviewTitle: 'Vista Previa del Reporte',
+    reportCreateProcessing: 'Procesando...',
+    reportCreateScreenTitle: 'Nuevo Reporte',
+    reportCreateInfoTitle: 'Información Importante:',
+    reportCreateInfoConfidential: 'Sus datos personales se mantendrán confidenciales',
+    reportCreateInfoReviewTime: 'El reporte será revisado en un plazo de 24-48 horas',
+    reportCreateInfoNotifications: 'Recibirá notificaciones sobre el estado de su reporte',
+    reportCreateInfoEmergencies: 'Para emergencias, contacte directamente a los servicios de emergencia',
+    reportCreateEditModeTitle: 'Modo de edición',
+    reportCreateEditModeMessage: 'Puedes modificar los datos del reporte. Los cambios se guardarán automáticamente.',
+    reportCreateEditModeUnderstand: 'Entendido',
+    // Report - Camera/Media
+    reportMediaPermissionsTitle: 'Permisos requeridos',
+    reportMediaPermissionsMessage: 'Se necesitan permisos de cámara y galería',
+    reportMediaLimitImages: 'Solo puedes agregar hasta {max} imágenes',
+    reportMediaLimitVideo: 'Solo puedes agregar un video',
+    reportMediaErrorPhoto: 'No se pudo tomar la foto',
+    reportMediaErrorImage: 'No se pudo seleccionar la imagen',
+    reportMediaErrorVideo: 'No se pudo seleccionar el video',
+    reportMediaAddImage: 'Agregar Imagen',
+    reportMediaAddVideo: 'Agregar Video',
+    reportMediaTakePhoto: 'Tomar foto',
+    reportMediaSelectGallery: 'Seleccionar de galería',
+    reportMediaRecordVideo: 'Grabar video',
+    // Report - Validation
+    reportValidationTitle: 'El título es obligatorio',
+    reportValidationDescription: 'La descripción es obligatoria',
+    reportValidationAddress: 'La dirección es obligatoria',
+    reportValidationType: 'Seleccione un tipo de denuncia',
+    reportValidationUrgency: 'Seleccione un nivel de urgencia',
+    reportValidationCity: 'Seleccione una ciudad',
+    reportValidationLocation: 'Seleccione una ubicación en el mapa',
+    reportValidationFormError: 'Verifique los datos del formulario',
+    reportValidationFilesError: 'Los archivos son demasiado grandes',
+    reportValidationNetworkError: 'Error de conexión. Verifique su conexión a internet',
+    reportValidationUnexpectedError: 'Hubo un error inesperado',
+    // Report - Details
+    reportDetailsNotFound: 'Reporte no encontrado',
+    reportDetailsError: 'No se pudo cargar el reporte',
+    // Report - Preview
+    reportPreviewTitle: 'Vista Previa',
+    reportPreviewType: 'Tipo:',
+    reportPreviewUrgency: 'Urgencia:',
+    reportPreviewCity: 'Ciudad:',
+    reportPreviewPublic: 'Público',
+    reportPreviewPrivate: 'Privado',
+    reportPreviewLocation: 'Ubicación',
+    reportPreviewNoAddress: 'Sin dirección especificada',
+    reportPreviewImages: 'Imágenes',
+    reportPreviewVideo: 'Video',
+    reportPreviewVideoAttached: 'Video adjunto',
+    reportPreviewSending: 'Enviando reporte... No cierres la aplicación.',
+    reportPreviewEdit: 'Editar',
+    reportPreviewConfirmSend: 'Confirmar y Enviar',
+    reportPreviewConfirmTitle: 'Confirmar envío',
+    reportPreviewConfirmMessage: '¿Estás seguro de que deseas enviar este reporte? Una vez enviado no podrás modificarlo.',
+    reportPreviewConfirmReview: 'Revisar',
+    reportPreviewConfirmButton: 'Enviar',
+    reportPreviewCloseTitle: 'Reporte en proceso',
+    reportPreviewCloseMessage: 'El reporte se está enviando. ¿Estás seguro de que deseas cancelar?',
+    reportPreviewCloseContinue: 'Continuar',
+    reportPreviewCloseCancel: 'Cancelar',
+    reportPreviewEditDisabledTitle: 'No disponible',
+    reportPreviewEditDisabledMessage: 'No se puede editar mientras el reporte se está enviando.',
+    reportPreviewNotSelected: 'No seleccionado',
+    // Report - Form sections
+    reportFormMediaTitle: 'Medios',
+    reportFormLocationTitle: 'Ubicación',
+    reportFormSelectCity: 'Seleccione Ciudad',
+    // Report - Followed screen
+    reportFollowedError: 'Error al cargar los reportes',
+    reportFollowedUnfollowTitle: 'Dejar de seguir',
+    reportFollowedUnfollowMessage: '¿Estás seguro que deseas dejar de seguir "{title}"?',
+    reportFollowedUnfollowButton: 'Dejar de seguir',
+    reportFollowedUnfollowError: 'No se pudo dejar de seguir el reporte',
+    reportFollowedUnfollowSuccess: 'Has dejado de seguir el reporte',
+    reportFollowedUnknownUser: 'Usuario desconocido',
+    reportFollowedUnfollowLabel: 'Dejar de seguir',
+    reportFollowedTimeNow: 'Ahora',
+    // Report - Service errors
+    reportServiceSessionExpired: 'Sesión expirada. Inicie sesión nuevamente.',
+    reportServiceInvalidUrgency: 'Valor de urgencia inválido',
+    reportServiceInvalidType: 'Tipo de denuncia inválido',
+    reportServiceInvalidCity: 'Ciudad inválida',
+    reportServiceSuccess: 'Reporte creado exitosamente',
+    reportServiceErrorCreate: 'Hubo un error al crear el reporte',
+    reportServiceTimeoutLoadMore: 'No se pudieron cargar más reportes. Verifica tu conexión.',
+    reportServiceErrorLoadMore: 'Error al cargar más reportes. Toca para reintentar.',
+    // Report - Map
+    reportMapSelectTitle: 'Seleccionar Ubicación',
+    reportMapLocationError: 'No se pudo obtener la ubicación actual',
+    // Report - Details hooks
+    reportDetailsLoadError: 'No se pudo cargar el reporte',
+    reportDetailsLoadErrorMessage: 'Error al cargar el reporte',
+    reportDetailsInvalidDate: 'Fecha inválida',
+    reportDetailsUnknownError: 'Error desconocido al cargar reportes',
+    // Report - Details Screen
+    reportDetailsIdRequired: 'ID de reporte requerido',
+    reportDetailsIdRequiredMessage: 'No se proporcionó un ID de reporte válido',
+    reportDetailsLoading: 'Cargando reporte...',
+    reportDetailsIdLabel: 'ID del reporte',
+    reportDetailsRetry: 'Reintentar',
+    reportDetailsBack: 'Volver',
+    reportDetailsTitle: 'Detalle del Reporte',
+    // Report - Media Section
+    reportMediaSectionImage: 'Imagen',
+    reportMediaSectionVideo: 'Video',
+    reportMediaSectionImagesSelected: 'Imágenes seleccionadas:',
+    reportMediaSectionVideoSelected: 'Video seleccionado:',
+    reportMediaSectionVideoLabel: 'Video',
+    reportMediaSectionMaxImages: 'Máximo 5 imágenes',
+    reportMediaSectionRemaining: 'restantes',
+    reportMediaSectionMaxVideo: 'Máximo 1 video de 60 segundos',
+    // Report - Urgency Selector
+    reportUrgencyTitle: 'Nivel de Urgencia',
+    reportUrgencyLow: 'Baja',
+    reportUrgencyMedium: 'Media',
+    reportUrgencyHigh: 'Alta',
+    reportUrgencyCritical: 'Crítica',
+    // Projects - Card
+    projectCardNoTitle: 'Sin título',
+    projectCardStatusUnknown: 'Desconocido',
+    projectCardStatusPlanning: 'Planificación',
+    projectCardStatusInProgress: 'En Progreso',
+    projectCardStatusCompleted: 'Completado',
+    projectCardPriorityImportant: 'Importante',
+    projectCardPriorityUrgent: 'Urgente',
     // Profile - Public Profile Additional
     profileInfoTitle: 'Información',
     profileFollowSuccess: 'Ahora sigues a este usuario',
@@ -1775,6 +2083,160 @@ const TRANSLATIONS: Record<Locale, {
     homeCardUnfollowError: 'Error',
     homeCardUnfollowErrorMessage: 'Could not unfollow the report',
     homeCardCategoryLabel: 'Category:',
+    // Report - Form
+    reportFormDescriptionPlaceholder: 'Problem description',
+    reportFormTypePlaceholder: 'Select report type',
+    reportFormType1: 'Roads and Sidewalks in Poor Condition',
+    reportFormType2: 'Damaged Street Lighting',
+    reportFormType3: 'Drainage or Standing Water',
+    reportFormType6: 'Emergencies or Risk Situations',
+    reportFormType7: 'Damaged Public Infrastructure or Furniture',
+    reportFormCityPlaceholder: 'Select City',
+    reportFormSelectLocation: 'Select on map',
+    reportFormAddressPlaceholder: 'Address',
+    reportFormPublicLabel: 'Publish',
+    reportFormPublicDescription: 'Your report will be visible to other users',
+    reportFormPrivateDescription: 'Your report will be private',
+    reportFormMapTitle: 'Select Problem Location',
+    // Report - Create Screen
+    reportCreateErrorAuth: 'You must log in to create a report',
+    reportCreateSuccessTitle: 'Report Created',
+    reportCreateSuccessMessage: 'Your report has been sent successfully',
+    reportCreateDiscardTitle: 'Discard Changes',
+    reportCreateDiscardMessage: 'Are you sure you want to exit? Unsaved changes will be lost',
+    reportCreateDiscardCancel: 'Cancel',
+    reportCreateDiscardConfirm: 'Exit',
+    reportCreateSubmittingTitle: 'Report in progress',
+    reportCreateSubmittingMessage: 'The report is being sent. Do you want to cancel?',
+    reportCreateSubmittingContinue: 'Continue sending',
+    reportCreateSubmittingCancel: 'Cancel sending',
+    reportCreatePreviewTitle: 'Report Preview',
+    reportCreateProcessing: 'Processing...',
+    reportCreateScreenTitle: 'New Report',
+    reportCreateInfoTitle: 'Important Information:',
+    reportCreateInfoConfidential: 'Your personal information will be kept confidential',
+    reportCreateInfoReviewTime: 'The report will be reviewed within 24-48 hours',
+    reportCreateInfoNotifications: 'You will receive notifications about the status of your report',
+    reportCreateInfoEmergencies: 'For emergencies, contact local emergency services directly',
+    reportCreateEditModeTitle: 'Edit Mode',
+    reportCreateEditModeMessage: 'You can modify the report data. Changes will be saved automatically.',
+    reportCreateEditModeUnderstand: 'Understood',
+    // Report - Camera/Media
+    reportMediaPermissionsTitle: 'Permissions required',
+    reportMediaPermissionsMessage: 'Camera and gallery permissions are required',
+    reportMediaLimitImages: 'You can only add up to {max} images',
+    reportMediaLimitVideo: 'You can only add one video',
+    reportMediaErrorPhoto: 'Could not take photo',
+    reportMediaErrorImage: 'Could not select image',
+    reportMediaErrorVideo: 'Could not select video',
+    reportMediaAddImage: 'Add Image',
+    reportMediaAddVideo: 'Add Video',
+    reportMediaTakePhoto: 'Take photo',
+    reportMediaSelectGallery: 'Select from gallery',
+    reportMediaRecordVideo: 'Record video',
+    // Report - Validation
+    reportValidationTitle: 'Title is required',
+    reportValidationDescription: 'Description is required',
+    reportValidationAddress: 'Address is required',
+    reportValidationType: 'Select a report type',
+    reportValidationUrgency: 'Select an urgency level',
+    reportValidationCity: 'Select a city',
+    reportValidationLocation: 'Select a location on the map',
+    reportValidationFormError: 'Please verify form data',
+    reportValidationFilesError: 'Files are too large',
+    reportValidationNetworkError: 'Connection error. Check your internet connection',
+    reportValidationUnexpectedError: 'An unexpected error occurred',
+    // Report - Details
+    reportDetailsNotFound: 'Report not found',
+    reportDetailsError: 'Could not load report',
+    // Report - Preview
+    reportPreviewTitle: 'Preview',
+    reportPreviewType: 'Type:',
+    reportPreviewUrgency: 'Urgency:',
+    reportPreviewCity: 'City:',
+    reportPreviewPublic: 'Public',
+    reportPreviewPrivate: 'Private',
+    reportPreviewLocation: 'Location',
+    reportPreviewNoAddress: 'No address specified',
+    reportPreviewImages: 'Images',
+    reportPreviewVideo: 'Video',
+    reportPreviewVideoAttached: 'Video attached',
+    reportPreviewSending: 'Sending report... Do not close the app.',
+    reportPreviewEdit: 'Edit',
+    reportPreviewConfirmSend: 'Confirm and Send',
+    reportPreviewConfirmTitle: 'Confirm submission',
+    reportPreviewConfirmMessage: 'Are you sure you want to submit this report? Once submitted, you won\'t be able to modify it.',
+    reportPreviewConfirmReview: 'Review',
+    reportPreviewConfirmButton: 'Send',
+    reportPreviewCloseTitle: 'Report in progress',
+    reportPreviewCloseMessage: 'The report is being sent. Are you sure you want to cancel?',
+    reportPreviewCloseContinue: 'Continue',
+    reportPreviewCloseCancel: 'Cancel',
+    reportPreviewEditDisabledTitle: 'Not available',
+    reportPreviewEditDisabledMessage: 'Cannot edit while the report is being sent.',
+    reportPreviewNotSelected: 'Not selected',
+    // Report - Form sections
+    reportFormMediaTitle: 'Media',
+    reportFormLocationTitle: 'Location',
+    reportFormSelectCity: 'Select City',
+    // Report - Followed screen
+    reportFollowedError: 'Error loading reports',
+    reportFollowedUnfollowTitle: 'Unfollow',
+    reportFollowedUnfollowMessage: 'Are you sure you want to unfollow "{title}"?',
+    reportFollowedUnfollowButton: 'Unfollow',
+    reportFollowedUnfollowError: 'Could not unfollow report',
+    reportFollowedUnfollowSuccess: 'You have unfollowed the report',
+    reportFollowedUnknownUser: 'Unknown user',
+    reportFollowedUnfollowLabel: 'Unfollow',
+    reportFollowedTimeNow: 'Now',
+    // Report - Service errors
+    reportServiceSessionExpired: 'Session expired. Please log in again.',
+    reportServiceInvalidUrgency: 'Invalid urgency value',
+    reportServiceInvalidType: 'Invalid report type',
+    reportServiceInvalidCity: 'Invalid city',
+    reportServiceSuccess: 'Report created successfully',
+    reportServiceErrorCreate: 'There was an error creating the report',
+    reportServiceTimeoutLoadMore: 'Could not load more reports. Check your connection.',
+    reportServiceErrorLoadMore: 'Error loading more reports. Tap to retry.',
+    // Report - Map
+    reportMapSelectTitle: 'Select Location',
+    reportMapLocationError: 'Could not get current location',
+    // Report - Details hooks
+    reportDetailsLoadError: 'Could not load report',
+    reportDetailsLoadErrorMessage: 'Error loading report',
+    reportDetailsInvalidDate: 'Invalid date',
+    reportDetailsUnknownError: 'Unknown error loading reports',
+    // Report - Details Screen
+    reportDetailsIdRequired: 'Report ID required',
+    reportDetailsIdRequiredMessage: 'No valid report ID was provided',
+    reportDetailsLoading: 'Loading report...',
+    reportDetailsIdLabel: 'Report ID',
+    reportDetailsRetry: 'Retry',
+    reportDetailsBack: 'Back',
+    reportDetailsTitle: 'Report Details',
+    // Report - Media Section
+    reportMediaSectionImage: 'Image',
+    reportMediaSectionVideo: 'Video',
+    reportMediaSectionImagesSelected: 'Selected images:',
+    reportMediaSectionVideoSelected: 'Selected video:',
+    reportMediaSectionVideoLabel: 'Video',
+    reportMediaSectionMaxImages: 'Maximum 5 images',
+    reportMediaSectionRemaining: 'remaining',
+    reportMediaSectionMaxVideo: 'Maximum 1 video of 60 seconds',
+    // Report - Urgency Selector
+    reportUrgencyTitle: 'Urgency Level',
+    reportUrgencyLow: 'Low',
+    reportUrgencyMedium: 'Medium',
+    reportUrgencyHigh: 'High',
+    reportUrgencyCritical: 'Critical',
+    // Projects - Card
+    projectCardNoTitle: 'No title',
+    projectCardStatusUnknown: 'Unknown',
+    projectCardStatusPlanning: 'Planning',
+    projectCardStatusInProgress: 'In Progress',
+    projectCardStatusCompleted: 'Completed',
+    projectCardPriorityImportant: 'Important',
+    projectCardPriorityUrgent: 'Urgent',
     // Profile - Public Profile Additional
     profileInfoTitle: 'Information',
     profileFollowSuccess: 'You are now following this user',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import EmailInput from '../components/EmailInput';
 import RutInput from '../components/RutInput';
@@ -8,17 +8,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { requestPasswordReset } from '../services/authService';
 import { isValidIdentifier } from '~/utils/validation';
 import { useLanguage } from '~/contexts/LanguageContext';
+import { useToast } from '~/features/posts/contexts/ToastContext';
 
 const RecoverPasswordScreen: React.FC = () => {
   const router = useRouter();
   const { t } = useLanguage();
+  const { showSuccess, showError } = useToast();
   const [rut, setRut] = useState('');
   const [email, setEmail] = useState('');
   const [method, setMethod] = useState<'rut' | 'email'>('rut');
   const [loading, setLoading] = useState(false);
-  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
 
   // Handler para solicitar recuperación de contraseña
   const handlePasswordReset = async () => {
@@ -26,52 +25,42 @@ const RecoverPasswordScreen: React.FC = () => {
     
     // Validar que el campo no esté vacío
     if (!identifier.trim()) {
-  setFeedbackMessage(t('recoverFieldRequired'));
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('recoverFieldRequired'));
       return;
     }
 
     // Validar formato del identifier
     const validation = isValidIdentifier(identifier);
     if (!validation.isValid) {
-      setFeedbackMessage(
+      showError(
         method === 'rut'
           ? t('rutErrorDefault')
           : t('emailErrorDefault')
       );
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
       return;
     }
 
-    // Mostrar modal de carga
     setLoading(true);
-    setFeedbackModalVisible(true);
     
     try {
       const result = await requestPasswordReset({ identifier });
       
-      setLoading(false);
-      setIsSuccess(result.success);
-      setFeedbackMessage(result.message);
-      
       if (result.success) {
+        showSuccess(result.message);
         // Esperar un momento antes de navegar
         setTimeout(() => {
-          setFeedbackModalVisible(false);
-          // Navegar a la pantalla de verificación de código
-          console.log('Navegando a verificación de código con identifier:', identifier);
           router.push({
             pathname: '/(auth)/verify-reset-code',
             params: { identifier }
           });
-        }, 2000);
+        }, 1500);
+      } else {
+        showError(result.message);
       }
     } catch (error: any) {
+      showError(t('recoverConnectionError'));
+    } finally {
       setLoading(false);
-      setIsSuccess(false);
-  setFeedbackMessage(t('recoverConnectionError'));
     }
   };
 
@@ -179,56 +168,6 @@ const RecoverPasswordScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Modal de feedback */}
-      <Modal
-        visible={feedbackModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFeedbackModalVisible(false)}
-      >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, minWidth: 280, alignItems: 'center', maxWidth: '90%' }}>
-            {loading ? (
-              <>
-                <ActivityIndicator size="large" color="#537CF2" style={{ marginBottom: 16 }} />
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>{t('recoverSendingCodeTitle')}</Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>{t('recoverSendingCodeBody')}</Text>
-              </>
-            ) : (
-              <>
-                <View style={{ 
-                  width: 60, 
-                  height: 60, 
-                  borderRadius: 30, 
-                  backgroundColor: isSuccess ? '#10B981' : '#EF4444',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: 16
-                }}>
-                  <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>
-                    {isSuccess ? '✓' : '✕'}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  {isSuccess ? t('recoverCodeSentTitle') : t('recoverErrorTitle')}
-                </Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 }}>
-                  {feedbackMessage}
-                </Text>
-                {!isSuccess && (
-                  <TouchableOpacity
-                    onPress={() => setFeedbackModalVisible(false)}
-                    style={{ backgroundColor: '#537CF2', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
-                  >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{t('recoverModalUnderstand')}</Text>
-                  </TouchableOpacity>
-                )}
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
