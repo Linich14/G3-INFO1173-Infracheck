@@ -56,7 +56,7 @@ export default function Layout() {
         };
     }, []);
 
-    const BASE = 56;
+    const BASE = 70;
 
     return (
         <Tabs

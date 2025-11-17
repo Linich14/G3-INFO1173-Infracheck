@@ -199,6 +199,7 @@ class ReportService:
             'fecha_actualizacion': report.fecha_actualizacion.isoformat() if report.fecha_actualizacion else None,
             'usuario': {
                 'id': report.usuario.usua_id,
+                'nickname': getattr(report.usuario, 'usua_nickname', None),
                 'nombre': (getattr(report.usuario, 'usua_nombre', '') or '') + " " + (getattr(report.usuario, 'usua_apellido', '') or ''),
                 'email': getattr(report.usuario, 'usua_email', '')
             },

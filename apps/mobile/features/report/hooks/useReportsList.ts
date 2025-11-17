@@ -6,7 +6,7 @@ import { API_CONFIG } from '~/constants/config'; // Importar configuración
 const mapReportToHomeFormat = (report: any): ReportForHome => ({
     id: report.id.toString(),
     title: report.titulo,
-    author: report.usuario.nombre || 'Usuario Anónimo',
+    author: report.usuario.nickname || report.usuario.nombre || 'Usuario',
     timeAgo: calculateTimeAgo(report.fecha_creacion),
     image: getMainImage(report.archivos),
     upvotes: report.votos?.count || 0,
