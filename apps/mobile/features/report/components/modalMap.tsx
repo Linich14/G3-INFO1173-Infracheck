@@ -4,6 +4,7 @@ import { MapView, Camera, UserLocation, PointAnnotation } from '@maplibre/maplib
 import { MAP_CONFIG } from '~/constants/config';
 import { useUserLocation } from '~/utils/userLocation';
 import { GPSPermissionModal } from '~/components/GPSPermissionModal';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface Location {
     latitude: number;
@@ -24,8 +25,10 @@ const ModalMap = ({
     onClose,
     onSelectLocation,
     initialLocation,
-    title = 'Seleccionar Ubicación',
+    title,
 }: ModalMapProps) => {
+    const { t } = useLanguage();
+    const defaultTitle = title || t('reportMapSelectTitle');
     const { location, errorMsg, showPermissionModal, handleAcceptPermission, handleCancelPermission } = useUserLocation();
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(
         initialLocation || null
@@ -90,7 +93,7 @@ const ModalMap = ({
             };
             setSelectedLocation(userLocation);
         } else if (errorMsg) {
-            Alert.alert('Error', 'No se pudo obtener la ubicación actual');
+            Alert.alert(t('reportValidationUnexpectedError'), t('reportMapLocationError'));
         }
     };
 
@@ -99,7 +102,7 @@ const ModalMap = ({
             <View className="flex-1 items-center justify-end bg-black/50">
                 <View className="h-[80%] w-full overflow-hidden rounded-t-xl bg-white">
                     <View className="flex-row items-center justify-between bg-primary p-4">
-                        <Text className="text-lg font-bold text-white">{title}</Text>
+                        <Text className="text-lg font-bold text-white">{defaultTitle}</Text>
                         <View className="flex-row gap-2">
                             {location && (
                                 <Pressable

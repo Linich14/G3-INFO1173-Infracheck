@@ -21,7 +21,7 @@ export class ReportService {
             if (!authenticated) {
                 return {
                     success: false,
-                    message: 'Sesión expirada. Inicie sesión nuevamente.',
+                    message: 'reportServiceSessionExpired', // Translation key
                 };
             }
 
@@ -39,7 +39,7 @@ export class ReportService {
                 console.error('Invalid urgencia value:', data.urgencia);
                 return {
                     success: false,
-                    message: 'Valor de urgencia inválido',
+                    message: 'reportServiceInvalidUrgency',
                 };
             }
             formData.append('urgencia', data.urgencia);
@@ -54,7 +54,7 @@ export class ReportService {
                 console.error('Invalid tipoDenuncia value:', data.tipoDenuncia);
                 return {
                     success: false,
-                    message: 'Tipo de denuncia inválido',
+                    message: 'reportServiceInvalidType',
                 };
             }
             formData.append('tipo_denuncia', data.tipoDenuncia);
@@ -64,7 +64,7 @@ export class ReportService {
                 console.error('Invalid ciudad value:', data.ciudad);
                 return {
                     success: false,
-                    message: 'Ciudad inválida',
+                    message: 'reportServiceInvalidCity',
                 };
             }
             formData.append('ciudad', data.ciudad);
@@ -105,7 +105,7 @@ export class ReportService {
 
             return {
                 success: true,
-                message: response.data.message || 'Reporte creado exitosamente',
+                message: response.data.message || 'reportServiceSuccess',
                 reportId: response.data.id || response.data.report_id,
                 data: response.data,
             };
@@ -302,7 +302,10 @@ export class ReportService {
     /**
      * Manejar errores de creación de reporte
      */
-    private static handleCreateReportError(error: any): CreateReportResponse {
+    private static handleCreateReportError(
+        error: any,
+        t: (key: string) => string
+    ): CreateReportResponse {
         // Manejo simplificado de errores
         if (error.response) {
             const statusCode = error.response.status;
@@ -311,7 +314,7 @@ export class ReportService {
             if (statusCode === 400 && responseData.errors) {
                 return {
                     success: false,
-                    message: 'Verifique los datos del formulario',
+                    message: t('reportValidationFormError'),
                     errors: responseData.errors,
                 };
             }
@@ -319,14 +322,14 @@ export class ReportService {
             if (statusCode === 401) {
                 return {
                     success: false,
-                    message: 'Sesión expirada. Inicie sesión nuevamente.',
+                    message: t('reportServiceSessionExpired'),
                 };
             }
 
             if (statusCode === 413) {
                 return {
                     success: false,
-                    message: 'Los archivos son demasiado grandes',
+                    message: t('reportValidationFilesError'),
                 };
             }
 
@@ -335,20 +338,20 @@ export class ReportService {
                 message:
                     responseData.detail ||
                     responseData.message ||
-                    'Hubo un error al crear el reporte',
+                    t('reportServiceErrorCreate'),
             };
         }
 
         if (error.request || error.code === 'ECONNABORTED') {
             return {
                 success: false,
-                message: 'Error de conexión. Verifique su internet',
+                message: t('reportValidationNetworkError'),
             };
         }
 
         return {
             success: false,
-            message: 'Hubo un error inesperado',
+            message: t('reportValidationUnexpectedError'),
         };
     }
 }

@@ -5,6 +5,7 @@ import ModalMap from './modalMap';
 import MediaSection from './mediaSelected';
 import { SelectorNivelUrgencia } from './SelectorNivelUrgencia';
 import { ReportFormData, ReportFormErrors } from '../types';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface Location {
     latitude: number;
@@ -45,6 +46,7 @@ const FormReport = ({
     onSetShowMapModal,
     mediaStats,
 }: FormReportProps) => {
+    const { t } = useLanguage();
     const TITLE_MAX_LENGTH = 50;
     const DESCRIPTION_MAX_LENGTH = 3000;
     const ADDRESS_MAX_LENGTH = 200;
@@ -68,14 +70,12 @@ const FormReport = ({
     };
 
     const getTipoDenunciaLabel = (value: string) => {
-        const tipos = {
-            '1': 'Calles y Veredas en Mal Estado',
-            '2': 'Luz o Alumbrado Público Dañado',
-            '3': 'Drenaje o Aguas Estancadas',
-            '4': 'Parques, Plazas o Árboles con Problemas',
-            '5': 'Basura, Escombros o Espacios Sucios',
-            '6': 'Emergencias o Situaciones de Riesgo',
-            '7': 'Infraestructura o Mobiliario Público Dañado',
+        const tipos: Record<string, string> = {
+            '1': t('reportFormType1'),
+            '2': t('reportFormType2'),
+            '3': t('reportFormType3'),
+            '6': t('reportFormType6'),
+            '7': t('reportFormType7'),
         };
         return tipos[value as keyof typeof tipos] || '';
     };
@@ -113,7 +113,7 @@ const FormReport = ({
                         className={`w-min-[20px] border-b-2 pb-1 text-white ${
                             errors.descripcion ? 'border-b-red-500' : 'border-b-slate-600'
                         }`}
-                        placeholder="Descripción del problema"
+                        placeholder={t('reportFormDescriptionPlaceholder')}
                         value={formData.descripcion}
                         onChangeText={(text) => onUpdateField('descripcion', text)}
                         multiline={true}
@@ -140,49 +140,37 @@ const FormReport = ({
                             onValueChange={(value) => onUpdateField('tipoDenuncia', value)}
                             dropdownIconColor="#FFFFFF">
                             <Picker.Item
-                                label="Seleccione el tipo de denuncia"
+                                label={t('reportFormTypePlaceholder')}
                                 value=""
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Calles y Veredas en Mal Estado"
+                                label={t('reportFormType1')}
                                 value="1"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Luz o Alumbrado Público Dañado"
+                                label={t('reportFormType2')}
                                 value="2"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Drenaje o Aguas Estancadas"
+                                label={t('reportFormType3')}
                                 value="3"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Parques, Plazas o Árboles con Problemas"
-                                value="4"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Basura, Escombros o Espacios Sucios"
-                                value="5"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Emergencias o Situaciones de Riesgo"
+                                label={t('reportFormType6')}
                                 value="6"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Infraestructura o Mobiliario Público Dañado"
+                                label={t('reportFormType7')}
                                 value="7"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
@@ -197,7 +185,7 @@ const FormReport = ({
 
             {/* Sección de Medios */}
             <View className={style.container + 'mt-4'}>
-                <Text className="text-xl text-white">Medios</Text>
+                <Text className="text-xl text-white">{t('reportFormMediaTitle')}</Text>
                 <MediaSection
                     selectedImages={formData.imagenes}
                     selectedVideo={formData.video}
@@ -211,7 +199,7 @@ const FormReport = ({
 
             {/* Sección de Ubicación */}
             <View className={style.container + 'mt-4'}>
-                <Text className="text-xl text-white">Ubicación</Text>
+                <Text className="text-xl text-white">{t('reportFormLocationTitle')}</Text>
 
                 {/* Selector de Ciudad */}
                 <View
@@ -223,15 +211,15 @@ const FormReport = ({
                         onValueChange={(value) => onUpdateField('ciudad', value)}
                         dropdownIconColor="#FFFFFF">
                         <Picker.Item
-                            label="Seleccione Ciudad"
+                            label={t('reportFormSelectCity')}
                             value=""
                             color="#FFFFFF"
                             enabled={false}
                             style={{ backgroundColor: '#13161E' }}
                         />
                         <Picker.Item
-                            label="Temuco"
-                            value="1"
+                            label={t('reportFormCityPlaceholder')}
+                            value=""
                             color="#FFFFFF"
                             style={{ backgroundColor: '#13161E' }}
                         />
@@ -251,7 +239,7 @@ const FormReport = ({
                     <Text className="mt-2 text-sm text-white">
                         {convertToLocation()
                             ? `Lat: ${formData.latitud.toFixed(4)}, Lng: ${formData.longitud.toFixed(4)}`
-                            : 'Seleccionar en el mapa'}
+                            : t('reportFormSelectLocation')}
                     </Text>
                 </Pressable>
                 {errors.ubicacion && (
@@ -265,7 +253,7 @@ const FormReport = ({
                         className={`w-min-[20px] border-b-2 pb-1 text-white ${
                             errors.direccion ? 'border-b-red-500' : 'border-b-slate-600'
                         }`}
-                        placeholder="Dirección"
+                        placeholder={t('reportFormAddressPlaceholder')}
                         value={formData.direccion}
                         onChangeText={(text) => onUpdateField('direccion', text)}
                         multiline={true}
@@ -305,8 +293,8 @@ const FormReport = ({
                 </View>
                 <Text className="mt-1 text-xs text-gray-400">
                     {formData.visible
-                        ? 'Su reporte será visible para otros usuarios'
-                        : 'Su reporte será privado, solo visible para las autoridades'}
+                        ? t('reportFormPublicDescription')
+                        : t('reportFormPrivateDescription')}
                 </Text>
             </View>
 
@@ -315,7 +303,7 @@ const FormReport = ({
                 onClose={() => onSetShowMapModal(false)}
                 onSelectLocation={handleLocationSelect}
                 initialLocation={convertToLocation() || undefined}
-                title="Seleccionar Ubicación del Problema"
+                title={t('reportFormMapTitle')}
             />
         </>
     );

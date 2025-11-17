@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { getReportsList } from '../services/reportService';
 import { ReportsListResponse, ReportForHome } from '../types';
 import { API_CONFIG } from '~/constants/config'; // Importar configuración
+import { useLanguage } from '~/contexts/LanguageContext';
 
 const mapReportToHomeFormat = (report: any): ReportForHome => ({
     id: report.id.toString(),
@@ -75,6 +76,8 @@ const calculateTimeAgo = (dateString: string): string => {
 };
 
 export const useReportsList = () => {
+    const { t } = useLanguage();
+    
     const [reports, setReports] = useState<ReportForHome[]>([]);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -130,9 +133,7 @@ export const useReportsList = () => {
                 // Configurar timeout para loadMore (5 segundos)
                 if (isLoadMore) {
                     loadMoreTimeoutRef.current = setTimeout(() => {
-                        setLoadMoreError(
-                            'No se pudieron cargar más reportes. Verifica tu conexión.'
-                        );
+                        setLoadMoreError(t('reportServiceTimeoutLoadMore'));
                         setIsLoadingMore(false);
                         if (abortControllerRef.current) {
                             abortControllerRef.current.abort();
@@ -192,12 +193,12 @@ export const useReportsList = () => {
                 }
 
                 const errorMessage =
-                    err?.response?.data?.error ||
+                    err?.response?.data?.message ||
                     err?.message ||
-                    'Error desconocido al cargar reportes';
+                    t('reportDetailsUnknownError');
 
                 if (isLoadMore) {
-                    setLoadMoreError('Error al cargar más reportes. Toca para reintentar.');
+                    setLoadMoreError(t('reportServiceErrorLoadMore'));
                 } else {
                     setError(errorMessage);
                     // Si es la primera carga y falla, mostrar datos vacíos

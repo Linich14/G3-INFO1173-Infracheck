@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 export interface MediaStats {
     imageCount: number;
@@ -11,6 +12,7 @@ export interface MediaStats {
 }
 
 export const useCamera = () => {
+    const { t } = useLanguage();
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const [selectedVideo, setSelectedVideo] = useState<string | undefined>();
     const [showImageModal, setShowImageModal] = useState(false);
@@ -34,8 +36,8 @@ export const useCamera = () => {
 
         if (cameraStatus !== 'granted' || mediaStatus !== 'granted') {
             Alert.alert(
-                'Permisos requeridos',
-                'Necesitamos permisos de cámara y galería para continuar.',
+                t('reportMediaPermissionsTitle'),
+                t('reportMediaPermissionsMessage'),
                 [{ text: 'OK' }]
             );
             return false;
@@ -45,7 +47,7 @@ export const useCamera = () => {
 
     const takePhoto = async () => {
         if (selectedImages.length >= MAX_IMAGES) {
-            Alert.alert('Límite alcanzado', `Solo puedes agregar hasta ${MAX_IMAGES} imágenes.`);
+            Alert.alert(t('reportMediaLimitImages').replace('{max}', MAX_IMAGES.toString()));
             return;
         }
 
@@ -65,13 +67,13 @@ export const useCamera = () => {
             }
         } catch (error) {
             console.error('Error taking photo:', error);
-            Alert.alert('Error', 'No se pudo tomar la foto');
+            Alert.alert(t('reportMediaErrorPhoto'));
         }
     };
 
     const pickImageFromGallery = async () => {
         if (selectedImages.length >= MAX_IMAGES) {
-            Alert.alert('Límite alcanzado', `Solo puedes agregar hasta ${MAX_IMAGES} imágenes.`);
+            Alert.alert(t('reportMediaLimitImages').replace('{max}', MAX_IMAGES.toString()));
             return;
         }
 
@@ -92,13 +94,13 @@ export const useCamera = () => {
             }
         } catch (error) {
             console.error('Error picking image:', error);
-            Alert.alert('Error', 'No se pudo seleccionar la imagen');
+            Alert.alert(t('reportMediaErrorImage'));
         }
     };
 
     const recordVideo = async () => {
         if (selectedVideo) {
-            Alert.alert('Límite alcanzado', 'Solo puedes agregar un video.');
+            Alert.alert(t('reportMediaLimitVideo'));
             return;
         }
 
@@ -119,13 +121,13 @@ export const useCamera = () => {
             }
         } catch (error) {
             console.error('Error recording video:', error);
-            Alert.alert('Error', 'No se pudo grabar el video');
+            Alert.alert(t('reportMediaErrorVideo'));
         }
     };
 
     const pickVideoFromGallery = async () => {
         if (selectedVideo) {
-            Alert.alert('Límite alcanzado', 'Solo puedes agregar un video.');
+            Alert.alert(t('reportMediaLimitVideo'));
             return;
         }
 
@@ -146,7 +148,7 @@ export const useCamera = () => {
             }
         } catch (error) {
             console.error('Error picking video:', error);
-            Alert.alert('Error', 'No se pudo seleccionar el video');
+            Alert.alert(t('reportMediaErrorVideo'));
         }
     };
 
@@ -160,7 +162,7 @@ export const useCamera = () => {
 
     const openImageModal = () => {
         if (selectedImages.length >= MAX_IMAGES) {
-            Alert.alert('Límite alcanzado', `Solo puedes agregar hasta ${MAX_IMAGES} imágenes.`);
+            Alert.alert(t('reportMediaLimitImages').replace('{max}', MAX_IMAGES.toString()));
             return;
         }
         setShowImageModal(true);
@@ -168,7 +170,7 @@ export const useCamera = () => {
 
     const openVideoModal = () => {
         if (selectedVideo) {
-            Alert.alert('Límite alcanzado', 'Solo puedes agregar un video.');
+            Alert.alert(t('reportMediaLimitVideo'));
             return;
         }
         setShowVideoModal(true);

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, Pressable, ScrollView } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { MediaStats } from '../hooks/useCamera';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface MediaSectionProps {
     selectedImages: string[];
@@ -22,6 +23,8 @@ const MediaSection: React.FC<MediaSectionProps> = ({
     onRemoveVideo,
     mediaStats,
 }) => {
+    const { t } = useLanguage();
+    
     return (
         <View className="gap-4">
             {/* Botones para agregar medios */}
@@ -33,7 +36,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({
                     }`}
                     disabled={!mediaStats?.canAddImages}>
                     <MaterialCommunityIcons name="camera" size={20} color="white" />
-                    <Text className="ml-2 text-white">Imagen ({selectedImages.length}/5)</Text>
+                    <Text className="ml-2 text-white">{t('reportMediaSectionImage')} ({selectedImages.length}/5)</Text>
                 </Pressable>
 
                 <Pressable
@@ -46,7 +49,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({
                     disabled={!mediaStats?.canAddVideo}>
                     <MaterialCommunityIcons name="video" size={20} color="white" />
                     <Text className="ml-2 text-white">
-                        Video {selectedVideo ? '(1/1)' : '(0/1)'}
+                        {t('reportMediaSectionVideo')} {selectedVideo ? '(1/1)' : '(0/1)'}
                     </Text>
                 </Pressable>
             </View>
@@ -54,7 +57,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({
             {/* Mostrar imágenes seleccionadas */}
             {selectedImages.length > 0 && (
                 <View>
-                    <Text className="mb-2 text-white">Imágenes seleccionadas:</Text>
+                    <Text className="mb-2 text-white">{t('reportMediaSectionImagesSelected')}</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View className="flex-row gap-2">
                             {selectedImages.map((uri, index) => (
@@ -83,11 +86,11 @@ const MediaSection: React.FC<MediaSectionProps> = ({
             {/* Mostrar video seleccionado */}
             {selectedVideo && (
                 <View>
-                    <Text className="mb-2 text-white">Video seleccionado:</Text>
+                    <Text className="mb-2 text-white">{t('reportMediaSectionVideoSelected')}</Text>
                     <View className="relative">
                         <View className="h-20 w-32 items-center justify-center rounded-lg bg-secondary">
                             <MaterialCommunityIcons name="video" size={30} color="white" />
-                            <Text className="mt-1 text-xs text-white">Video</Text>
+                            <Text className="mt-1 text-xs text-white">{t('reportMediaSectionVideoLabel')}</Text>
                         </View>
                         <Pressable
                             onPress={onRemoveVideo}
@@ -102,9 +105,9 @@ const MediaSection: React.FC<MediaSectionProps> = ({
             {mediaStats && (
                 <View className="rounded-lg bg-secondary/50 p-3">
                     <Text className="text-xs text-gray-300">
-                        • Máximo 5 imágenes ({mediaStats.remainingImageSlots} restantes)
+                        • {t('reportMediaSectionMaxImages')} ({mediaStats.remainingImageSlots} {t('reportMediaSectionRemaining')})
                     </Text>
-                    <Text className="text-xs text-gray-300">• Máximo 1 video de 60 segundos</Text>
+                    <Text className="text-xs text-gray-300">• {t('reportMediaSectionMaxVideo')}</Text>
                 </View>
             )}
         </View>

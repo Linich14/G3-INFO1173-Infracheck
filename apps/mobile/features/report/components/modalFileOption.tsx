@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, Modal } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface ModalFileOptionProps {
     visible: boolean;
@@ -21,6 +22,8 @@ const ModalFileOption: React.FC<ModalFileOptionProps> = ({
     onSelectVideoFromGallery,
     type,
 }) => {
+    const { t } = useLanguage();
+    
     return (
         <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
             <Pressable className="flex-1 bg-black/50" onPress={onClose}>
@@ -29,7 +32,7 @@ const ModalFileOption: React.FC<ModalFileOptionProps> = ({
                         onPress={() => {}}
                         className="w-full max-w-sm rounded-2xl bg-tertiary p-6">
                         <Text className="mb-6 text-center text-xl font-semibold text-white">
-                            {type === 'image' ? 'Agregar Imagen' : 'Agregar Video'}
+                            {type === 'image' ? t('reportMediaAddImage') : t('reportMediaAddVideo')}
                         </Text>
 
                         {type === 'image' ? (
@@ -38,14 +41,14 @@ const ModalFileOption: React.FC<ModalFileOptionProps> = ({
                                     onPress={onTakePhoto}
                                     className="mb-4 flex-row items-center rounded-lg bg-secondary p-4 active:bg-slate-600">
                                     <MaterialCommunityIcons name="camera" size={24} color="white" />
-                                    <Text className="ml-3 text-white">Tomar foto</Text>
+                                    <Text className="ml-3 text-white">{t('reportMediaTakePhoto')}</Text>
                                 </Pressable>
 
                                 <Pressable
                                     onPress={onSelectFromGallery}
                                     className="mb-6 flex-row items-center rounded-lg bg-secondary p-4 active:bg-slate-600">
                                     <MaterialCommunityIcons name="image" size={24} color="white" />
-                                    <Text className="ml-3 text-white">Seleccionar de galería</Text>
+                                    <Text className="ml-3 text-white">{t('reportMediaSelectGallery')}</Text>
                                 </Pressable>
                             </>
                         ) : (
@@ -54,7 +57,7 @@ const ModalFileOption: React.FC<ModalFileOptionProps> = ({
                                     onPress={onRecordVideo}
                                     className="mb-4 flex-row items-center rounded-lg bg-secondary p-4 active:bg-slate-600">
                                     <MaterialCommunityIcons name="video" size={24} color="white" />
-                                    <Text className="ml-3 text-white">Grabar video</Text>
+                                    <Text className="ml-3 text-white">{t('reportMediaRecordVideo')}</Text>
                                 </Pressable>
 
                                 <Pressable
@@ -65,7 +68,7 @@ const ModalFileOption: React.FC<ModalFileOptionProps> = ({
                                         size={24}
                                         color="white"
                                     />
-                                    <Text className="ml-3 text-white">Seleccionar de galería</Text>
+                                    <Text className="ml-3 text-white">{t('reportMediaSelectGallery')}</Text>
                                 </Pressable>
                             </>
                         )}
@@ -73,7 +76,7 @@ const ModalFileOption: React.FC<ModalFileOptionProps> = ({
                         <Pressable
                             onPress={onClose}
                             className="items-center rounded-lg bg-gray-600 p-4 active:bg-gray-700">
-                            <Text className="font-semibold text-white">Cancelar</Text>
+                            <Text className="font-semibold text-white">{t('cancel')}</Text>
                         </Pressable>
                     </Pressable>
                 </View>

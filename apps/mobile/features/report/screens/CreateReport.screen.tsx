@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Pressable, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormReport from '../components/formReport';
 import ReportPreview from '../components/ReportPreview';
@@ -8,8 +8,12 @@ import { useReportForm } from '../hooks/useReportForm';
 import { useUserContext } from '~/contexts/UserContext';
 import { router } from 'expo-router';
 import { X } from 'lucide-react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
+import { useToast } from '~/features/posts/contexts/ToastContext';
 
-const CreateReportScreen = () => {
+export default function CreateReportScreen() {
+    const { t } = useLanguage();
+    const { showSuccess, showError } = useToast();
     const { user } = useUserContext();
     const [modalVisible, setModalVisible] = useState(false);
     const [modalType, setModalType] = useState<'image' | 'video'>('image');
@@ -23,6 +27,8 @@ const CreateReportScreen = () => {
         isSubmitting,
         showImageModal,
         showVideoModal,
+        setShowImageModal,
+        setShowVideoModal,
         updateField,
         takePhoto,
         pickImageFromGallery,
@@ -85,18 +91,19 @@ const CreateReportScreen = () => {
 
     const handleSubmitForm = async () => {
         if (!user) {
-            Alert.alert('Error', 'Debe iniciar sesión para crear un reporte');
+            showError(t('reportCreateErrorAuth'));
             return;
         }
 
         const result = await handleSubmit();
 
         if (result.success) {
-            Alert.alert('Reporte Creado', 'Su reporte ha sido enviado exitosamente', [
-                { text: 'OK' },
-            ]);
+            showSuccess(t('reportCreateSuccessMessage'));
+            setTimeout(() => {
+                router.back();
+            }, 1500);
         } else {
-            Alert.alert('Error', result.message);
+            showError(result.message);
         }
     };
 
@@ -107,14 +114,12 @@ const CreateReportScreen = () => {
             formData.imagenes.length > 0 ||
             formData.video
         ) {
-            Alert.alert(
-                'Descartar Cambios',
-                '¿Está seguro de que desea salir? Se perderán todos los datos ingresados.',
-                [
-                    { text: 'Cancelar', style: 'cancel' },
-                    { text: 'Salir', style: 'destructive', onPress: () => router.back() },
-                ]
-            );
+            // Show warning Toast and allow user to decide
+            showError(t('reportCreateDiscardMessage'));
+            // Give user a moment to see the toast before going back
+            setTimeout(() => {
+                router.back();
+            }, 1500);
         } else {
             router.back();
         }
@@ -123,21 +128,7 @@ const CreateReportScreen = () => {
     // Función mejorada para cerrar el preview
     const handleClosePreview = () => {
         if (isSubmitting) {
-            Alert.alert(
-                'Reporte en proceso',
-                'El reporte se está enviando actualmente. ¿Deseas cancelar el envío?',
-                [
-                    { text: 'Continuar enviando', style: 'cancel' },
-                    {
-                        text: 'Cancelar envío',
-                        style: 'destructive',
-                        onPress: () => {
-                            // Aquí podrías cancelar la operación si el hook lo permite
-                            setShowPreview(false);
-                        },
-                    },
-                ]
-            );
+            showError(t('reportCreateSubmittingMessage'));
             return;
         }
 
@@ -147,23 +138,12 @@ const CreateReportScreen = () => {
     // Función para editar el reporte desde el preview
     const handleEditFromPreview = () => {
         if (isSubmitting) {
-            Alert.alert(
-                'No se puede editar',
-                'El reporte se está enviando actualmente. No se puede editar en este momento.',
-                [{ text: 'OK' }]
-            );
+            showError(t('reportCreateSubmittingMessage'));
             return;
         }
 
         // Cerrar el preview para volver al formulario
         setShowPreview(false);
-
-        // Opcional: Mostrar un mensaje de confirmación
-        Alert.alert(
-            'Modo de edición',
-            'Puedes modificar los datos del reporte. Los cambios se guardarán automáticamente.',
-            [{ text: 'Entendido' }]
-        );
     };
 
     return (
@@ -171,7 +151,7 @@ const CreateReportScreen = () => {
             {/* Header */}
             <View className="mx-4 flex-row items-center rounded-lg bg-tertiary px-4 py-3">
                 <Text className="flex-1 text-center text-3xl font-semibold text-primary">
-                    Nuevo Reporte
+                    {t('reportCreateScreenTitle')}
                 </Text>
             </View>
 
@@ -197,7 +177,7 @@ const CreateReportScreen = () => {
                         className="items-center rounded-lg bg-blue-600 p-4 active:bg-blue-700"
                         disabled={isSubmitting}>
                         <Text className="text-lg font-semibold text-white">
-                            {isSubmitting ? 'Procesando...' : 'Vista Previa del Reporte'}
+                            {isSubmitting ? t('reportCreateProcessing') : t('reportCreatePreviewTitle')}
                         </Text>
                     </Pressable>
                 </View>
@@ -205,19 +185,19 @@ const CreateReportScreen = () => {
                 {/* Información adicional */}
                 <View className="mb-6 rounded-lg bg-tertiary/50 p-4">
                     <Text className="mb-2 text-sm font-semibold text-white">
-                        Información Importante:
+                        {t('reportCreateInfoTitle')}
                     </Text>
                     <Text className="mb-1 text-xs text-gray-300">
-                        • Sus datos personales se mantendrán confidenciales
+                        • {t('reportCreateInfoConfidential')}
                     </Text>
                     <Text className="mb-1 text-xs text-gray-300">
-                        • El reporte será revisado en un plazo de 24-48 horas
+                        • {t('reportCreateInfoReviewTime')}
                     </Text>
                     <Text className="mb-1 text-xs text-gray-300">
-                        • Recibirá notificaciones sobre el estado de su reporte
+                        • {t('reportCreateInfoNotifications')}
                     </Text>
                     <Text className="text-xs text-gray-300">
-                        • Para emergencias, contacte directamente a los servicios de emergencia
+                        • {t('reportCreateInfoEmergencies')}
                     </Text>
                 </View>
             </ScrollView>
@@ -251,6 +231,4 @@ const CreateReportScreen = () => {
             />
         </SafeAreaView>
     );
-};
-
-export default CreateReportScreen;
+}

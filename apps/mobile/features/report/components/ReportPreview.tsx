@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, Image, Pressable, Modal, Alert } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { ReportPreviewData } from '../types';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface ReportPreviewProps {
     visible: boolean;
@@ -20,51 +21,46 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
     onEdit,
     loading = false,
 }) => {
+    const { t } = useLanguage();
+    
     const getTipoDenunciaLabel = (value: string) => {
-        const tipos = {
-            '1': 'Vialidad y veredas',
-            '2': 'Alumbrado público',
-            '3': 'Drenaje y aguas lluvias',
-            '4': 'Áreas verdes y arbolado',
-            '5': 'Mobiliario urbano y plazas',
-            '6': 'Señalización y demarcación',
-            '7': 'Ciclovías y movilidad activa',
-            '8': 'Paraderos y equipamiento de transporte',
-            '9': 'Infraestructura municipal',
-            '10': 'Limpieza y recuperación de espacio público',
-            '11': 'Accesibilidad',
-            '12': 'Riesgos y emergencias',
+        const tipos: Record<string, string> = {
+            '1': t('reportFormType1'),
+            '2': t('reportFormType2'),
+            '3': t('reportFormType3'),
+            '6': t('reportFormType6'),
+            '7': t('reportFormType7'),
         };
-        return tipos[value as keyof typeof tipos] || 'No seleccionado';
+        return tipos[value] || t('reportPreviewNotSelected');
     };
 
     const getUrgenciaLabel = (value: string) => {
-        const urgencias = {
-            '1': 'Baja',
-            '2': 'Media',
-            '3': 'Alta',
-            '4': 'Crítica',
+        const urgencias: Record<string, string> = {
+            '1': t('homeCardUrgencyLow'),
+            '2': t('homeCardUrgencyMedium'),
+            '3': t('homeCardUrgencyHigh'),
+            '4': t('homeCardUrgencyCritical'),
         };
-        return urgencias[value as keyof typeof urgencias] || 'No seleccionado';
+        return urgencias[value] || t('reportPreviewNotSelected');
     };
 
     const getCiudadLabel = (value: string) => {
-        const ciudades = {
+        const ciudades: Record<string, string> = {
             '1': 'Temuco',
         };
-        return ciudades[value as keyof typeof ciudades] || 'No seleccionado';
+        return ciudades[value] || t('reportPreviewNotSelected');
     };
 
     // Función mejorada para manejar el cierre
     const handleClose = () => {
         if (loading) {
             Alert.alert(
-                'Reporte en proceso',
-                'El reporte se está enviando. ¿Estás seguro de que deseas cancelar?',
+                t('reportPreviewCloseTitle'),
+                t('reportPreviewCloseMessage'),
                 [
-                    { text: 'Continuar', style: 'cancel' },
+                    { text: t('reportPreviewCloseContinue'), style: 'cancel' },
                     {
-                        text: 'Cancelar',
+                        text: t('reportPreviewCloseCancel'),
                         style: 'destructive',
                         onPress: () => onClose(),
                     },
@@ -79,8 +75,8 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
     const handleEdit = () => {
         if (loading) {
             Alert.alert(
-                'No disponible',
-                'No se puede editar mientras el reporte se está enviando.',
+                t('reportPreviewEditDisabledTitle'),
+                t('reportPreviewEditDisabledMessage'),
                 [{ text: 'OK' }]
             );
             return;
@@ -96,12 +92,12 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
         }
 
         Alert.alert(
-            'Confirmar envío',
-            '¿Estás seguro de que deseas enviar este reporte? Una vez enviado no podrás modificarlo.',
+            t('reportPreviewConfirmTitle'),
+            t('reportPreviewConfirmMessage'),
             [
-                { text: 'Revisar', style: 'cancel' },
+                { text: t('reportPreviewConfirmReview'), style: 'cancel' },
                 {
-                    text: 'Enviar',
+                    text: t('reportPreviewConfirmButton'),
                     style: 'default',
                     onPress: () => onConfirm(),
                 },
@@ -124,7 +120,7 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                         disabled={loading}>
                         <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
                     </Pressable>
-                    <Text className="text-lg font-semibold text-white">Vista Previa</Text>
+                    <Text className="text-lg font-semibold text-white">{t('reportPreviewTitle')}</Text>
                     <Pressable
                         onPress={handleEdit}
                         className={`rounded-lg p-2 ${loading ? 'opacity-50' : 'hover:bg-white/10'}`}
@@ -142,21 +138,21 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                         <View className="mb-2 flex-row items-center">
                             <MaterialCommunityIcons name="tag" size={20} color="#60a5fa" />
                             <Text className="ml-2 text-white">
-                                Tipo: {getTipoDenunciaLabel(data.tipoDenuncia)}
+                                {t('reportPreviewType')} {getTipoDenunciaLabel(data.tipoDenuncia)}
                             </Text>
                         </View>
 
                         <View className="mb-2 flex-row items-center">
                             <MaterialCommunityIcons name="alert" size={20} color="#f59e0b" />
                             <Text className="ml-2 text-white">
-                                Urgencia: {getUrgenciaLabel(data.urgencia)}
+                                {t('reportPreviewUrgency')} {getUrgenciaLabel(data.urgencia)}
                             </Text>
                         </View>
 
                         <View className="mb-2 flex-row items-center">
                             <MaterialCommunityIcons name="city" size={20} color="#10b981" />
                             <Text className="ml-2 text-white">
-                                Ciudad: {getCiudadLabel(data.ciudad)}
+                                {t('reportPreviewCity')} {getCiudadLabel(data.ciudad)}
                             </Text>
                         </View>
 
@@ -167,19 +163,19 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                                 color={data.visible ? '#10b981' : '#ef4444'}
                             />
                             <Text className="ml-2 text-white">
-                                {data.visible ? 'Público' : 'Privado'}
+                                {data.visible ? t('reportPreviewPublic') : t('reportPreviewPrivate')}
                             </Text>
                         </View>
                     </View>
 
                     {/* Ubicación */}
                     <View className="mb-4 rounded-lg bg-tertiary p-4">
-                        <Text className="mb-3 text-lg font-semibold text-white">Ubicación</Text>
+                        <Text className="mb-3 text-lg font-semibold text-white">{t('reportPreviewLocation')}</Text>
 
                         <View className="mb-2 flex-row items-center">
                             <MaterialCommunityIcons name="map-marker" size={20} color="#ef4444" />
                             <Text className="ml-2 text-white">
-                                {data.direccion || 'Sin dirección especificada'}
+                                {data.direccion || t('reportPreviewNoAddress')}
                             </Text>
                         </View>
 
@@ -199,7 +195,7 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                     {data.imagenes.length > 0 && (
                         <View className="mb-4 rounded-lg bg-tertiary p-4">
                             <Text className="mb-3 text-lg font-semibold text-white">
-                                Imágenes ({data.imagenes.length})
+                                {t('reportPreviewImages')} ({data.imagenes.length})
                             </Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                 {data.imagenes.map((uri, index) => (
@@ -218,10 +214,10 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                     {/* Video */}
                     {data.video && (
                         <View className="mb-4 rounded-lg bg-tertiary p-4">
-                            <Text className="mb-3 text-lg font-semibold text-white">Video</Text>
+                            <Text className="mb-3 text-lg font-semibold text-white">{t('reportPreviewVideo')}</Text>
                             <View className="flex-row items-center">
                                 <MaterialCommunityIcons name="video" size={24} color="#60a5fa" />
-                                <Text className="ml-2 text-white">Video adjunto</Text>
+                                <Text className="ml-2 text-white">{t('reportPreviewVideoAttached')}</Text>
                             </View>
                         </View>
                     )}
@@ -232,7 +228,7 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                             <View className="flex-row items-center">
                                 <MaterialCommunityIcons name="loading" size={20} color="#60a5fa" />
                                 <Text className="ml-2 text-blue-300">
-                                    Enviando reporte... No cierres la aplicación.
+                                    {t('reportPreviewSending')}
                                 </Text>
                             </View>
                         </View>
@@ -255,7 +251,7 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                                 style={{ marginRight: 6 }}
                             />
                             <Text className="font-semibold text-white">
-                                {loading ? 'Enviando...' : 'Editar'}
+                                {loading ? t('reportPreviewSending') : t('reportPreviewEdit')}
                             </Text>
                         </View>
                     </Pressable>
@@ -274,7 +270,7 @@ const ReportPreview: React.FC<ReportPreviewProps> = ({
                                 style={{ marginRight: 6 }}
                             />
                             <Text className="font-semibold text-white">
-                                {loading ? 'Enviando...' : 'Confirmar y Enviar'}
+                                {loading ? t('reportPreviewSending') : t('reportPreviewConfirmSend')}
                             </Text>
                         </View>
                     </Pressable>

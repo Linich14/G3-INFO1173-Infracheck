@@ -1,9 +1,10 @@
 import { Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useReportDetail } from '../hooks/useReportDetails';
+import { useReportDetails } from '../hooks/useReportDetails';
 import { useState, useCallback, useRef } from 'react';
 import { useUserContext } from '../../../contexts/UserContext'; // Cambiar a UserContext
+import { useLanguage } from '~/contexts/LanguageContext';
 
 type Props = {
     reportId: string;
@@ -36,7 +37,8 @@ const getUrgencyColor = (urgency: string): string => {
 };
 
 export default function ReportDetailsScreen({ reportId, onBack }: Props) {
-    const { report, loading, error, refetch } = useReportDetail(reportId);
+    const { t } = useLanguage();
+    const { report, loading, error, refetch } = useReportDetails(reportId);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const { width: screenWidth } = Dimensions.get('window');
     const scrollViewRef = useRef<ScrollView>(null);
@@ -96,8 +98,8 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
         return (
             <SafeAreaView className="flex-1 bg-[#0A0E1A]">
                 <View className="flex-1 items-center justify-center">
-                    <Text className="text-white">Cargando reporte...</Text>
-                    <Text className="mt-2 text-sm text-gray-400">ID: {reportId}</Text>
+                    <Text className="text-white">{t('reportDetailsLoading')}</Text>
+                    <Text className="mt-2 text-sm text-gray-400">{t('reportDetailsIdLabel')}: {reportId}</Text>
                 </View>
             </SafeAreaView>
         );
@@ -110,21 +112,21 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                 <View className="flex-1 items-center justify-center px-4">
                     <Ionicons name="document-text-outline" size={64} color="#6b7280" />
                     <Text className="mt-4 text-xl font-semibold text-white">
-                        {error || 'Reporte no encontrado'}
+                        {error || t('reportDetailsNotFound')}
                     </Text>
                     <Text className="mt-2 text-center text-gray-400">
-                        ID del reporte: {reportId}
+                        {t('reportDetailsIdLabel')}: {reportId}
                     </Text>
                     <View className="mt-4 flex-row space-x-4">
                         <TouchableOpacity
                             onPress={refetch}
                             className="rounded-lg bg-[#537CF2] px-4 py-2">
-                            <Text className="text-white">Reintentar</Text>
+                            <Text className="text-white">{t('reportDetailsRetry')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={handleGoBack}
                             className="rounded-lg bg-gray-600 px-4 py-2">
-                            <Text className="text-white">Volver</Text>
+                            <Text className="text-white">{t('reportDetailsBack')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -141,7 +143,7 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                         <Ionicons name="arrow-back" size={24} color="white" />
                     </TouchableOpacity>
                     <Text className="mr-6 flex-1 text-center text-2xl font-bold text-white">
-                        Detalle del Reporte
+                        {t('reportDetailsTitle')}
                     </Text>
                 </View>
             </View>
@@ -160,7 +162,7 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                             showsHorizontalScrollIndicator={false}
                             onMomentumScrollEnd={handleImageScroll}
                             className="h-64">
-                            {report.imagenes.map((imagen, index) => (
+                            {report.imagenes.map((imagen: string, index: number) => (
                                 <TouchableOpacity
                                     key={`image-${index}`}
                                     style={{ width: screenWidth }}
@@ -220,7 +222,7 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                         {report.imagenes.length > 1 && (
                             <View className="absolute bottom-4 left-4">
                                 <View className="flex-row space-x-2">
-                                    {report.imagenes.map((_, index) => (
+                                    {report.imagenes.map((_: string, index: number) => (
                                         <TouchableOpacity key={`indicator-${index}`}>
                                             <View
                                                 className={`h-1 rounded-full transition-all duration-300 ${

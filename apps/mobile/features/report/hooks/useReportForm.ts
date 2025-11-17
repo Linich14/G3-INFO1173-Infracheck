@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { ReportFormData, ReportFormErrors } from '../types';
 import { validateReportData, createReport } from '../services/reportService';
 import { useCamera } from './useCamera';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 export const useReportForm = () => {
+    const { t } = useLanguage();
     const [formData, setFormData] = useState<ReportFormData>({
         titulo: '',
         descripcion: '',
@@ -112,12 +114,17 @@ export const useReportForm = () => {
         console.log('Final data to submit:', finalData); // Debug log
 
         if (!validateForm()) {
-            return { success: false, message: 'Por favor, complete todos los campos requeridos.' };
+            return { success: false, message: t('reportValidationFormError') };
         }
 
         setIsSubmitting(true);
         try {
             const result = await createReport(finalData);
+
+            // Translate message if it's a translation key
+            if (result.message && result.message.startsWith('report')) {
+                result.message = t(result.message as any);
+            }
 
             if (result.success) {
                 resetForm();

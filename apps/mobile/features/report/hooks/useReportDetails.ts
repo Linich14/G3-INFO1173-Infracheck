@@ -1,6 +1,7 @@
 // hooks/useReportDetail.ts
 import { useState, useEffect } from 'react';
 import { ReportService } from '../services/reportService';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface ApiReportDetails {
     id: number;
@@ -145,7 +146,8 @@ const adaptReportData = (apiData: ApiReportDetails): ReportDetails => {
     };
 };
 
-export const useReportDetail = (reportId: string) => {
+export const useReportDetails = (reportId: string) => {
+    const { t } = useLanguage();
     const [report, setReport] = useState<ReportDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -160,10 +162,10 @@ export const useReportDetail = (reportId: string) => {
                 const adaptedReport = adaptReportData(response.data);
                 setReport(adaptedReport);
             } else {
-                setError('No se pudo cargar el reporte');
+                setError(t('reportDetailsLoadError'));
             }
         } catch (err: any) {
-            const errorMessage = err.response?.data?.message || 'Error al cargar el reporte';
+            const errorMessage = err.response?.data?.message || t('reportDetailsLoadErrorMessage');
             setError(errorMessage);
             console.error('Error in useReportDetail:', err);
         } finally {

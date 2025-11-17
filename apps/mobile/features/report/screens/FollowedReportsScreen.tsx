@@ -1,11 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Heart } from 'lucide-react-native';
 import ReportCard from '../../posts/components/ReportCard';
 import { ReportService } from '../services/reportService';
 import { useFocusEffect } from '@react-navigation/native';
+import { useLanguage } from '~/contexts/LanguageContext';
+import { useToast } from '~/features/posts/contexts/ToastContext';
 
 interface Report {
   id: string;
@@ -27,6 +29,8 @@ interface Report {
 }
 
 const FollowedReportsScreen: React.FC = () => {
+  const { t } = useLanguage();
+  const { showError, showSuccess } = useToast();
   const router = useRouter();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,7 +67,7 @@ const FollowedReportsScreen: React.FC = () => {
       setPage(pageNum);
     } catch (err: any) {
       console.error('Error al cargar reportes seguidos:', err);
-      setError(err?.response?.data?.detail || 'Error al cargar los reportes');
+      setError(err?.response?.data?.detail || t('reportFollowedError'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -89,35 +93,26 @@ const FollowedReportsScreen: React.FC = () => {
   }, [loadingMore, hasMore, loading, page, loadReports]);
 
   const handleUnfollow = useCallback((reportId: string, reportTitle: string) => {
-    Alert.alert(
-      'Dejar de seguir',
-      `¿Estás seguro que deseas dejar de seguir "${reportTitle}"?`,
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Dejar de seguir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Actualización optimista: remover del estado inmediatamente
-              setReports(prev => prev.filter(r => r.id !== reportId));
-              
-              // Llamar al servicio para hacer unfollow
-              await ReportService.unfollowReport(reportId);
-            } catch (err: any) {
-              console.error('Error al dejar de seguir:', err);
-              // Si falla, recargar la lista
-              loadReports(1);
-              Alert.alert('Error', 'No se pudo dejar de seguir el reporte');
-            }
-          },
-        },
-      ]
-    );
-  }, [loadReports]);
+    // Mostrar confirmación con Toast
+    showError(t('reportFollowedUnfollowMessage').replace('{title}', reportTitle));
+    
+    // Dar tiempo al usuario para ver el mensaje antes de proceder
+    setTimeout(async () => {
+      try {
+        // Actualización optimista: remover del estado inmediatamente
+        setReports(prev => prev.filter(r => r.id !== reportId));
+        
+        // Llamar al servicio para hacer unfollow
+        await ReportService.unfollowReport(reportId);
+        showSuccess(t('reportFollowedUnfollowSuccess'));
+      } catch (err: any) {
+        console.error('Error al dejar de seguir:', err);
+        // Si falla, recargar la lista
+        loadReports(1);
+        showError(t('reportFollowedUnfollowError'));
+      }
+    }, 1500);
+  }, [loadReports, showError, showSuccess, t]);
 
   const formatTimeAgo = (dateString: string): string => {
     const date = new Date(dateString);
@@ -127,7 +122,7 @@ const FollowedReportsScreen: React.FC = () => {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 1) return t('reportFollowedTimeNow');
     if (diffMins < 60) return `${diffMins}m`;
     if (diffHours < 24) return `${diffHours}h`;
     return `${diffDays}d`;
@@ -138,12 +133,12 @@ const FollowedReportsScreen: React.FC = () => {
       <ReportCard
         id={item.id}
         title={item.denu_titulo}
-        author={item.usuario?.usua_nickname || 'Usuario desconocido'}
+        author={item.usuario?.usua_nickname || t('reportFollowedUnknownUser')}
         timeAgo={formatTimeAgo(item.denu_fecha_creacion)}
-        image={item.denu_imagen ? { uri: item.denu_imagen } : null}
+        image={item.denu_imagen ? { uri: item.denu_imagen } : undefined}
         upvotes={item.votos_count || 0}
         isFollowed={true}
-        followLabel="Dejar de seguir"
+        followLabel={t('reportFollowedUnfollowLabel')}
         initialVoteCount={item.votos?.count}
         initialUserHasVoted={item.votos?.usuario_ha_votado}
         onFollow={() => handleUnfollow(item.id, item.denu_titulo)}

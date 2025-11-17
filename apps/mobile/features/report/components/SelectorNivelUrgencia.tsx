@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface SelectorNivelUrgenciaProps {
     value: string;
@@ -12,32 +13,34 @@ export const SelectorNivelUrgencia: React.FC<SelectorNivelUrgenciaProps> = ({
     onChange,
     error,
 }) => {
+    const { t } = useLanguage();
+    
     const urgencyLevels = [
         {
             id: '1',
-            label: 'Baja',
+            label: t('reportUrgencyLow'),
             color: 'bg-green-600',
         },
         {
             id: '2',
-            label: 'Media',
+            label: t('reportUrgencyMedium'),
             color: 'bg-yellow-600',
         },
         {
             id: '3',
-            label: 'Alta',
+            label: t('reportUrgencyHigh'),
             color: 'bg-orange-600',
         },
         {
             id: '4',
-            label: 'Crítica',
+            label: t('reportUrgencyCritical'),
             color: 'bg-red-600',
         },
     ];
 
     return (
         <View>
-            <Text className="mb-3 text-xl text-white">Nivel de Urgencia</Text>
+            <Text className="mb-3 text-xl text-white">{t('reportUrgencyTitle')}</Text>
 
             <View className="flex-row flex-wrap gap-3">
                 {urgencyLevels.map((level) => (
