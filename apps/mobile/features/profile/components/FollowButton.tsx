@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { UserPlus, UserCheck } from 'lucide-react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface FollowButtonProps {
   isFollowing: boolean;
@@ -15,6 +16,8 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
   loading = false,
   disabled = false 
 }) => {
+  const { t } = useLanguage();
+  
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -36,7 +39,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
             <UserPlus size={20} color="white" />
           )}
           <Text className="text-white font-semibold text-base ml-2">
-            {isFollowing ? 'Siguiendo' : 'Seguir'}
+            {isFollowing ? t('profileFollowingButton') : t('profileFollowButton')}
           </Text>
         </>
       )}

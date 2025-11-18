@@ -40,34 +40,16 @@ export default function FiltersModal({
     }
   }, [initialFilters, visible]);
 
-  // Traducción dinámica de categorías
-  const getCategoryTranslation = useMemo(() => {
-    const categoryMap: Record<string, { es: string; en: string; display: string }> = {
-      'Todas': { es: 'Todas', en: 'All', display: 'Todas' },
-      'Calles y Veredas en Mal Estado': { es: 'Calles y Veredas', en: 'Streets and Sidewalks', display: 'Calles y Veredas' },
-      'Luz o Alumbrado Público Dañado': { es: 'Alumbrado Público', en: 'Public Lighting', display: 'Alumbrado' },
-      'Drenaje o Aguas Estancadas': { es: 'Drenaje', en: 'Drainage', display: 'Drenaje' },
-      'Parques, Plazas o Árboles con Problemas': { es: 'Parques y Plazas', en: 'Parks and Squares', display: 'Parques' },
-      'Basura, Escombros o Espacios Sucios': { es: 'Basura y Limpieza', en: 'Trash and Cleaning', display: 'Limpieza' },
-      'Emergencias o Situaciones de Riesgo': { es: 'Emergencias', en: 'Emergencies', display: 'Emergencias' },
-      'Infraestructura o Mobiliario Público Dañado': { es: 'Infraestructura', en: 'Infrastructure', display: 'Infraestructura' }
-    };
-    return (cat: string): string => {
-      if (cat === 'Todas') return categoryMap[cat]?.[locale] || cat;
-      return categoryMap[cat]?.display || cat;
-    };
-  }, [locale]);
-
   const CATEGORIAS = useMemo(() => [
-    'Todas',
-    'Calles y Veredas en Mal Estado',
-    'Luz o Alumbrado Público Dañado',
-    'Drenaje o Aguas Estancadas',
-    'Parques, Plazas o Árboles con Problemas',
-    'Basura, Escombros o Espacios Sucios',
-    'Emergencias o Situaciones de Riesgo',
-    'Infraestructura o Mobiliario Público Dañado'
-  ], []);
+    { key: 'Todas', label: t('filtersCategoryAll'), value: 'Todas' },
+    { key: 'Calles y Veredas en Mal Estado', label: t('filtersCategoryStreets'), value: 'Calles y Veredas en Mal Estado' },
+    { key: 'Luz o Alumbrado Público Dañado', label: t('filtersCategoryLighting'), value: 'Luz o Alumbrado Público Dañado' },
+    { key: 'Drenaje o Aguas Estancadas', label: t('filtersCategoryDrainage'), value: 'Drenaje o Aguas Estancadas' },
+    { key: 'Parques, Plazas o Árboles con Problemas', label: t('filtersCategoryParks'), value: 'Parques, Plazas o Árboles con Problemas' },
+    { key: 'Basura, Escombros o Espacios Sucios', label: t('filtersCategoryGarbage'), value: 'Basura, Escombros o Espacios Sucios' },
+    { key: 'Emergencias o Situaciones de Riesgo', label: t('filtersCategoryEmergencies'), value: 'Emergencias o Situaciones de Riesgo' },
+    { key: 'Infraestructura o Mobiliario Público Dañado', label: t('filtersCategoryInfrastructure'), value: 'Infraestructura o Mobiliario Público Dañado' }
+  ], [t]);
 
   const ESTADOS = useMemo(() => [
     { label: t('filtersStatusAll'), value: 'Todos' },
@@ -128,14 +110,14 @@ export default function FiltersModal({
               <View className="flex-row flex-wrap">
                 {CATEGORIAS.map((cat) => (
                   <TouchableOpacity
-                    key={cat}
-                    onPress={() => setCategoria(cat)}
+                    key={cat.key}
+                    onPress={() => setCategoria(cat.value)}
                     className={`rounded-full px-4 py-2 mr-2 mb-2 ${
-                      categoria === cat ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+                      categoria === cat.value ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
                     }`}
                   >
-                    <Text className={`text-sm ${categoria === cat ? 'text-white font-semibold' : 'text-gray-400'}`}>
-                      {getCategoryTranslation(cat)}
+                    <Text className={`text-sm ${categoria === cat.value ? 'text-white font-semibold' : 'text-gray-400'}`}>
+                      {cat.label}
                     </Text>
                   </TouchableOpacity>
                 ))}

@@ -31,6 +31,16 @@ export default function MapFilters({
 }: MapFiltersProps) {
     const { t } = useLanguage();
     
+    const FILTER_LABELS: Record<AnnotationType, string> = {
+        [AnnotationType.CALLES_VEREDAS]: t('mapCategoryStreets'),
+        [AnnotationType.ALUMBRADO_DANADO]: t('mapCategoryLighting'),
+        [AnnotationType.DRENAJE_AGUAS]: t('mapCategoryDrainage'),
+        [AnnotationType.PARQUES_ARBOLES]: t('mapCategoryParks'),
+        [AnnotationType.BASURA_ESCOMBROS]: t('mapCategoryGarbage'),
+        [AnnotationType.EMERGENCIAS_RIESGOS]: t('mapCategoryEmergencies'),
+        [AnnotationType.MOBILIARIO_DANADO]: t('mapCategoryFurniture'),
+    };
+    
     const toggleFilter = (type: AnnotationType) => {
         const newActiveTypes = new Set(filterState.activeTypes);
 
@@ -99,7 +109,7 @@ export default function MapFilters({
                                 className={`font-medium ${
                                     filterState.showAll ? 'text-white' : 'text-gray-700'
                                 }`}>
-                                {filterState.showAll ? 'Deseleccionar todo' : 'Seleccionar todo'}
+                                {filterState.showAll ? t('mapDeselectAll') : t('mapSelectAll')}
                             </Text>
                         </Pressable>
                     </View>
@@ -138,7 +148,7 @@ export default function MapFilters({
                                                     : undefined,
                                             }}>
                                             <MaterialCommunityIcons
-                                                name={config.icon}
+                                                name={config.icon as any}
                                                 size={24}
                                                 color={isActive ? config.color : '#9CA3AF'}
                                             />

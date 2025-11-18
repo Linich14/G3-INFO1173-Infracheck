@@ -2,6 +2,7 @@ import { View, Text, Pressable, Animated } from 'react-native';
 import { useRef, useEffect } from 'react';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { AnnotationData, ANNOTATION_CONFIGS } from '../types';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface MapPopupProps {
     annotation: AnnotationData | null;
@@ -23,6 +24,16 @@ const STATUS_COLORS: Record<string, string> = {
 export default function MapPopup({ annotation, visible, onPress, position }: MapPopupProps) {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.8)).current;
+    const { t, locale } = useLanguage();
+
+    const STATUS_COLORS: Record<string, string> = {
+        [t('mapStatusOpen')]: '#EF4444',
+        [t('mapStatusInReview')]: '#F59E0B',
+        [t('mapStatusInProgress')]: '#3B82F6',
+        [t('mapStatusResolved')]: '#10B981',
+        [t('mapStatusClosed')]: '#6B7280',
+        [t('mapStatusRejected')]: '#DC2626',
+    };
 
     useEffect(() => {
         if (visible && annotation) {
@@ -51,38 +62,34 @@ export default function MapPopup({ annotation, visible, onPress, position }: Map
 
     const config = ANNOTATION_CONFIGS[annotation.type];
 
-    // Usar estado del backend directamente
-    const statusColor = STATUS_COLORS[annotation.status || 'Abierto'] || '#EF4444';
-    const statusLabel = annotation.status || 'Estado desconocido';
+    // Usar estado del backend o traducir si no está disponible
+    const statusLabel = annotation.status || t('mapStatusUnknown');
+    const statusColor = STATUS_COLORS[statusLabel] || '#EF4444';
 
-    // Formatear fecha al formato solicitado: "12 de noviembre 2025"
+    // Formatear fecha multiidioma
     const formatDate = (dateString: string | undefined) => {
         try {
-            if (!dateString) return 'Fecha no disponible';
+            if (!dateString) return t('mapDateNotAvailable');
 
             const date = new Date(dateString);
-            const meses = [
-                'enero',
-                'febrero',
-                'marzo',
-                'abril',
-                'mayo',
-                'junio',
-                'julio',
-                'agosto',
-                'septiembre',
-                'octubre',
-                'noviembre',
-                'diciembre',
+            const mesesES = [
+                'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+            ];
+            const mesesEN = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December',
             ];
 
             const dia = date.getDate();
-            const mes = meses[date.getMonth()];
+            const mes = locale === 'es' ? mesesES[date.getMonth()] : mesesEN[date.getMonth()];
             const año = date.getFullYear();
 
-            return `${dia} de ${mes} ${año}`;
+            return locale === 'es' 
+                ? `${dia} de ${mes} ${año}`
+                : `${mes} ${dia}, ${año}`;
         } catch {
-            return 'Fecha no disponible';
+            return t('mapDateNotAvailable');
         }
     };
 
@@ -159,7 +166,7 @@ export default function MapPopup({ annotation, visible, onPress, position }: Map
                                     style={{ marginRight: 6 }}
                                 />
                                 <Text className="flex-1 text-sm text-gray-600" numberOfLines={1}>
-                                    {annotation.direccion || 'Dirección no disponible'}
+                                    {annotation.direccion || t('mapAddressNotAvailable')}
                                 </Text>
                             </View>
 
@@ -180,7 +187,7 @@ export default function MapPopup({ annotation, visible, onPress, position }: Map
                         {/* Footer con acción */}
                         <View className="mt-3 flex-row items-center justify-between border-t border-gray-100 pt-3">
                             <Text className="text-xs text-gray-500">
-                                Toca para ver más detalles
+                                {t('mapTapForDetails')}
                             </Text>
                             <MaterialCommunityIcons
                                 name="chevron-right"

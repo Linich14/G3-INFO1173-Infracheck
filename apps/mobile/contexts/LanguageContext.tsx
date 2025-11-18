@@ -19,6 +19,9 @@ const TRANSLATIONS: Record<Locale, {
   profileLoadError: string;
   back: string;
   retry: string;
+  profileMyReportsTitle: string;
+  profileMyReportsDescription: string;
+  profileSettingsAccessibility: string;
   changePasswordTitle: string;
   changePasswordSubtitle: string;
   changePasswordModalTitle: string;
@@ -52,6 +55,11 @@ const TRANSLATIONS: Record<Locale, {
   statsReportsFollowed: string;
   statsVotesReceived: string;
   statsVotesMade: string;
+  profileQRTitle: string;
+  profileQRUserLabel: string;
+  profileQRShare: string;
+  profileFollowButton: string;
+  profileFollowingButton: string;
   editEmailTitle: string;
   editEmailLabel: string;
   editEmailPlaceholder: string;
@@ -381,6 +389,27 @@ const TRANSLATIONS: Record<Locale, {
   mapCategoryLabel: string;
   mapLocationLabel: string;
   mapCategoryNotAvailable: string;
+  mapSelectAll: string;
+  mapDeselectAll: string;
+  mapTapForDetails: string;
+  mapAddressNotAvailable: string;
+  mapDateNotAvailable: string;
+  mapStatusUnknown: string;
+  // Map - Categories
+  mapCategoryStreets: string;
+  mapCategoryLighting: string;
+  mapCategoryDrainage: string;
+  mapCategoryParks: string;
+  mapCategoryGarbage: string;
+  mapCategoryEmergencies: string;
+  mapCategoryFurniture: string;
+  // Map - Status
+  mapStatusOpen: string;
+  mapStatusInReview: string;
+  mapStatusInProgress: string;
+  mapStatusResolved: string;
+  mapStatusClosed: string;
+  mapStatusRejected: string;
   // Pin Details Modal
   pinDetailsTitle: string;
   pinDetailsCategory: string;
@@ -474,7 +503,6 @@ const TRANSLATIONS: Record<Locale, {
   // Profile - Public Profile
   profileQRCodeLabel: string;
   profilePhoneLabel: string;
-  profileSettingsAccessibility: string;
   // Posts - Report Card
   postsFollowToast: string;
   postsUnfollowToast: string;
@@ -649,6 +677,34 @@ const TRANSLATIONS: Record<Locale, {
   reportDetailsRetry: string;
   reportDetailsBack: string;
   reportDetailsTitle: string;
+  reportDetailsGoBack: string;
+  reportDetailsImageEvidence: string;
+  reportDetailsImage: string;
+  reportDetailsDateLabel: string;
+  reportDetailsUrgencyLabel: string;
+  reportDetailsTypeLabel: string;
+  reportDetailsDescriptionLabel: string;
+  reportDetailsLocationLabel: string;
+  reportDetailsLocationLat: string;
+  reportDetailsLocationLng: string;
+  reportDetailsLocationCity: string;
+  reportDetailsLocationMapTitle: string;
+  reportDetailsViewMap: string;
+  reportDetailsVideoLabel: string;
+  reportDetailsPlayVideo: string;
+  reportDetailsStatsLabel: string;
+  reportDetailsStatsFiles: string;
+  reportDetailsStatsImages: string;
+  reportDetailsStatsVideos: string;
+  reportDetailsStatsDays: string;
+  reportDetailsSystemInfo: string;
+  reportDetailsReportId: string;
+  reportDetailsStatus: string;
+  reportDetailsUser: string;
+  reportDetailsCreatedAt: string;
+  reportDetailsActionsAdd: string;
+  reportDetailsActionsUpdate: string;
+  reportDetailsActionsDelete: string;
   // Report - Media Section
   reportMediaSectionImage: string;
   reportMediaSectionVideo: string;
@@ -681,6 +737,19 @@ const TRANSLATIONS: Record<Locale, {
   profileEmailLabel: string;
   profileEmailNotPublic: string;
   profilePhoneNotPublic: string;
+  profileStatsTab: string;
+  profileReportsTab: string;
+  profilePublicTitle: string;
+  profileLoadingLabel: string;
+  profileLoadingReports: string;
+  profileQRDescription: string;
+  profileReportsTitle: string;
+  profileNoReports: string;
+  profileNoReportsUser: string;
+  profileNoReportsOwn: string;
+  profileErrorLoadingReports: string;
+  profileReportSingular: string;
+  profileReportPlural: string;
   // Profile - UserInfo Toasts
   profileEmailUpdateSuccess: string;
   profileEmailUpdateError: string;
@@ -826,6 +895,10 @@ const TRANSLATIONS: Record<Locale, {
   homeReportedMessage: string;
   homeNavigationTitle: string;
   homeViewOnMap: string;
+  // Navigation Bar
+  tabBarHome: string;
+  tabBarMap: string;
+  tabBarSettings: string;
   // Home - Filters Modal
   filtersTitle: string;
   filtersCategory: string;
@@ -847,6 +920,14 @@ const TRANSLATIONS: Record<Locale, {
   filtersUrgencyCritical: string;
   filtersApply: string;
   filtersClear: string;
+  filtersCategoryAll: string;
+  filtersCategoryStreets: string;
+  filtersCategoryLighting: string;
+  filtersCategoryDrainage: string;
+  filtersCategoryParks: string;
+  filtersCategoryGarbage: string;
+  filtersCategoryEmergencies: string;
+  filtersCategoryInfrastructure: string;
 }> = {
   es: {
     settings: 'Ajustes',
@@ -861,6 +942,8 @@ const TRANSLATIONS: Record<Locale, {
     profileLoadError: 'Error al cargar el perfil',
     back: 'Volver',
     retry: 'Reintentar',
+    profileMyReportsTitle: 'Mis Reportes',
+    profileMyReportsDescription: 'Ver todos los reportes que he creado',
     changePasswordTitle: 'Cambiar Contraseña',
     changePasswordSubtitle: 'Actualiza tu contraseña de forma segura',
     changePasswordModalTitle: 'Cambiar Contraseña',
@@ -896,6 +979,11 @@ const TRANSLATIONS: Record<Locale, {
     statsReportsFollowed: 'Reportes seguidos',
     statsVotesReceived: 'Votos recibidos',
     statsVotesMade: 'Votos realizados',
+    profileQRTitle: 'Mi QR',
+    profileQRUserLabel: 'Usuario',
+    profileQRShare: 'Compartir QR',
+    profileFollowButton: 'Seguir',
+    profileFollowingButton: 'Siguiendo',
     editEmailTitle: 'Editar Email',
     editEmailLabel: 'Nuevo email',
     editEmailPlaceholder: 'ejemplo@correo.com',
@@ -1214,6 +1302,27 @@ const TRANSLATIONS: Record<Locale, {
     mapCategoryLabel: 'Categoría',
     mapLocationLabel: 'Ubicación',
     mapCategoryNotAvailable: 'Categoría no disponible',
+    mapSelectAll: 'Seleccionar todo',
+    mapDeselectAll: 'Deseleccionar todo',
+    mapTapForDetails: 'Toca para ver más detalles',
+    mapAddressNotAvailable: 'Dirección no disponible',
+    mapDateNotAvailable: 'Fecha no disponible',
+    mapStatusUnknown: 'Estado desconocido',
+    // Map - Categories
+    mapCategoryStreets: 'Calles y Veredas',
+    mapCategoryLighting: 'Alumbrado Público',
+    mapCategoryDrainage: 'Drenaje y Aguas',
+    mapCategoryParks: 'Parques y Árboles',
+    mapCategoryGarbage: 'Basura y Escombros',
+    mapCategoryEmergencies: 'Emergencias',
+    mapCategoryFurniture: 'Mobiliario Público',
+    // Map - Status
+    mapStatusOpen: 'Abierto',
+    mapStatusInReview: 'En Revisión',
+    mapStatusInProgress: 'En Proceso',
+    mapStatusResolved: 'Resuelto',
+    mapStatusClosed: 'Cerrado',
+    mapStatusRejected: 'Rechazado',
     // Pin Details Modal
     pinDetailsTitle: 'Detalles del reporte',
     pinDetailsCategory: 'Categoría',
@@ -1482,6 +1591,34 @@ const TRANSLATIONS: Record<Locale, {
     reportDetailsRetry: 'Reintentar',
     reportDetailsBack: 'Volver',
     reportDetailsTitle: 'Detalle del Reporte',
+    reportDetailsGoBack: 'Volver',
+    reportDetailsImageEvidence: 'Evidencia fotográfica',
+    reportDetailsImage: 'Imagen',
+    reportDetailsDateLabel: 'Fecha',
+    reportDetailsUrgencyLabel: 'Urgencia',
+    reportDetailsTypeLabel: 'Tipo de Denuncia',
+    reportDetailsDescriptionLabel: 'Descripción',
+    reportDetailsLocationLabel: 'Ubicación',
+    reportDetailsLocationLat: 'Lat',
+    reportDetailsLocationLng: 'Lng',
+    reportDetailsLocationCity: 'Ciudad',
+    reportDetailsLocationMapTitle: 'Ubicación del Reporte',
+    reportDetailsViewMap: 'Ver en mapa',
+    reportDetailsVideoLabel: 'Video',
+    reportDetailsPlayVideo: 'Reproducir video',
+    reportDetailsStatsLabel: 'Estadísticas',
+    reportDetailsStatsFiles: 'Total de archivos',
+    reportDetailsStatsImages: 'Imágenes',
+    reportDetailsStatsVideos: 'Videos',
+    reportDetailsStatsDays: 'Días desde creación',
+    reportDetailsSystemInfo: 'Información del Sistema',
+    reportDetailsReportId: 'ID del reporte',
+    reportDetailsStatus: 'Estado',
+    reportDetailsUser: 'Usuario',
+    reportDetailsCreatedAt: 'Fecha de creación',
+    reportDetailsActionsAdd: 'Agregar imágenes',
+    reportDetailsActionsUpdate: 'Actualizar reporte',
+    reportDetailsActionsDelete: 'Eliminar reporte',
     // Report - Media Section
     reportMediaSectionImage: 'Imagen',
     reportMediaSectionVideo: 'Video',
@@ -1514,6 +1651,19 @@ const TRANSLATIONS: Record<Locale, {
     profileEmailLabel: 'Email',
     profileEmailNotPublic: 'No disponible públicamente',
     profilePhoneNotPublic: 'No disponible públicamente',
+    profileStatsTab: 'Estadísticas',
+    profileReportsTab: 'Reportes',
+    profilePublicTitle: 'Perfil Público',
+    profileLoadingLabel: 'Cargando perfil...',
+    profileLoadingReports: 'Cargando reportes...',
+    profileQRDescription: 'Compartir perfil',
+    profileReportsTitle: 'Reportes',
+    profileNoReports: 'No hay reportes',
+    profileNoReportsUser: 'Este usuario no ha creado reportes aún',
+    profileNoReportsOwn: 'No has creado ningún reporte aún',
+    profileErrorLoadingReports: 'Error al cargar los reportes',
+    profileReportSingular: 'reporte',
+    profileReportPlural: 'reportes',
     // Profile - UserInfo Toasts
     profileEmailUpdateSuccess: 'Tu email ha sido actualizado correctamente',
     profileEmailUpdateError: 'No se pudo actualizar el email',
@@ -1660,6 +1810,10 @@ const TRANSLATIONS: Record<Locale, {
     homeReportedMessage: 'El contenido ha sido reportado exitosamente.',
     homeNavigationTitle: 'Navegación',
     homeViewOnMap: 'Ver en Mapa',
+    // Navigation Bar
+    tabBarHome: 'Inicio',
+    tabBarMap: 'Mapa',
+    tabBarSettings: 'Ajustes',
     // Home - Filters Modal
     filtersTitle: 'Filtros Avanzados',
     filtersCategory: 'Categoría',
@@ -1681,6 +1835,14 @@ const TRANSLATIONS: Record<Locale, {
     filtersUrgencyCritical: 'Crítica',
     filtersApply: 'Aplicar Filtros',
     filtersClear: 'Limpiar Filtros',
+    filtersCategoryAll: 'Todas',
+    filtersCategoryStreets: 'Calles y Veredas',
+    filtersCategoryLighting: 'Alumbrado Público',
+    filtersCategoryDrainage: 'Drenaje',
+    filtersCategoryParks: 'Parques y Plazas',
+    filtersCategoryGarbage: 'Basura y Limpieza',
+    filtersCategoryEmergencies: 'Emergencias',
+    filtersCategoryInfrastructure: 'Infraestructura',
   },
   en: {
     settings: 'Settings',
@@ -1695,6 +1857,8 @@ const TRANSLATIONS: Record<Locale, {
     profileLoadError: 'Error loading profile',
     back: 'Back',
     retry: 'Retry',
+    profileMyReportsTitle: 'My Reports',
+    profileMyReportsDescription: 'View all the reports I have created',
     changePasswordTitle: 'Change Password',
     changePasswordSubtitle: 'Update your password securely',
     changePasswordModalTitle: 'Change Password',
@@ -1730,6 +1894,11 @@ const TRANSLATIONS: Record<Locale, {
     statsReportsFollowed: 'Reports followed',
     statsVotesReceived: 'Votes received',
     statsVotesMade: 'Votes made',
+    profileQRTitle: 'My QR',
+    profileQRUserLabel: 'User',
+    profileQRShare: 'Share QR',
+    profileFollowButton: 'Follow',
+    profileFollowingButton: 'Following',
     editEmailTitle: 'Edit Email',
     editEmailLabel: 'New email',
     editEmailPlaceholder: 'example@mail.com',
@@ -2048,6 +2217,27 @@ const TRANSLATIONS: Record<Locale, {
     mapCategoryLabel: 'Category',
     mapLocationLabel: 'Location',
     mapCategoryNotAvailable: 'Category not available',
+    mapSelectAll: 'Select all',
+    mapDeselectAll: 'Deselect all',
+    mapTapForDetails: 'Tap to see more details',
+    mapAddressNotAvailable: 'Address not available',
+    mapDateNotAvailable: 'Date not available',
+    mapStatusUnknown: 'Unknown status',
+    // Map - Categories
+    mapCategoryStreets: 'Streets and Sidewalks',
+    mapCategoryLighting: 'Public Lighting',
+    mapCategoryDrainage: 'Drainage and Water',
+    mapCategoryParks: 'Parks and Trees',
+    mapCategoryGarbage: 'Garbage and Debris',
+    mapCategoryEmergencies: 'Emergencies',
+    mapCategoryFurniture: 'Public Furniture',
+    // Map - Status
+    mapStatusOpen: 'Open',
+    mapStatusInReview: 'In Review',
+    mapStatusInProgress: 'In Progress',
+    mapStatusResolved: 'Resolved',
+    mapStatusClosed: 'Closed',
+    mapStatusRejected: 'Rejected',
     // Pin Details Modal
     pinDetailsTitle: 'Report details',
     pinDetailsCategory: 'Category',
@@ -2316,6 +2506,34 @@ const TRANSLATIONS: Record<Locale, {
     reportDetailsRetry: 'Retry',
     reportDetailsBack: 'Back',
     reportDetailsTitle: 'Report Details',
+    reportDetailsGoBack: 'Go Back',
+    reportDetailsImageEvidence: 'Photographic evidence',
+    reportDetailsImage: 'Image',
+    reportDetailsDateLabel: 'Date',
+    reportDetailsUrgencyLabel: 'Urgency',
+    reportDetailsTypeLabel: 'Report Type',
+    reportDetailsDescriptionLabel: 'Description',
+    reportDetailsLocationLabel: 'Location',
+    reportDetailsLocationLat: 'Lat',
+    reportDetailsLocationLng: 'Lng',
+    reportDetailsLocationCity: 'City',
+    reportDetailsLocationMapTitle: 'Report Location',
+    reportDetailsViewMap: 'View on map',
+    reportDetailsVideoLabel: 'Video',
+    reportDetailsPlayVideo: 'Play video',
+    reportDetailsStatsLabel: 'Statistics',
+    reportDetailsStatsFiles: 'Total files',
+    reportDetailsStatsImages: 'Images',
+    reportDetailsStatsVideos: 'Videos',
+    reportDetailsStatsDays: 'Days since creation',
+    reportDetailsSystemInfo: 'System Information',
+    reportDetailsReportId: 'Report ID',
+    reportDetailsStatus: 'Status',
+    reportDetailsUser: 'User',
+    reportDetailsCreatedAt: 'Creation date',
+    reportDetailsActionsAdd: 'Add images',
+    reportDetailsActionsUpdate: 'Update report',
+    reportDetailsActionsDelete: 'Delete report',
     // Report - Media Section
     reportMediaSectionImage: 'Image',
     reportMediaSectionVideo: 'Video',
@@ -2348,6 +2566,19 @@ const TRANSLATIONS: Record<Locale, {
     profileEmailLabel: 'Email',
     profileEmailNotPublic: 'Not publicly available',
     profilePhoneNotPublic: 'Not publicly available',
+    profileStatsTab: 'Statistics',
+    profileReportsTab: 'Reports',
+    profilePublicTitle: 'Public Profile',
+    profileLoadingLabel: 'Loading profile...',
+    profileLoadingReports: 'Loading reports...',
+    profileQRDescription: 'Share profile',
+    profileReportsTitle: 'Reports',
+    profileNoReports: 'No reports',
+    profileNoReportsUser: 'This user has not created any reports yet',
+    profileNoReportsOwn: 'You have not created any reports yet',
+    profileErrorLoadingReports: 'Error loading reports',
+    profileReportSingular: 'report',
+    profileReportPlural: 'reports',
     // Profile - UserInfo Toasts
     profileEmailUpdateSuccess: 'Your email has been successfully updated',
     profileEmailUpdateError: 'Could not update email',
@@ -2494,6 +2725,10 @@ const TRANSLATIONS: Record<Locale, {
     homeReportedMessage: 'Content has been reported successfully.',
     homeNavigationTitle: 'Navigation',
     homeViewOnMap: 'View on Map',
+    // Navigation Bar
+    tabBarHome: 'Home',
+    tabBarMap: 'Map',
+    tabBarSettings: 'Settings',
     // Home - Filters Modal
     filtersTitle: 'Advanced Filters',
     filtersCategory: 'Category',
@@ -2515,6 +2750,14 @@ const TRANSLATIONS: Record<Locale, {
     filtersUrgencyCritical: 'Critical',
     filtersApply: 'Apply Filters',
     filtersClear: 'Clear Filters',
+    filtersCategoryAll: 'All',
+    filtersCategoryStreets: 'Streets and Sidewalks',
+    filtersCategoryLighting: 'Public Lighting',
+    filtersCategoryDrainage: 'Drainage',
+    filtersCategoryParks: 'Parks and Squares',
+    filtersCategoryGarbage: 'Trash and Cleaning',
+    filtersCategoryEmergencies: 'Emergencies',
+    filtersCategoryInfrastructure: 'Infrastructure',
   },
 };
 

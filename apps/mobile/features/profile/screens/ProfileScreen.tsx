@@ -118,27 +118,26 @@ function ProfileScreen() {
                 <UserInfo user={user} />
 
                 {/* My Reports Section */}
-                <View className="mb-4 px-4">
-                    <View className="rounded-xl bg-[#13161E] p-4">
+                <View className="px-4">
+                    <View className="mt-6 px-3.5">
                         <TouchableOpacity
                             onPress={handleViewMyReports}
-                            className="flex-row items-center justify-between"
+                            className="w-full flex-row rounded-xl bg-[#1D212D] shadow-sm"
                             activeOpacity={0.7}>
-                            <View className="flex-1 flex-row items-center">
-                                <View className="mr-4 rounded-lg bg-[#537CF2] p-2">
-                                    <FileText size={24} color="white" />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="text-lg font-semibold text-white">
-                                        {t('profileMyReportsTitle') || 'Mis Reportes'}
-                                    </Text>
-                                    <Text className="text-sm text-gray-400">
-                                        {t('profileMyReportsDescription') ||
-                                            'Ver todos los reportes que he creado'}
-                                    </Text>
-                                </View>
+                            <View className="aspect-[1.3] w-[65px] items-center justify-center">
+                                <FileText size={24} color="#537CF2" />
                             </View>
-                            <View className="h-2 w-2 rounded-full bg-[#537CF2]" />
+                            <View className="flex-1 justify-center py-3.5 pr-4">
+                                <Text className="mb-0.5 text-xl font-bold text-white">
+                                    {t('profileMyReportsTitle')}
+                                </Text>
+                                <Text className="text-sm text-gray-400">
+                                    {t('profileMyReportsDescription')}
+                                </Text>
+                            </View>
+                            <View className="items-center justify-center pr-4">
+                                <FileText size={16} color="#537CF2" />
+                            </View>
                         </TouchableOpacity>
                     </View>
                 </View>

@@ -49,7 +49,7 @@ export default function MyReportsScreen() {
 
                 <View className="flex-1 items-center justify-center">
                     <Text className="text-lg text-white">
-                        {t('profileLoadingReports') || 'Cargando...'}
+                        {t('profileLoadingReports')}
                     </Text>
                 </View>
             </SafeAreaView>
@@ -70,15 +70,14 @@ export default function MyReportsScreen() {
                 </TouchableOpacity>
 
                 <Text className="ml-4 text-2xl font-bold text-[#537CF2]">
-                    {t('profileMyReportsTitle') || 'Mis Reportes'}
+                    {t('profileMyReportsTitle')}
                 </Text>
             </View>
 
             {/* Descripción fija */}
             <View className="bg-[#090A0D] px-4 py-2">
                 <Text className="text-sm text-gray-400">
-                    {t('profileMyReportsDescription') ||
-                        'Aquí puedes ver todos los reportes que has creado'}
+                    {t('profileMyReportsDescription')}
                 </Text>
             </View>
 

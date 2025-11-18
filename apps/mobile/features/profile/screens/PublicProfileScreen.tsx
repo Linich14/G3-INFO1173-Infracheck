@@ -44,7 +44,7 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
                 setProfileData(data);
             } catch (error) {
                 console.error('Error loading user public stats:', error);
-                Alert.alert(t('error'), t('profileLoadError') || 'Error al cargar el perfil');
+                Alert.alert(t('notifyErrorTitle'), t('profileLoadError'));
             } finally {
                 setLoading(false);
                 if (isRefresh) setRefreshing(false);
@@ -114,7 +114,7 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
                         className={`text-center font-semibold ${
                             activeTab === 'stats' ? 'text-white' : 'text-gray-400'
                         }`}>
-                        {t('profileStatsTab') || 'Estadísticas'}
+                        {t('profileStatsTab')}
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -126,7 +126,7 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
                         className={`text-center font-semibold ${
                             activeTab === 'reports' ? 'text-white' : 'text-gray-400'
                         }`}>
-                        {t('profileReportsTab') || 'Reportes'}
+                        {t('profileReportsTab')}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -153,10 +153,10 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
                         </View>
                         <View className="flex-1">
                             <Text className="text-lg font-semibold text-white">
-                                {t('profileQRViewLabel') || 'Ver código QR'}
+                                {t('profileQRViewLabel')}
                             </Text>
                             <Text className="text-sm text-gray-400">
-                                {t('profileQRDescription') || 'Compartir perfil'}
+                                {t('profileQRDescription')}
                             </Text>
                         </View>
                         <View className="h-2 w-2 rounded-full bg-[#537CF2]" />
@@ -172,7 +172,7 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
                 <View className="flex-1 items-center justify-center">
                     <ActivityIndicator size="large" color="#537CF2" />
                     <Text className="mt-4 text-white">
-                        {t('profileLoadingLabel') || 'Cargando perfil...'}
+                        {t('profileLoadingLabel')}
                     </Text>
                 </View>
             </SafeAreaView>
@@ -184,20 +184,20 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
             <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#090A0D' }}>
                 <View className="flex-1 items-center justify-center px-4">
                     <Text className="mb-4 text-center text-lg text-red-500">
-                        {t('profileLoadError') || 'Error al cargar el perfil'}
+                        {t('profileLoadError')}
                     </Text>
                     <View className="flex-row space-x-4">
                         <TouchableOpacity
                             onPress={() => loadUserStats()}
                             className="rounded-lg bg-[#537CF2] px-6 py-3">
                             <Text className="font-bold text-white">
-                                {t('retry') || 'Reintentar'}
+                                {t('retry')}
                             </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => router.back()}
                             className="rounded-lg bg-gray-600 px-6 py-3">
-                            <Text className="font-bold text-white">{t('back') || 'Volver'}</Text>
+                            <Text className="font-bold text-white">{t('back')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -279,7 +279,7 @@ export default function PublicProfileScreen({ userId, nickname }: PublicProfileS
                 </TouchableOpacity>
 
                 <Text className="text-2xl font-bold text-[#537CF2]">
-                    {t('profilePublicTitle') || 'Perfil Público'}
+                    {t('profilePublicTitle')}
                 </Text>
 
                 <View style={{ width: 26 }} />

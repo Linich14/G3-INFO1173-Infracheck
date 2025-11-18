@@ -80,11 +80,11 @@ export const UserReportsGrid: React.FC<UserReportsGridProps> = ({
         return (
             <View className="mb-4 flex-row items-center justify-between">
                 <Text className="text-xl font-bold text-white">
-                    {t('profileReportsTitle') || 'Reportes'}
+                    {t('profileReportsTitle')}
                 </Text>
                 {reportsCount > 0 && (
                     <Text className="text-sm text-gray-400">
-                        {reportsCount} {reportsCount === 1 ? 'reporte' : 'reportes'}
+                        {reportsCount} {reportsCount === 1 ? t('profileReportSingular') : t('profileReportPlural')}
                     </Text>
                 )}
             </View>
@@ -94,12 +94,12 @@ export const UserReportsGrid: React.FC<UserReportsGridProps> = ({
     const renderEmptyState = () => (
         <View className="flex-1 items-center justify-center py-12">
             <Text className="mb-2 text-lg font-semibold text-white">
-                {t('profileNoReports') || 'No hay reportes'}
+                {t('profileNoReports')}
             </Text>
             <Text className="text-center text-gray-400">
                 {authorId
-                    ? t('profileNoReportsUser') || 'Este usuario no ha creado reportes aún'
-                    : t('profileNoReportsOwn') || 'No has creado ningún reporte aún'}
+                    ? t('profileNoReportsUser')
+                    : t('profileNoReportsOwn')}
             </Text>
         </View>
     );
@@ -107,10 +107,10 @@ export const UserReportsGrid: React.FC<UserReportsGridProps> = ({
     const renderErrorState = () => (
         <View className="flex-1 items-center justify-center py-12">
             <Text className="mb-4 text-center text-lg text-red-500">
-                {error || t('profileErrorLoadingReports') || 'Error al cargar los reportes'}
+                {error || t('profileErrorLoadingReports')}
             </Text>
             <TouchableOpacity className="rounded-lg bg-[#537CF2] px-6 py-3" onPress={refresh}>
-                <Text className="font-semibold text-white">{t('retry') || 'Reintentar'}</Text>
+                <Text className="font-semibold text-white">{t('retry')}</Text>
             </TouchableOpacity>
         </View>
     );
@@ -120,7 +120,7 @@ export const UserReportsGrid: React.FC<UserReportsGridProps> = ({
             <View className="flex-1 items-center justify-center py-12">
                 <ActivityIndicator size="large" color="#537CF2" />
                 <Text className="mt-4 text-white">
-                    {t('profileLoadingReports') || 'Cargando reportes...'}
+                    {t('profileLoadingReports')}
                 </Text>
             </View>
         );
