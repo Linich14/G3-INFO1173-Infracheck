@@ -56,6 +56,7 @@ export interface ReportCardProps {
     id: string;
     title: string;
     author: string;
+    authorId?: string;
     timeAgo: string;
     image?: ImageSourcePropType;
     upvotes?: number; // Deprecated - use votos.count

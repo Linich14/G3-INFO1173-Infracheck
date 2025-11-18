@@ -1,6 +1,15 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Animated, Dimensions, TouchableWithoutFeedback, Easing, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import {
+    Animated,
+    Dimensions,
+    TouchableWithoutFeedback,
+    Easing,
+    View,
+    Text,
+    TouchableOpacity,
+    ScrollView,
+} from 'react-native';
 import { X } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '~/contexts/AuthContext';
@@ -17,7 +26,24 @@ export default function HomeScreen() {
     const insets = useSafeAreaInsets();
     const { logout } = useAuth();
 
-    // Usar el hook para manejar los reportes con cursor pagination
+    // Mapeo de categorías a tipos (valores del 1 al 7)
+    const categoryToTypeMap: Record<string, number> = {
+        'Calles y Veredas en Mal Estado': 1,
+        'Luz o Alumbrado Público Dañado': 2,
+        'Drenaje o Aguas Estancadas': 3,
+        'Parques, Plazas o Árboles con Problemas': 4,
+        'Basura, Escombros o Espacios Sucios': 5,
+        'Emergencias o Situaciones de Riesgo': 6,
+        'Infraestructura o Mobiliario Público Dañado': 7,
+    };
+
+    // Convertir filtro de categoría a tipo
+    const getTypeFromCategory = (categoria: string | null): number | undefined => {
+        if (!categoria || categoria === 'Todas') return undefined;
+        return categoryToTypeMap[categoria];
+    };
+
+    // Usar el hook para manejar los reportes con filtros
     const {
         reports,
         loading,
@@ -31,6 +57,7 @@ export default function HomeScreen() {
         isLoadingMore,
         loadMoreError,
         retryLoadMore,
+        updateFilters,
     } = useReportsList();
 
     const [open, setOpen] = useState(false);
@@ -49,27 +76,24 @@ export default function HomeScreen() {
     const backdropOpacity = useRef(new Animated.Value(0)).current;
     const DRAWER_W = Math.min(280, Dimensions.get('window').width * 0.65);
 
-    // Función para aplicar todos los filtros activos (usando useMemo para evitar recalcular constantemente)
+    // Aplicar filtros locales (estado y urgencia) - Los filtros de tipo se envían al backend
     const displayedReports = useMemo(() => {
         let filtered = reports;
 
-        // Filtrar por categoría
-        if (activeFilters.categoria && activeFilters.categoria !== 'Todas') {
-            filtered = filtered.filter((report) => report.categoria === activeFilters.categoria);
-        }
-
-        // Filtrar por urgencia
+        // Filtrar por urgencia (local)
         if (activeFilters.urgencia && activeFilters.urgencia !== 0) {
-            filtered = filtered.filter((report) => Number(report.urgencia) === Number(activeFilters.urgencia));
+            filtered = filtered.filter(
+                (report) => Number(report.urgencia) === Number(activeFilters.urgencia)
+            );
         }
 
-        // Filtrar por estado
+        // Filtrar por estado (local)
         if (activeFilters.estado && activeFilters.estado !== 'Todos') {
             filtered = filtered.filter((report) => report.estado === activeFilters.estado);
         }
 
         return filtered;
-    }, [reports, activeFilters]); // Solo recalcular cuando cambien reports o activeFilters
+    }, [reports, activeFilters]);
 
     // Función para obtener nombre corto de categoría
     const getShortCategoryName = (categoria: string | null): string => {
@@ -81,15 +105,16 @@ export default function HomeScreen() {
             'Parques, Plazas o Árboles con Problemas': 'Parques',
             'Basura, Escombros o Espacios Sucios': 'Limpieza',
             'Emergencias o Situaciones de Riesgo': 'Emergencias',
-            'Infraestructura o Mobiliario Público Dañado': 'Infraestructura'
+            'Infraestructura o Mobiliario Público Dañado': 'Infraestructura',
         };
         return map[categoria] || categoria;
     };
 
     // Verificar si hay filtros activos
-    const hasActiveFilters = activeFilters.categoria !== 'Todas' || 
-                            activeFilters.estado !== 'Todos' || 
-                            activeFilters.urgencia !== 0;
+    const hasActiveFilters =
+        activeFilters.categoria !== 'Todas' ||
+        activeFilters.estado !== 'Todos' ||
+        activeFilters.urgencia !== 0;
 
     // Log para debug de errores
     useEffect(() => {
@@ -104,6 +129,19 @@ export default function HomeScreen() {
         triggerGlobalVotesRefresh();
         // Refrescar reportes
         await refresh();
+    };
+
+    // Función para agregar comentario
+    const addComment = async (content: string): Promise<void> => {
+        try {
+            console.log('Adding comment:', content);
+            // Aquí iría la lógica para agregar el comentario
+            // Por ahora solo simular
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            throw error;
+        }
     };
 
     const openMenu = () => {
@@ -165,23 +203,36 @@ export default function HomeScreen() {
         urgencia: number;
     }) => {
         setActiveFilters(newFilters);
+
+        // Convertir categoría a tipo para enviar al backend
+        const tipoFilter = getTypeFromCategory(newFilters.categoria);
+
+        // Actualizar filtros en el hook (esto recargará los datos del backend)
+        updateFilters({ tipo: tipoFilter });
+
         setFiltersModalVisible(false);
     };
 
     const handleClearFilters = () => {
-        setActiveFilters({
+        const clearedFilters = {
             categoria: 'Todas',
             estado: 'Todos',
             urgencia: 0,
-        });
+        };
+        setActiveFilters(clearedFilters);
+
+        // Limpiar filtros en el backend también
+        updateFilters({});
     };
 
-    const addComment = async (content: string) => {
-        if (!selectedReport) return;
+    // Función para manejar cambio individual de filtro de categoría
+    const handleCategoryFilterChange = (categoria: string | null) => {
+        const newFilters = { ...activeFilters, categoria };
+        setActiveFilters(newFilters);
 
-        // El comentario se maneja dentro del CommentsModal
-        // Esta función ahora es solo un placeholder para compatibilidad
-        // El modal se encarga de actualizar la lista de comentarios
+        // Convertir categoría a tipo para enviar al backend
+        const tipoFilter = getTypeFromCategory(categoria);
+        updateFilters({ tipo: tipoFilter });
     };
 
     // Handler mejorado para loadMore
@@ -200,53 +251,53 @@ export default function HomeScreen() {
 
             {/* Chips de filtros activos */}
             {hasActiveFilters && (
-                <View className="bg-[#13161E] px-4 py-2 border-b border-gray-800">
+                <View className="border-b border-gray-800 bg-[#13161E] px-4 py-2">
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View className="flex-row gap-2">
                             {activeFilters.categoria !== 'Todas' && (
-                                <View className="flex-row items-center bg-[#537CF2] rounded-full px-3 py-1.5">
-                                    <Text className="text-white text-xs font-semibold mr-1">
+                                <View className="flex-row items-center rounded-full bg-[#537CF2] px-3 py-1.5">
+                                    <Text className="mr-1 text-xs font-semibold text-white">
                                         {getShortCategoryName(activeFilters.categoria)}
                                     </Text>
-                                    <TouchableOpacity 
-                                        onPress={() => setActiveFilters({...activeFilters, categoria: 'Todas'})}
-                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                    >
+                                    <TouchableOpacity
+                                        onPress={() => handleCategoryFilterChange('Todas')}
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                                         <X size={14} color="white" />
                                     </TouchableOpacity>
                                 </View>
                             )}
                             {activeFilters.estado !== 'Todos' && (
-                                <View className="flex-row items-center bg-[#537CF2] rounded-full px-3 py-1.5">
-                                    <Text className="text-white text-xs font-semibold mr-1">
+                                <View className="flex-row items-center rounded-full bg-[#537CF2] px-3 py-1.5">
+                                    <Text className="mr-1 text-xs font-semibold text-white">
                                         {activeFilters.estado}
                                     </Text>
-                                    <TouchableOpacity 
-                                        onPress={() => setActiveFilters({...activeFilters, estado: 'Todos'})}
-                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                    >
+                                    <TouchableOpacity
+                                        onPress={() =>
+                                            setActiveFilters({ ...activeFilters, estado: 'Todos' })
+                                        }
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                                         <X size={14} color="white" />
                                     </TouchableOpacity>
                                 </View>
                             )}
                             {activeFilters.urgencia !== 0 && (
-                                <View className="flex-row items-center bg-[#537CF2] rounded-full px-3 py-1.5">
-                                    <Text className="text-white text-xs font-semibold mr-1">
+                                <View className="flex-row items-center rounded-full bg-[#537CF2] px-3 py-1.5">
+                                    <Text className="mr-1 text-xs font-semibold text-white">
                                         Urgencia {activeFilters.urgencia}
                                     </Text>
-                                    <TouchableOpacity 
-                                        onPress={() => setActiveFilters({...activeFilters, urgencia: 0})}
-                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                    >
+                                    <TouchableOpacity
+                                        onPress={() =>
+                                            setActiveFilters({ ...activeFilters, urgencia: 0 })
+                                        }
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                                         <X size={14} color="white" />
                                     </TouchableOpacity>
                                 </View>
                             )}
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 onPress={handleClearFilters}
-                                className="bg-[#1D212D] rounded-full px-3 py-1.5"
-                            >
-                                <Text className="text-gray-400 text-xs font-semibold">
+                                className="rounded-full bg-[#1D212D] px-3 py-1.5">
+                                <Text className="text-xs font-semibold text-gray-400">
                                     Limpiar todo
                                 </Text>
                             </TouchableOpacity>

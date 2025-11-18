@@ -183,6 +183,7 @@ export interface ReportForHome {
     id: string;
     title: string;
     author: string;
+    authorId?: string;
     timeAgo: string;
     image: any;
     upvotes: number;

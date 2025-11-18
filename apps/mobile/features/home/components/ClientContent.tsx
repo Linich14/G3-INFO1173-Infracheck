@@ -87,7 +87,9 @@ export default function ClientContent({
             const newSet = new Set(prev);
             setReportUpvotes((prevCounts) => ({
                 ...prevCounts,
-                [reportId]: newSet.has(reportId) ? Math.max(0, (prevCounts[reportId] || 1) - 1) : (prevCounts[reportId] || 0) + 1,
+                [reportId]: newSet.has(reportId)
+                    ? Math.max(0, (prevCounts[reportId] || 1) - 1)
+                    : (prevCounts[reportId] || 0) + 1,
             }));
 
             if (newSet.has(reportId)) {
@@ -138,19 +140,23 @@ export default function ClientContent({
 
     // Función para reportar (más opciones)
     const handleMore = (reportTitle: string) => {
-        Alert.alert(t('homeReportContentTitle'), t('homeReportContentMessage').replace('{title}', reportTitle), [
-            {
-                text: t('cancel'),
-                style: 'cancel',
-            },
-            {
-                text: t('homeReportButton'),
-                style: 'destructive',
-                onPress: () => {
-                    Alert.alert(t('homeReportedTitle'), t('homeReportedMessage'));
+        Alert.alert(
+            t('homeReportContentTitle'),
+            t('homeReportContentMessage').replace('{title}', reportTitle),
+            [
+                {
+                    text: t('cancel'),
+                    style: 'cancel',
                 },
-            },
-        ]);
+                {
+                    text: t('homeReportButton'),
+                    style: 'destructive',
+                    onPress: () => {
+                        Alert.alert(t('homeReportedTitle'), t('homeReportedMessage'));
+                    },
+                },
+            ]
+        );
     };
 
     // Función para detectar cuando el usuario llega al final del scroll
@@ -345,11 +351,16 @@ export default function ClientContent({
                                         key={report.id}
                                         title={report.title}
                                         author={report.author}
+                                        authorId={report.authorId}
                                         timeAgo={report.timeAgo}
                                         image={report.image}
                                         upvotes={currentUpvotes}
                                         commentsCount={report.commentsCount}
-                                        followLabel={isFollowed ? t('homeFollowingLabel') : t('homeFollowLabel')}
+                                        followLabel={
+                                            isFollowed
+                                                ? t('homeFollowingLabel')
+                                                : t('homeFollowLabel')
+                                        }
                                         isFollowed={isFollowed}
                                         isUpvoted={isUpvoted}
                                         votos={report.votos} // Pasar estructura completa
@@ -423,7 +434,10 @@ export default function ClientContent({
                                 <TouchableOpacity
                                     className="items-center rounded-lg bg-[#537CF2] py-4"
                                     onPress={() => {
-                                        Alert.alert(t('homeNavigationTitle'), t('homeNavigationMaps'));
+                                        Alert.alert(
+                                            t('homeNavigationTitle'),
+                                            t('homeNavigationMaps')
+                                        );
                                         setLocationModalVisible(false);
                                     }}>
                                     <Text className="text-base font-semibold text-white">
