@@ -6,12 +6,12 @@ title Diagrama de Casos de Uso - Módulo de Reportes
 caption Sistema InfraCheck
 
 ' =====================================================
-' ACTORES
+' ACTORES (Posicionados a los lados)
 ' =====================================================
 
+left to right direction
+
 actor "Usuario Común" as usuario #LightBlue
-actor "Usuario Municipal" as municipal #Orange
-actor "Administrador" as admin #Red
 
 ' =====================================================
 ' CASOS DE USO PRINCIPALES
@@ -42,32 +42,35 @@ package "Auditoría" {
   usecase (Ver Historial) as UC13
 }
 
+actor "Usuario Municipal" as municipal #Orange
+actor "Administrador" as admin #Red
+
 ' =====================================================
 ' RELACIONES SIMPLIFICADAS
 ' =====================================================
 
 ' Usuario Común - Crear, ver y actualizar reportes
-usuario --> UC1
-usuario --> UC2
-usuario --> UC3
-usuario --> UC4
-usuario --> UC6
-usuario --> UC7
-usuario --> UC9
-usuario --> UC10
-usuario --> UC11
-usuario --> UC12
+usuario -- UC1
+usuario -- UC2
+usuario -- UC3
+usuario -- UC4
+usuario -- UC6
+usuario -- UC7
+usuario -- UC9
+usuario -- UC10
+usuario -- UC11
+usuario -- UC12
 
 ' Usuario Municipal - Solo ver reportes
-municipal --> UC2
-municipal --> UC3
-municipal --> UC7
+UC2 -- municipal
+UC3 -- municipal
+UC7 -- municipal
 
 ' Admin - Gestión y auditoría
-admin --> UC2
-admin --> UC3
-admin --> UC5
-admin --> UC13
+UC2 -- admin
+UC3 -- admin
+UC5 -- admin
+UC13 -- admin
 
 ' =====================================================
 ' NOTAS INFORMATIVAS

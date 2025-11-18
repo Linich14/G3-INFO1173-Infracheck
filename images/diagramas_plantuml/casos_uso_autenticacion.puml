@@ -50,30 +50,30 @@ actor "Administrador" as admin #Red
 ' =====================================================
 
 ' Usuario Común - Puede registrarse + servicios básicos
-usuario --> UC1
-usuario --> UC2
-usuario --> UC3
-usuario --> UC5
-usuario --> UC6
-usuario --> UC7
-usuario --> UC8
-usuario --> UC9
-usuario --> UC10
+usuario -- UC1
+usuario -- UC2
+usuario -- UC3
+usuario -- UC5
+usuario -- UC6
+usuario -- UC7
+usuario -- UC8
+usuario -- UC9
+usuario -- UC10
 
 ' Usuario Municipal - Solo servicios básicos desde la derecha (NO puede registrarse)
-UC2 <-- municipal
-UC3 <-- municipal
-UC5 <-- municipal
-UC6 <-- municipal
-UC7 <-- municipal
-UC8 <-- municipal
-UC9 <-- municipal
-UC10 <-- municipal
+UC2 -- municipal
+UC3 -- municipal
+UC5 -- municipal
+UC6 -- municipal
+UC7 -- municipal
+UC8 -- municipal
+UC9 -- municipal
+UC10 -- municipal
 
 ' Admin - Crea usuarios municipales y gestiona (desde la derecha)
-UC11 <-- admin
-UC12 <-- admin
-UC13 <-- admin
+UC11 -- admin
+UC12 -- admin
+UC13 -- admin
 
 ' =====================================================
 ' NOTAS
