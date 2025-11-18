@@ -138,7 +138,7 @@ export default function Layout() {
                 }}
             />
             <Tabs.Screen
-                name="profile/index"
+                name="profile"
                 options={{
                     href: null, // Oculta de la barra de navegación
                 }}
