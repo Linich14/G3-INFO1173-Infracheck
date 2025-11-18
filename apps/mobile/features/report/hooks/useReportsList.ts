@@ -4,25 +4,27 @@ import { ReportsListResponse, ReportForHome } from '../types';
 import { API_CONFIG } from '~/constants/config'; // Importar configuración
 import { useLanguage } from '~/contexts/LanguageContext';
 
-const mapReportToHomeFormat = (report: any): ReportForHome => ({
-    id: report.id.toString(),
-    title: report.titulo,
-    author: report.usuario.nickname || report.usuario.nombre || 'Usuario',
-    timeAgo: calculateTimeAgo(report.fecha_creacion),
-    image: getMainImage(report.archivos),
-    upvotes: report.votos?.count || 0,
-    comments: [],
-    categoria: report.tipo_denuncia.nombre,
-    urgencia: typeof report.urgencia === 'object' ? report.urgencia.valor : report.urgencia,
-    estado: typeof report.estado === 'object' ? report.estado.nombre : report.estado,
-    commentsCount: report.comentarios_count || 0,
-    votos: report.votos, // Estructura embebida: { count, usuario_ha_votado }
-    seguimiento: report.seguimiento, // Estructura embebida: { is_following, seguidores_count }
-    ubicacion: report.ubicacion, // Estructura embebida: { latitud, longitud }
-});
+const mapReportToHomeFormat = (report: any): ReportForHome => {
+    return {
+        id: report.id.toString(),
+        title: report.titulo,
+        author: report.usuario.nickname || report.usuario.nombre || 'Usuario',
+        authorId: report.usuario.id?.toString(),
+        timeAgo: calculateTimeAgo(report.fecha_creacion),
+        image: getMainImage(report.archivos),
+        upvotes: report.votos?.count || 0,
+        comments: [],
+        categoria: report.tipo_denuncia.nombre,
+        urgencia: typeof report.urgencia === 'object' ? report.urgencia.valor : report.urgencia,
+        estado: typeof report.estado === 'object' ? report.estado.nombre : report.estado,
+        commentsCount: report.comentarios_count || 0,
+        votos: report.votos, // Estructura embebida: { count, usuario_ha_votado }
+        seguimiento: report.seguimiento, // Estructura embebida: { is_following, seguidores_count }
+        ubicacion: report.ubicacion, // Estructura embebida: { latitud, longitud }
+    };
+};
 
 const getMainImage = (archivos: any[]) => {
-
     if (!archivos || archivos.length === 0) {
         return require('@assets/Publicaciones/1.png');
     }

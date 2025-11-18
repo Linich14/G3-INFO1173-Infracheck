@@ -14,7 +14,7 @@ export class ReportService {
     static async createReport(data: ReportFormData): Promise<CreateReportResponse> {
         try {
             console.log('Creating report with data:', data);
-                // creating report (no debug log)
+            // creating report (no debug log)
 
             // Verificar autenticación
             const authenticated = await isAuthenticated();
@@ -123,7 +123,7 @@ export class ReportService {
     static async getReportDetail(reportId: string): Promise<ReportDetailResponse> {
         try {
             console.log('Getting report detail for ID:', reportId);
-                // getting report detail
+            // getting report detail
 
             // Verificar autenticación
             const authenticated = await isAuthenticated();
@@ -161,11 +161,6 @@ export class ReportService {
             const params: Record<string, string> = {
                 limit: limit.toString(),
             };
-
-            // Agregar usuario_id si está disponible
-            if (userId) {
-                params.usuario_id = userId;
-            }
 
             // Solo agregar cursor si es válido y no es null/undefined
             if (cursor && cursor.trim() !== '' && cursor !== 'null' && cursor !== 'undefined') {
