@@ -48,7 +48,7 @@ const ModalMap = ({
     const [hasInitialized, setHasInitialized] = useState(false);
 
     // Determinar el título basado en el modo
-    const modalTitle = title || (mode === 'view' ? 'Ubicación' : 'Seleccionar Ubicación');
+    const modalTitle = title || (mode === 'view' ? t('reportMapViewTitle') : t('reportMapSelectTitle'));
 
     // Determinar si es modo de solo visualización
     const isViewMode = mode === 'view';
@@ -186,8 +186,8 @@ const ModalMap = ({
                     <View className="border-b border-[#537CF2]/30 bg-[#537CF2]/20 p-3">
                         <Text className="text-center text-sm text-[#537CF2]">
                             {isViewMode
-                                ? 'Ubicación en el mapa'
-                                : 'Toca en el mapa para colocar el marcador o arrastra el marcador para moverlo'}
+                                ? t('reportMapViewInstruction')
+                                : t('reportMapInstruction')}
                         </Text>
                     </View>
 
@@ -245,7 +245,7 @@ const ModalMap = ({
                     {selectedLocation && (
                         <View className="border-t border-gray-600 bg-[#1A1F2E] p-3">
                             <Text className="text-center text-sm font-medium text-white">
-                                {isViewMode ? 'Ubicación:' : 'Ubicación seleccionada:'}
+                                {isViewMode ? t('reportMapLocationLabel') : t('reportMapSelectedLabel')}
                             </Text>
                             <Text className="text-center text-xs text-gray-400">
                                 Lat: {selectedLocation.latitude.toFixed(6)}, Lng:{' '}
@@ -260,7 +260,7 @@ const ModalMap = ({
                             onPress={onClose}
                             className="flex-1 items-center rounded-lg bg-gray-600 p-3">
                             <Text className="font-medium text-white">
-                                {isViewMode ? 'Cerrar' : 'Cancelar'}
+                                {isViewMode ? t('reportMapClose') : t('reportMapCancel')}
                             </Text>
                         </Pressable>
 
@@ -272,7 +272,7 @@ const ModalMap = ({
                                 className={`flex-1 items-center rounded-lg p-3 ${
                                     selectedLocation ? 'bg-[#537CF2]' : 'bg-gray-700'
                                 }`}>
-                                <Text className="font-medium text-white">Confirmar Ubicación</Text>
+                                <Text className="font-medium text-white">{t('reportMapConfirm')}</Text>
                             </Pressable>
                         )}
                     </View>

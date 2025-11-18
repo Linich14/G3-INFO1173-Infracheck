@@ -177,10 +177,10 @@ const FollowedReportsScreen: React.FC = () => {
       <View className="flex-1 justify-center items-center py-20">
         <Heart size={64} color="#4B5563" />
         <Text className="text-gray-400 text-lg mt-4 text-center px-8">
-          No sigues ningún reporte aún
+          {t('reportFollowedEmptyTitle')}
         </Text>
         <Text className="text-gray-500 text-sm mt-2 text-center px-8">
-          Comienza a seguir reportes para verlos aquí
+          {t('reportFollowedEmptySubtitle')}
         </Text>
       </View>
     );
@@ -197,14 +197,14 @@ const FollowedReportsScreen: React.FC = () => {
             <ArrowLeft size={26} color="white" />
           </TouchableOpacity>
           
-          <Text className="text-[#537CF2] font-bold text-2xl">Reportes Seguidos</Text>
+          <Text className="text-[#537CF2] font-bold text-2xl">{t('reportFollowedTitle')}</Text>
           
           <View className="w-[26px]" />
         </View>
 
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#537CF2" />
-          <Text className="text-white mt-4">Cargando reportes...</Text>
+          <Text className="text-white mt-4">{t('reportFollowedLoading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -220,7 +220,7 @@ const FollowedReportsScreen: React.FC = () => {
           <ArrowLeft size={26} color="white" />
         </TouchableOpacity>
         
-        <Text className="text-[#537CF2] font-bold text-2xl">Reportes Seguidos</Text>
+        <Text className="text-[#537CF2] font-bold text-2xl">{t('reportFollowedTitle')}</Text>
         
         <View className="w-[26px]" />
       </View>

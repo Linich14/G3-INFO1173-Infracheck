@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { followReport, unfollowReport } from '../services/followService';
 import { getToken } from '~/features/auth/services/authService';
 import * as Haptics from 'expo-haptics';
@@ -20,6 +20,15 @@ export const useReportFollow = (
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [followersCount, setFollowersCount] = useState(initialFollowersCount);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Sincronizar el estado cuando cambien las props externas
+  useEffect(() => {
+    setIsFollowing(initialIsFollowing);
+  }, [initialIsFollowing]);
+
+  useEffect(() => {
+    setFollowersCount(initialFollowersCount);
+  }, [initialFollowersCount]);
 
   const toggleFollow = async () => {
     if (isLoading) return;

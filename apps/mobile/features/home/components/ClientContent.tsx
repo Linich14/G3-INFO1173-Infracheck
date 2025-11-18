@@ -197,7 +197,7 @@ export default function ClientContent({
                         onPress={retryLoadMore}
                         className="mt-2 rounded-lg bg-red-600 px-4 py-2"
                         activeOpacity={0.7}>
-                        <Text className="text-sm font-medium text-white">Reintentar</Text>
+                        <Text className="text-sm font-medium text-white">{t('retry')}</Text>
                     </TouchableOpacity>
                 </View>
             );
@@ -208,12 +208,12 @@ export default function ClientContent({
             return (
                 <View className="items-center py-4">
                     <AlertTriangle size={24} color="#EF4444" />
-                    <Text className="mt-2 text-sm text-red-400">Error al cargar más reportes</Text>
+                    <Text className="mt-2 text-sm text-red-400">{t('homeErrorLoadMore')}</Text>
                     <TouchableOpacity
                         onPress={handleRetry}
                         className="mt-2 rounded-lg bg-red-600 px-4 py-2"
                         activeOpacity={0.7}>
-                        <Text className="text-sm font-medium text-white">Reintentar</Text>
+                        <Text className="text-sm font-medium text-white">{t('retry')}</Text>
                     </TouchableOpacity>
                 </View>
             );
@@ -223,7 +223,7 @@ export default function ClientContent({
         if (!hasNext) {
             return (
                 <View className="items-center py-4">
-                    <Text className="text-sm text-gray-500">Ya has visto todos los reportes</Text>
+                    <Text className="text-sm text-gray-500">{t('homeAllReportsViewed')}</Text>
                 </View>
             );
         }
@@ -233,7 +233,7 @@ export default function ClientContent({
             return (
                 <View className="items-center py-6">
                     <ActivityIndicator size="large" color="#537CF2" />
-                    <Text className="mt-2 text-sm text-gray-400">Cargando más reportes...</Text>
+                    <Text className="mt-2 text-sm text-gray-400">{t('homeLoadingMore')}</Text>
                 </View>
             );
         }
@@ -245,7 +245,7 @@ export default function ClientContent({
                     onPress={onLoadMore}
                     className="rounded-lg bg-[#537CF2] px-6 py-3"
                     activeOpacity={0.7}>
-                    <Text className="text-base font-medium text-white">Cargar más reportes</Text>
+                    <Text className="text-base font-medium text-white">{t('homeLoadMoreButton')}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -255,15 +255,15 @@ export default function ClientContent({
     const renderErrorState = () => (
         <View className="flex-1 items-center justify-center py-20">
             <AlertTriangle size={48} color="#EF4444" />
-            <Text className="mt-4 text-lg text-red-400">Error al cargar reportes</Text>
+            <Text className="mt-4 text-lg text-red-400">{t('homeErrorLoadReports')}</Text>
             <Text className="mt-2 px-8 text-center text-sm text-gray-500">
-                Hubo un problema al conectarse con el servidor. Verifica tu conexión a internet.
+                {t('homeErrorConnection')}
             </Text>
             <TouchableOpacity
                 onPress={handleRetry}
                 className="mt-6 rounded-lg bg-[#537CF2] px-6 py-3"
                 activeOpacity={0.7}>
-                <Text className="text-base font-medium text-white">Reintentar</Text>
+                <Text className="text-base font-medium text-white">{t('retry')}</Text>
             </TouchableOpacity>
         </View>
     );
@@ -355,7 +355,7 @@ export default function ClientContent({
                                         timeAgo={report.timeAgo}
                                         image={report.image}
                                         upvotes={currentUpvotes}
-                                        commentsCount={report.commentsCount}
+                                        
                                         followLabel={
                                             isFollowed
                                                 ? t('homeFollowingLabel')
@@ -393,7 +393,7 @@ export default function ClientContent({
                     <View className="max-h-[70%] rounded-t-xl bg-[#13161E] p-6">
                         <View className="mb-4 flex-row items-center justify-between">
                             <Text className="text-xl font-bold text-white">
-                                Ubicación del Reporte
+                                {t('homeLocationTitle')}
                             </Text>
                             <TouchableOpacity
                                 onPress={() => setLocationModalVisible(false)}
@@ -408,7 +408,7 @@ export default function ClientContent({
                                     <View className="mb-3 flex-row items-center">
                                         <MapPin size={20} color="#537CF2" />
                                         <Text className="ml-2 text-lg font-semibold text-white">
-                                            Dirección
+                                            {t('homeLocationAddress')}
                                         </Text>
                                     </View>
                                     <Text className="mb-3 text-base text-gray-300">

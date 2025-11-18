@@ -51,7 +51,11 @@ const LoginScreen: React.FC = () => {
                     router.replace('/(tabs)/home');
                 }, 1000);
             } else {
-                showError(result.message);
+                // Traducir mensaje si es una clave de traducción
+                const message = result.message.startsWith('authService') 
+                    ? t(result.message as any)
+                    : result.message;
+                showError(message);
             }
         } catch (error: any) {
             showError(

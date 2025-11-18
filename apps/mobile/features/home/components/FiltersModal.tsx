@@ -168,7 +168,7 @@ export default function FiltersModal({
             {/* Selector de urgencia */}
             <View className="mb-6">
               <Text className="mb-3 text-base font-semibold text-white">
-                {t('filtersUrgency')}: <Text className="text-[#537CF2]">{urgencia === 0 ? (locale === 'es' ? 'Todas' : 'All') : URGENCIA_LABELS[urgencia - 1]}</Text>
+                {t('filtersUrgency')}: <Text className="text-[#537CF2]">{urgencia === 0 ? t('filtersAll') : URGENCIA_LABELS[urgencia - 1]}</Text>
               </Text>
               
               {/* Selector con botones */}
@@ -182,7 +182,7 @@ export default function FiltersModal({
                   <Text className={`text-xs font-semibold ${
                     urgencia === 0 ? 'text-white' : 'text-gray-400'
                   }`}>
-                    {locale === 'es' ? 'Todas' : 'All'}
+                    {t('filtersAll')}
                   </Text>
                 </TouchableOpacity>
                 {[1, 2, 3, 4].map((level) => (

@@ -325,14 +325,14 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
     } else {
       return {
         success: false,
-        message: result.message || result.error || 'Verifica tus credenciales.',
+        message: result.message || result.error || 'authServiceInvalidCredentials',
       };
     }
   } catch (error: any) {
     console.error('Login error:', error.message);
     return {
       success: false,
-      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+      message: error.message || 'authServiceConnectionError',
     };
   }
 }
@@ -466,19 +466,19 @@ export const requestPasswordReset = async (data: PasswordResetRequest): Promise<
     if (response.ok) {
       return {
         success: result.success || true,
-        message: result.message || 'Código enviado exitosamente',
+        message: result.message || 'authServiceCodeSent',
       };
     } else {
       return {
         success: false,
-        message: result.message || result.error || 'Error al enviar el código',
+        message: result.message || result.error || 'authServiceSendCodeError',
       };
     }
   } catch (error: any) {
     console.error('Password reset request error:', error);
     return {
       success: false,
-      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+      message: error.message || 'authServiceConnectionError',
     };
   }
 };
@@ -503,20 +503,20 @@ export const verifyResetCode = async (data: VerifyResetCodeRequest): Promise<Ver
     if (response.ok && result.success) {
       return {
         success: true,
-        message: result.message || 'Código verificado exitosamente',
+        message: result.message || 'authServiceCodeVerified',
         reset_token: result.reset_token,
       };
     } else {
       return {
         success: false,
-        message: result.message || result.error || 'Código inválido o expirado',
+        message: result.message || result.error || 'authServiceCodeExpired',
       };
     }
   } catch (error: any) {
     console.error('Verify reset code error:', error);
     return {
       success: false,
-      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+      message: error.message || 'authServiceConnectionError',
     };
   }
 };

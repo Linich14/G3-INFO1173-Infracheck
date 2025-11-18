@@ -20,6 +20,29 @@ import { getToken } from '~/features/auth/services/authService';
 import * as Haptics from 'expo-haptics';
 import { useLanguage } from '~/contexts/LanguageContext';
 
+// Función para calcular tiempo relativo traducido
+const calculateRelativeTime = (dateString: string, t: any): string => {
+  try {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return t('statisticsTimeNow');
+    if (diffInMinutes < 60) return `${diffInMinutes} ${t('statisticsTimeMinutes')}`;
+    if (diffInHours < 24) return `${diffInHours}${t('statisticsTimeHours')}`;
+    if (diffInDays === 1) return t('statisticsTimeYesterday');
+    if (diffInDays < 7) return `${diffInDays} ${t('statisticsTimeDays')}`;
+    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} ${t('statisticsTimeWeeks')}`;
+
+    return date.toLocaleDateString();
+  } catch {
+    return '';
+  }
+};
+
 const CommentsModal: React.FC<CommentsModalProps> = ({
   visible,
   onClose,
@@ -122,7 +145,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
         id: comment.id,
         author: comment.usuario.nickname,
         content: comment.comentario,
-        timeAgo: comment.tiempo_relativo,
+        timeAgo: calculateRelativeTime(comment.fecha_comentario, t),
         usuario: comment.usuario,
         puede_eliminar: comment.puede_eliminar,
         es_autor: comment.es_autor,
@@ -165,7 +188,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
         id: response.comentario.id,
         author: response.comentario.usuario.nickname,
         content: response.comentario.comentario,
-        timeAgo: response.comentario.tiempo_relativo,
+        timeAgo: calculateRelativeTime(response.comentario.fecha_comentario, t),
         usuario: response.comentario.usuario,
         puede_eliminar: response.comentario.puede_eliminar,
         es_autor: response.comentario.es_autor,

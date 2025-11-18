@@ -79,6 +79,14 @@ const TRANSLATIONS: Record<Locale, {
   loginEmptyFieldsError: string;
   loginErrorPrefix: string;
   loginErrorFallback: string;
+  // Auth Service messages
+  authServiceInvalidCredentials: string;
+  authServiceConnectionError: string;
+  authServiceCodeExpired: string;
+  authServiceCodeSent: string;
+  authServiceCodeVerified: string;
+  authServicePasswordUpdated: string;
+  authServiceSendCodeError: string;
   registerTitle: string;
   registerHello: string;
   registerRutLabel: string;
@@ -396,6 +404,14 @@ const TRANSLATIONS: Record<Locale, {
   homeLoadingReports: string;
   homeNoReportsAvailable: string;
   homeSwipeToRefresh: string;
+  homeErrorLoadMore: string;
+  homeAllReportsViewed: string;
+  homeLoadingMore: string;
+  homeLoadMoreButton: string;
+  homeErrorLoadReports: string;
+  homeErrorConnection: string;
+  homeLocationTitle: string;
+  homeLocationAddress: string;
   // Home - Auth Content
   homeCriticalReportsTitle: string;
   homeNoCriticalReports: string;
@@ -489,7 +505,12 @@ const TRANSLATIONS: Record<Locale, {
   homeCardUnfollowErrorMessage: string;
   homeCardCategoryLabel: string;
   // Report - Form
+  reportFormTitlePlaceholder: string;
   reportFormDescriptionPlaceholder: string;
+  reportFormMediaTitle: string;
+  reportFormLocationTitle: string;
+  reportFormConfigTitle: string;
+  reportFormPublicToggleLabel: string;
   reportFormTypePlaceholder: string;
   reportFormType1: string;
   reportFormType2: string;
@@ -497,6 +518,7 @@ const TRANSLATIONS: Record<Locale, {
   reportFormType6: string;
   reportFormType7: string;
   reportFormCityPlaceholder: string;
+  reportFormSelectCity: string;
   reportFormSelectLocation: string;
   reportFormAddressPlaceholder: string;
   reportFormPublicLabel: string;
@@ -580,11 +602,11 @@ const TRANSLATIONS: Record<Locale, {
   reportPreviewEditDisabledTitle: string;
   reportPreviewEditDisabledMessage: string;
   reportPreviewNotSelected: string;
-  // Report - Form sections
-  reportFormMediaTitle: string;
-  reportFormLocationTitle: string;
-  reportFormSelectCity: string;
   // Report - Followed screen
+  reportFollowedLoading: string;
+  reportFollowedTitle: string;
+  reportFollowedEmptyTitle: string;
+  reportFollowedEmptySubtitle: string;
   reportFollowedError: string;
   reportFollowedUnfollowTitle: string;
   reportFollowedUnfollowMessage: string;
@@ -605,7 +627,15 @@ const TRANSLATIONS: Record<Locale, {
   reportServiceErrorLoadMore: string;
   // Report - Map
   reportMapSelectTitle: string;
+  reportMapViewTitle: string;
   reportMapLocationError: string;
+  reportMapInstruction: string;
+  reportMapViewInstruction: string;
+  reportMapSelectedLabel: string;
+  reportMapLocationLabel: string;
+  reportMapConfirm: string;
+  reportMapCancel: string;
+  reportMapClose: string;
   // Report - Details hooks
   reportDetailsLoadError: string;
   reportDetailsLoadErrorMessage: string;
@@ -712,6 +742,12 @@ const TRANSLATIONS: Record<Locale, {
   statisticsGrowth: string;
   statisticsNoData: string;
   statisticsLocation: string;
+  statisticsTimeNow: string;
+  statisticsTimeMinutes: string;
+  statisticsTimeHours: string;
+  statisticsTimeYesterday: string;
+  statisticsTimeDays: string;
+  statisticsTimeWeeks: string;
   // Users
   usersTitle: string;
   usersSearchPlaceholder: string;
@@ -883,9 +919,17 @@ const TRANSLATIONS: Record<Locale, {
     loginSubmitting: 'Iniciando sesión...',
     loginSuccess: '¡Inicio de sesión exitoso!',
     loginErrorClose: 'Cerrar',
-  loginEmptyFieldsError: 'Por favor, completa todos los campos.',
-  loginErrorPrefix: 'Error al iniciar sesión: ',
-  loginErrorFallback: 'Verifica tus credenciales.',
+    loginEmptyFieldsError: 'Por favor, completa todos los campos.',
+    loginErrorPrefix: 'Error al iniciar sesión: ',
+    loginErrorFallback: 'Verifica tus credenciales.',
+    // Auth Service messages
+    authServiceInvalidCredentials: 'Verifica tus credenciales.',
+    authServiceConnectionError: 'Error de conexión. Verifica tu conexión a internet.',
+    authServiceCodeExpired: 'Código inválido o expirado',
+    authServiceCodeSent: 'Código enviado exitosamente',
+    authServiceCodeVerified: 'Código verificado exitosamente',
+    authServicePasswordUpdated: 'Contraseña actualizada exitosamente',
+    authServiceSendCodeError: 'Error al enviar el código',
     registerTitle: 'Registrarse',
     registerHello: 'Hola!',
     registerRutLabel: 'RUT',
@@ -1193,6 +1237,14 @@ const TRANSLATIONS: Record<Locale, {
     homeLoadingReports: 'Cargando reportes...',
     homeNoReportsAvailable: 'No hay reportes disponibles',
     homeSwipeToRefresh: 'Desliza hacia abajo para actualizar',
+    homeErrorLoadMore: 'Error al cargar más reportes',
+    homeAllReportsViewed: 'Ya has visto todos los reportes',
+    homeLoadingMore: 'Cargando más reportes...',
+    homeLoadMoreButton: 'Cargar más reportes',
+    homeErrorLoadReports: 'Error al cargar reportes',
+    homeErrorConnection: 'Hubo un problema al conectarse con el servidor. Verifica tu conexión a internet.',
+    homeLocationTitle: 'Ubicación del Reporte',
+    homeLocationAddress: 'Dirección',
     // Home - Auth Content
     homeCriticalReportsTitle: 'Reportes Críticos',
     homeNoCriticalReports: 'No hay reportes críticos pendientes',
@@ -1286,7 +1338,12 @@ const TRANSLATIONS: Record<Locale, {
     homeCardUnfollowErrorMessage: 'No se pudo dejar de seguir el reporte',
     homeCardCategoryLabel: 'Categoría:',
     // Report - Form
+    reportFormTitlePlaceholder: 'Título',
     reportFormDescriptionPlaceholder: 'Descripción del problema',
+    reportFormMediaTitle: 'Medios',
+    reportFormLocationTitle: 'Ubicación',
+    reportFormConfigTitle: 'Configuración',
+    reportFormPublicToggleLabel: 'Reporte público',
     reportFormTypePlaceholder: 'Seleccione el tipo de denuncia',
     reportFormType1: 'Calles y Veredas en Mal Estado',
     reportFormType2: 'Luz o Alumbrado Público Dañado',
@@ -1294,6 +1351,7 @@ const TRANSLATIONS: Record<Locale, {
     reportFormType6: 'Emergencias o Situaciones de Riesgo',
     reportFormType7: 'Infraestructura o Mobiliario Público Dañado',
     reportFormCityPlaceholder: 'Seleccione Ciudad',
+    reportFormSelectCity: 'Seleccione una ciudad',
     reportFormSelectLocation: 'Seleccionar en el mapa',
     reportFormAddressPlaceholder: 'Dirección',
     reportFormPublicLabel: 'Publicar',
@@ -1377,11 +1435,11 @@ const TRANSLATIONS: Record<Locale, {
     reportPreviewEditDisabledTitle: 'No disponible',
     reportPreviewEditDisabledMessage: 'No se puede editar mientras el reporte se está enviando.',
     reportPreviewNotSelected: 'No seleccionado',
-    // Report - Form sections
-    reportFormMediaTitle: 'Medios',
-    reportFormLocationTitle: 'Ubicación',
-    reportFormSelectCity: 'Seleccione Ciudad',
     // Report - Followed screen
+    reportFollowedLoading: 'Cargando reportes...',
+    reportFollowedTitle: 'Reportes Seguidos',
+    reportFollowedEmptyTitle: 'No sigues ningún reporte aún',
+    reportFollowedEmptySubtitle: 'Comienza a seguir reportes para verlos aquí',
     reportFollowedError: 'Error al cargar los reportes',
     reportFollowedUnfollowTitle: 'Dejar de seguir',
     reportFollowedUnfollowMessage: '¿Estás seguro que deseas dejar de seguir "{title}"?',
@@ -1402,7 +1460,15 @@ const TRANSLATIONS: Record<Locale, {
     reportServiceErrorLoadMore: 'Error al cargar más reportes. Toca para reintentar.',
     // Report - Map
     reportMapSelectTitle: 'Seleccionar Ubicación',
+    reportMapViewTitle: 'Ubicación',
     reportMapLocationError: 'No se pudo obtener la ubicación actual',
+    reportMapInstruction: 'Toca en el mapa para colocar el marcador o arrastra el marcador para moverlo',
+    reportMapViewInstruction: 'Ubicación en el mapa',
+    reportMapSelectedLabel: 'Ubicación seleccionada:',
+    reportMapLocationLabel: 'Ubicación:',
+    reportMapConfirm: 'Confirmar Ubicación',
+    reportMapCancel: 'Cancelar',
+    reportMapClose: 'Cerrar',
     // Report - Details hooks
     reportDetailsLoadError: 'No se pudo cargar el reporte',
     reportDetailsLoadErrorMessage: 'Error al cargar el reporte',
@@ -1509,6 +1575,12 @@ const TRANSLATIONS: Record<Locale, {
     statisticsGrowth: 'Crecimiento',
     statisticsNoData: 'Sin datos',
     statisticsLocation: 'Ubicación',
+    statisticsTimeNow: 'Hace un momento',
+    statisticsTimeMinutes: 'min',
+    statisticsTimeHours: 'h',
+    statisticsTimeYesterday: 'Ayer',
+    statisticsTimeDays: 'días',
+    statisticsTimeWeeks: 'semanas',
     // Users
     usersTitle: 'Gestión de Usuarios',
     usersSearchPlaceholder: 'Buscar por nombre, email o nickname...',
@@ -1681,9 +1753,17 @@ const TRANSLATIONS: Record<Locale, {
     loginSubmitting: 'Signing in...',
     loginSuccess: 'Login successful!',
     loginErrorClose: 'Close',
-  loginEmptyFieldsError: 'Please fill in all fields.',
-  loginErrorPrefix: 'Error signing in: ',
-  loginErrorFallback: 'Check your credentials.',
+    loginEmptyFieldsError: 'Please fill in all fields.',
+    loginErrorPrefix: 'Error signing in: ',
+    loginErrorFallback: 'Check your credentials.',
+    // Auth Service messages
+    authServiceInvalidCredentials: 'Please check your credentials.',
+    authServiceConnectionError: 'Connection error. Check your internet connection.',
+    authServiceCodeExpired: 'Invalid or expired code',
+    authServiceCodeSent: 'Code sent successfully',
+    authServiceCodeVerified: 'Code verified successfully',
+    authServicePasswordUpdated: 'Password updated successfully',
+    authServiceSendCodeError: 'Error sending code',
     registerTitle: 'Sign up',
     registerHello: 'Hi!',
     registerRutLabel: 'RUT',
@@ -1991,6 +2071,14 @@ const TRANSLATIONS: Record<Locale, {
     homeLoadingReports: 'Loading reports...',
     homeNoReportsAvailable: 'No reports available',
     homeSwipeToRefresh: 'Swipe down to refresh',
+    homeErrorLoadMore: 'Error loading more reports',
+    homeAllReportsViewed: 'You have viewed all reports',
+    homeLoadingMore: 'Loading more reports...',
+    homeLoadMoreButton: 'Load more reports',
+    homeErrorLoadReports: 'Error loading reports',
+    homeErrorConnection: 'There was a problem connecting to the server. Please check your internet connection.',
+    homeLocationTitle: 'Report Location',
+    homeLocationAddress: 'Address',
     // Home - Auth Content
     homeCriticalReportsTitle: 'Critical Reports',
     homeNoCriticalReports: 'No critical reports pending',
@@ -2084,7 +2172,12 @@ const TRANSLATIONS: Record<Locale, {
     homeCardUnfollowErrorMessage: 'Could not unfollow the report',
     homeCardCategoryLabel: 'Category:',
     // Report - Form
+    reportFormTitlePlaceholder: 'Title',
     reportFormDescriptionPlaceholder: 'Problem description',
+    reportFormMediaTitle: 'Media',
+    reportFormLocationTitle: 'Location',
+    reportFormConfigTitle: 'Configuration',
+    reportFormPublicToggleLabel: 'Public report',
     reportFormTypePlaceholder: 'Select report type',
     reportFormType1: 'Roads and Sidewalks in Poor Condition',
     reportFormType2: 'Damaged Street Lighting',
@@ -2092,6 +2185,7 @@ const TRANSLATIONS: Record<Locale, {
     reportFormType6: 'Emergencies or Risk Situations',
     reportFormType7: 'Damaged Public Infrastructure or Furniture',
     reportFormCityPlaceholder: 'Select City',
+    reportFormSelectCity: 'Select a city',
     reportFormSelectLocation: 'Select on map',
     reportFormAddressPlaceholder: 'Address',
     reportFormPublicLabel: 'Publish',
@@ -2175,11 +2269,11 @@ const TRANSLATIONS: Record<Locale, {
     reportPreviewEditDisabledTitle: 'Not available',
     reportPreviewEditDisabledMessage: 'Cannot edit while the report is being sent.',
     reportPreviewNotSelected: 'Not selected',
-    // Report - Form sections
-    reportFormMediaTitle: 'Media',
-    reportFormLocationTitle: 'Location',
-    reportFormSelectCity: 'Select City',
     // Report - Followed screen
+    reportFollowedLoading: 'Loading reports...',
+    reportFollowedTitle: 'Followed Reports',
+    reportFollowedEmptyTitle: "You don't follow any reports yet",
+    reportFollowedEmptySubtitle: 'Start following reports to see them here',
     reportFollowedError: 'Error loading reports',
     reportFollowedUnfollowTitle: 'Unfollow',
     reportFollowedUnfollowMessage: 'Are you sure you want to unfollow "{title}"?',
@@ -2200,7 +2294,15 @@ const TRANSLATIONS: Record<Locale, {
     reportServiceErrorLoadMore: 'Error loading more reports. Tap to retry.',
     // Report - Map
     reportMapSelectTitle: 'Select Location',
+    reportMapViewTitle: 'Location',
     reportMapLocationError: 'Could not get current location',
+    reportMapInstruction: 'Tap on the map to place the marker or drag the marker to move it',
+    reportMapViewInstruction: 'Location on map',
+    reportMapSelectedLabel: 'Selected location:',
+    reportMapLocationLabel: 'Location:',
+    reportMapConfirm: 'Confirm Location',
+    reportMapCancel: 'Cancel',
+    reportMapClose: 'Close',
     // Report - Details hooks
     reportDetailsLoadError: 'Could not load report',
     reportDetailsLoadErrorMessage: 'Error loading report',
@@ -2307,6 +2409,12 @@ const TRANSLATIONS: Record<Locale, {
     statisticsGrowth: 'Growth',
     statisticsNoData: 'No data',
     statisticsLocation: 'Location',
+    statisticsTimeNow: 'Just now',
+    statisticsTimeMinutes: 'min',
+    statisticsTimeHours: 'h',
+    statisticsTimeYesterday: 'Yesterday',
+    statisticsTimeDays: 'days',
+    statisticsTimeWeeks: 'weeks',
     // Users
     usersTitle: 'User Management',
     usersSearchPlaceholder: 'Search by name, email or nickname...',

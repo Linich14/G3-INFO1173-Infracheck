@@ -79,7 +79,7 @@ const FormReport = ({
                         className={`w-min-[20px] border-b-2 pb-1 text-2xl text-white ${
                             errors.titulo ? 'border-b-red-500' : 'border-b-slate-600'
                         }`}
-                        placeholder="Título"
+                        placeholder={t('reportFormTitlePlaceholder')}
                         value={formData.titulo}
                         onChangeText={(text) => onUpdateField('titulo', text)}
                         multiline={true}
@@ -270,9 +270,9 @@ const FormReport = ({
 
             {/* Sección de Visibilidad */}
             <View className={style.container + 'mb-4 mt-4'}>
-                <Text className="mb-3 text-xl text-white">Configuración</Text>
+                <Text className="mb-3 text-xl text-white">{t('reportFormConfigTitle')}</Text>
                 <View className="flex-row items-center justify-between">
-                    <Text className="text-white">Reporte público</Text>
+                    <Text className="text-white">{t('reportFormPublicToggleLabel')}</Text>
                     <Switch
                         value={formData.visible}
                         onValueChange={(value) => onUpdateField('visible', value)}

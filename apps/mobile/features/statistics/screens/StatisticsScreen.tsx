@@ -262,7 +262,7 @@ export default function StatisticsScreen() {
         {/* Última actualización */}
         <View className="mt-4 mb-2">
           <Text className="text-center text-xs text-gray-500">
-            {t('statisticsLastUpdate')}: {formatRelativeTime(lastUpdated)}
+            {t('statisticsLastUpdate')}: {formatRelativeTime(lastUpdated, t)}
           </Text>
         </View>
 

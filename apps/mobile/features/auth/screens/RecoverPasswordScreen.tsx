@@ -46,7 +46,10 @@ const RecoverPasswordScreen: React.FC = () => {
       const result = await requestPasswordReset({ identifier });
       
       if (result.success) {
-        showSuccess(result.message);
+        const message = result.message.startsWith('authService')
+          ? t(result.message as any)
+          : result.message;
+        showSuccess(message);
         // Esperar un momento antes de navegar
         setTimeout(() => {
           router.push({
@@ -55,7 +58,10 @@ const RecoverPasswordScreen: React.FC = () => {
           });
         }, 1500);
       } else {
-        showError(result.message);
+        const message = result.message.startsWith('authService')
+          ? t(result.message as any)
+          : result.message;
+        showError(message);
       }
     } catch (error: any) {
       showError(t('recoverConnectionError'));

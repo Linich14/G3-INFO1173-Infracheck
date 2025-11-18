@@ -4,13 +4,13 @@ import { ReportsListResponse, ReportForHome } from '../types';
 import { API_CONFIG } from '~/constants/config'; // Importar configuración
 import { useLanguage } from '~/contexts/LanguageContext';
 
-const mapReportToHomeFormat = (report: any): ReportForHome => {
+const mapReportToHomeFormat = (report: any, t: (key: string) => string): ReportForHome => {
     return {
         id: report.id.toString(),
         title: report.titulo,
         author: report.usuario.nickname || report.usuario.nombre || 'Usuario',
         authorId: report.usuario.id?.toString(),
-        timeAgo: calculateTimeAgo(report.fecha_creacion),
+        timeAgo: calculateTimeAgo(report.fecha_creacion, t),
         image: getMainImage(report.archivos),
         upvotes: report.votos?.count || 0,
         comments: [],
@@ -57,23 +57,25 @@ const getMainImage = (archivos: any[]) => {
     return require('@assets/Publicaciones/1.png');
 };
 
-const calculateTimeAgo = (dateString: string): string => {
+const calculateTimeAgo = (dateString: string, t: any): string => {
     try {
         const now = new Date();
         const createdAt = new Date(dateString);
         const diffInMs = now.getTime() - createdAt.getTime();
+        const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
         const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
         const diffInDays = Math.floor(diffInHours / 24);
 
-        if (diffInDays > 0) {
-            return `${diffInDays}d`;
-        } else if (diffInHours > 0) {
-            return `${diffInHours}h`;
-        } else {
-            return 'Ahora';
-        }
+        if (diffInMinutes < 1) return t('statisticsTimeNow');
+        if (diffInMinutes < 60) return `${diffInMinutes} ${t('statisticsTimeMinutes')}`;
+        if (diffInHours < 24) return `${diffInHours}${t('statisticsTimeHours')}`;
+        if (diffInDays === 1) return t('statisticsTimeYesterday');
+        if (diffInDays < 7) return `${diffInDays} ${t('statisticsTimeDays')}`;
+        if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} ${t('statisticsTimeWeeks')}`;
+
+        return createdAt.toLocaleDateString();
     } catch {
-        return 'Fecha inválida';
+        return t('reportDetailsInvalidDate') || 'Invalid date';
     }
 };
 
@@ -156,7 +158,7 @@ export const useReportsList = () => {
                 }
 
                 if (response.success) {
-                    const mappedReports = response.data.map(mapReportToHomeFormat);
+                    const mappedReports = response.data.map((report) => mapReportToHomeFormat(report, t as any));
 
                     // response received (mapped reports)
 

@@ -113,7 +113,53 @@ export class ReportService {
             console.error('Error creating report:', error);
             console.error('Error response:', error.response?.data);
 
-            return ReportService.handleCreateReportError(error);
+            // Manejo simplificado de errores sin traducción aquí
+            if (error.response) {
+                const statusCode = error.response.status;
+                const responseData = error.response.data;
+
+                if (statusCode === 400 && responseData.errors) {
+                    return {
+                        success: false,
+                        message: 'reportValidationFormError',
+                        errors: responseData.errors,
+                    };
+                }
+
+                if (statusCode === 401) {
+                    return {
+                        success: false,
+                        message: 'reportServiceSessionExpired',
+                    };
+                }
+
+                if (statusCode === 413) {
+                    return {
+                        success: false,
+                        message: 'reportValidationFilesError',
+                    };
+                }
+
+                return {
+                    success: false,
+                    message:
+                        responseData.detail ||
+                        responseData.message ||
+                        'reportServiceErrorCreate',
+                };
+            }
+
+            if (error.request || error.code === 'ECONNABORTED') {
+                return {
+                    success: false,
+                    message: 'reportValidationNetworkError',
+                };
+            }
+
+            return {
+                success: false,
+                message: 'reportValidationUnexpectedError',
+            };
         }
     }
 
@@ -294,61 +340,6 @@ export class ReportService {
         return errors;
     }
 
-    /**
-     * Manejar errores de creación de reporte
-     */
-    private static handleCreateReportError(
-        error: any,
-        t: (key: string) => string
-    ): CreateReportResponse {
-        // Manejo simplificado de errores
-        if (error.response) {
-            const statusCode = error.response.status;
-            const responseData = error.response.data;
-
-            if (statusCode === 400 && responseData.errors) {
-                return {
-                    success: false,
-                    message: t('reportValidationFormError'),
-                    errors: responseData.errors,
-                };
-            }
-
-            if (statusCode === 401) {
-                return {
-                    success: false,
-                    message: t('reportServiceSessionExpired'),
-                };
-            }
-
-            if (statusCode === 413) {
-                return {
-                    success: false,
-                    message: t('reportValidationFilesError'),
-                };
-            }
-
-            return {
-                success: false,
-                message:
-                    responseData.detail ||
-                    responseData.message ||
-                    t('reportServiceErrorCreate'),
-            };
-        }
-
-        if (error.request || error.code === 'ECONNABORTED') {
-            return {
-                success: false,
-                message: t('reportValidationNetworkError'),
-            };
-        }
-
-        return {
-            success: false,
-            message: t('reportValidationUnexpectedError'),
-        };
-    }
 }
 
 // Exportar funciones individuales para compatibilidad con código existente

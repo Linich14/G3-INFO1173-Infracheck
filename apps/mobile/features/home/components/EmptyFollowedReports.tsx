@@ -19,10 +19,10 @@ export default function EmptyFollowedReports({ onExplore }: EmptyFollowedReports
 
       {/* Texto */}
       <Text className="mb-2 text-center text-2xl font-bold text-white">
-        {t('homeEmptyFollowedTitle')}
+        {t('emptyFollowedTitle')}
       </Text>
       <Text className="mb-8 text-center text-base text-gray-400">
-        {t('homeEmptyFollowedMessage')}
+        {t('emptyFollowedMessage')}
       </Text>
 
       {/* Botón */}
@@ -31,7 +31,7 @@ export default function EmptyFollowedReports({ onExplore }: EmptyFollowedReports
         className="w-full max-w-xs rounded-xl bg-[#537CF2] py-4"
       >
         <Text className="text-center text-base font-semibold text-white">
-          {t('homeEmptyFollowedButton')}
+          {t('emptyFollowedButton')}
         </Text>
       </TouchableOpacity>
     </View>
