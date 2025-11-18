@@ -207,8 +207,8 @@ const FormReport = ({
                             style={{ backgroundColor: '#13161E' }}
                         />
                         <Picker.Item
-                            label={t('reportFormCityPlaceholder')}
-                            value=""
+                            label={'Temuco'}
+                            value="1"
                             color="#FFFFFF"
                             style={{ backgroundColor: '#13161E' }}
                         />

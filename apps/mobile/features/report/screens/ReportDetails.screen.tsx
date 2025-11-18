@@ -1,11 +1,22 @@
-import { Dimensions, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+    Dimensions,
+    Image,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
+    Modal,
+    StatusBar,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Carousel from 'react-native-reanimated-carousel';
+import { useSharedValue } from 'react-native-reanimated';
 import { useReportDetails } from '../hooks/useReportDetails';
 import { useState, useCallback, useRef } from 'react';
-import { useUserContext } from '../../../contexts/UserContext'; // Cambiar a UserContext
+import { useUserContext } from '../../../contexts/UserContext';
 import { useLanguage } from '~/contexts/LanguageContext';
-import ModalMap from '../components/modalMap'; // Importar ModalMap
+import ModalMap from '../components/modalMap';
 
 type Props = {
     reportId: string;
@@ -41,8 +52,14 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
     const { t } = useLanguage();
     const { report, loading, error, refetch } = useReportDetails(reportId);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const { width: screenWidth } = Dimensions.get('window');
-    const scrollViewRef = useRef<ScrollView>(null);
+    const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
+    const [showFullscreen, setShowFullscreen] = useState(false);
+    const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+    const carouselRef = useRef<any>(null);
+    const fullscreenCarouselRef = useRef<any>(null);
+
+    // Shared value para el progreso del carrusel
+    const progress = useSharedValue<number>(0);
 
     // Estado para controlar el modal del mapa
     const [showMapModal, setShowMapModal] = useState(false);
@@ -63,17 +80,16 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
         }
     }, [onBack]);
 
-    // Función para manejar el cambio de imagen de forma segura
-    const handleImageScroll = useCallback(
-        (event: any) => {
-            const newIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
-            // Usar requestAnimationFrame para evitar el warning de Reanimated
-            requestAnimationFrame(() => {
-                setCurrentImageIndex(newIndex);
-            });
-        },
-        [screenWidth]
-    );
+    // Función para abrir imagen en pantalla completa
+    const openFullscreenImage = useCallback((index: number) => {
+        setFullscreenImageIndex(index);
+        setShowFullscreen(true);
+    }, []);
+
+    // Función para cerrar pantalla completa
+    const closeFullscreenImage = useCallback(() => {
+        setShowFullscreen(false);
+    }, []);
 
     // Función para mostrar el mapa
     const handleShowMap = () => {
@@ -84,6 +100,114 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
     const handleCloseMap = () => {
         setShowMapModal(false);
     };
+
+    // Renderizar item del carrusel normal con parallax
+    const renderCarouselItem = useCallback(
+        ({ item: imagen, index }: { item: string; index: number }) => (
+            <TouchableOpacity
+                key={`carousel-image-${index}`}
+                style={{
+                    width: screenWidth,
+                    borderRadius: 12,
+                    overflow: 'hidden',
+                }}
+                activeOpacity={0.9}
+                onPress={() => openFullscreenImage(index)}>
+                <View
+                    style={{
+                        height: 258,
+                        borderRadius: 12,
+                        overflow: 'hidden',
+                        backgroundColor: '#1a1a1a',
+                    }}>
+                    <Image
+                        source={{
+                            uri: imagen,
+                            cache: 'force-cache',
+                        }}
+                        style={{
+                            width: '100%',
+                            height: 258,
+                        }}
+                        resizeMode="cover"
+                        onError={(error) => {
+                            console.log('Error loading image:', error.nativeEvent.error);
+                        }}
+                    />
+
+                    {/* Overlay con gradiente */}
+                    <View className="absolute inset-0">
+                        {/* Gradiente principal */}
+                        <View className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
+                        {/* Gradiente superior */}
+                        <View className="absolute left-0 right-0 top-0 h-20 bg-gradient-to-b from-black/30 to-transparent" />
+
+                        {/* Contenido del overlay */}
+                        <View className="absolute bottom-4 left-4 right-4">
+                            <View className="flex-row items-end justify-between">
+                                <View className="flex-1">
+                                    <View className="mb-1 flex-row items-center">
+                                        <View className="mr-2 rounded-full bg-[#537CF2]/20 p-1">
+                                            <Ionicons
+                                                name="images-outline"
+                                                size={12}
+                                                color="#537CF2"
+                                            />
+                                        </View>
+                                        <Text className="text-xs font-medium text-white/90">
+                                            Evidencia fotográfica
+                                        </Text>
+                                    </View>
+                                    <Text className="text-xs text-white/70">
+                                        Imagen {index + 1}
+                                    </Text>
+                                </View>
+
+                                {/* Contador */}
+                                <View className="rounded-lg bg-black/60 px-2 py-1">
+                                    <Text className="text-xs font-semibold text-white">
+                                        {index + 1}/{report?.imagenes.length}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Icono de expandir */}
+                    <View className="absolute right-3 top-3">
+                        <View className="rounded-lg bg-black/50 p-1.5">
+                            <Ionicons name="expand-outline" size={16} color="white" />
+                        </View>
+                    </View>
+                </View>
+            </TouchableOpacity>
+        ),
+        [screenWidth, report?.imagenes.length, openFullscreenImage]
+    );
+
+    // Renderizar item del carrusel en pantalla completa
+    const renderFullscreenCarouselItem = useCallback(
+        ({ item: imagen, index }: { item: string; index: number }) => (
+            <View
+                key={`fullscreen-image-${index}`}
+                style={{ width: screenWidth, height: screenHeight }}
+                className="flex-1 items-center justify-center">
+                <Image
+                    source={{
+                        uri: imagen,
+                        cache: 'force-cache',
+                    }}
+                    style={{ width: screenWidth, height: screenHeight }}
+                    resizeMode="contain"
+                    onError={(error) => {
+                        console.log('Error loading fullscreen image:', error.nativeEvent.error);
+                    }}
+                />
+            </View>
+        ),
+        [screenWidth, screenHeight]
+    );
 
     // Validación del reportId
     if (!reportId || reportId.trim() === '') {
@@ -153,7 +277,7 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
     return (
         <SafeAreaView className="flex-1 bg-background">
             {/* Header */}
-            <View className="bg-secondary px-4 py-3 ">
+            <View className="bg-secondary px-4 py-3">
                 <View className="flex-row items-center justify-between">
                     <TouchableOpacity onPress={handleGoBack} className="flex-row items-center">
                         <Ionicons name="arrow-back" size={24} color="white" />
@@ -168,83 +292,117 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 20 }}>
-                {/* Carrusel de imágenes */}
+                {/* Carrusel de imágenes con parallax */}
                 {report.imagenes.length > 0 && (
-                    <View className="relative bg-black">
-                        <ScrollView
-                            ref={scrollViewRef}
-                            horizontal
-                            pagingEnabled
-                            showsHorizontalScrollIndicator={false}
-                            onMomentumScrollEnd={handleImageScroll}
-                            className="h-64">
-                            {report.imagenes.map((imagen: string, index: number) => (
-                                <TouchableOpacity
-                                    key={`image-${index}`}
-                                    style={{ width: screenWidth }}
-                                    activeOpacity={0.9}>
-                                    <Image
-                                        source={{
-                                            uri: imagen,
-                                            cache: 'force-cache',
-                                        }}
-                                        className="h-full w-full"
-                                        resizeMode="cover"
-                                        onError={(error) => {
-                                            console.log(
-                                                'Error loading image:',
-                                                error.nativeEvent.error
-                                            );
-                                        }}
-                                    />
-                                    {/* Overlay con gradiente */}
-                                    <View className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 py-6">
-                                        <View className="flex-row items-end justify-between">
-                                            <View className="flex-1">
-                                                <View className="mb-1 flex-row items-center">
-                                                    <Ionicons
-                                                        name="images-outline"
-                                                        size={16}
-                                                        color="#537CF2"
-                                                    />
-                                                    <Text className="ml-2 text-sm font-medium text-white">
-                                                        Evidencia fotográfica
-                                                    </Text>
-                                                </View>
-                                            </View>
-                                            <View className="rounded-full bg-black/50 px-3 py-1">
-                                                <Text className="text-sm font-medium text-white">
-                                                    {index + 1}/{report.imagenes.length}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    </View>
+                    <View className="bg-black px-4 py-6">
+                        <Carousel
+                            ref={carouselRef}
+                            autoPlayInterval={4000}
+                            data={report.imagenes}
+                            height={258}
+                            loop={true}
+                            pagingEnabled={true}
+                            snapEnabled={true}
+                            width={screenWidth}
+                            style={{
+                                width: screenWidth,
+                            }}
+                            mode="parallax"
+                            modeConfig={{
+                                parallaxScrollingScale: 0.9,
+                                parallaxScrollingOffset: 50,
+                            }}
+                            onProgressChange={progress}
+                            onSnapToItem={(index) => setCurrentImageIndex(index)}
+                            renderItem={renderCarouselItem}
+                        />
 
-                                    {/* Icono de expandir */}
-                                    <View className="absolute right-4 top-4">
-                                        <View className="rounded-full bg-black/50 p-2">
-                                            <Ionicons
-                                                name="expand-outline"
-                                                size={20}
-                                                color="white"
-                                            />
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-
-                        {/* Indicadores de paginación mejorados */}
+                        {/* Indicadores de paginación */}
                         {report.imagenes.length > 1 && (
-                            <View className="absolute bottom-4 left-4">
-                                <View className="flex-row space-x-2">
+                            <View className="mt-4 flex-row items-center justify-center space-x-2">
+                                {report.imagenes.map((_: string, index: number) => (
+                                    <TouchableOpacity
+                                        key={`indicator-${index}`}
+                                        onPress={() => {
+                                            carouselRef.current?.scrollTo({
+                                                index,
+                                                animated: true,
+                                            });
+                                        }}>
+                                        <View
+                                            className={`h-2 rounded-full transition-all duration-300 ${
+                                                index === currentImageIndex
+                                                    ? 'w-6 bg-[#537CF2]'
+                                                    : 'w-2 bg-white/40'
+                                            }`}
+                                        />
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                    </View>
+                )}
+
+                {/* Modal de pantalla completa */}
+                <Modal
+                    visible={showFullscreen}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={closeFullscreenImage}>
+                    <StatusBar hidden />
+                    <View className="flex-1 bg-black">
+                        {/* Header de pantalla completa */}
+                        <View className="absolute left-0 right-0 top-0 z-10 bg-black/50 px-4 py-12">
+                            <View className="flex-row items-center justify-between">
+                                <TouchableOpacity
+                                    onPress={closeFullscreenImage}
+                                    className="rounded-full bg-black/70 p-2">
+                                    <Ionicons name="close" size={24} color="white" />
+                                </TouchableOpacity>
+                                <View className="rounded-full bg-black/70 px-3 py-2">
+                                    <Text className="font-medium text-white">
+                                        {fullscreenImageIndex + 1}/{report.imagenes.length}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Carrusel en pantalla completa */}
+                        <Carousel
+                            ref={fullscreenCarouselRef}
+                            loop={true}
+                            width={screenWidth}
+                            height={screenHeight}
+                            data={report.imagenes}
+                            scrollAnimationDuration={300}
+                            onSnapToItem={(index) => setFullscreenImageIndex(index)}
+                            renderItem={renderFullscreenCarouselItem}
+                            defaultIndex={fullscreenImageIndex}
+                            mode="parallax"
+                            modeConfig={{
+                                parallaxScrollingScale: 0.95,
+                                parallaxScrollingOffset: 30,
+                            }}
+                        />
+
+                        {/* Indicadores de paginación en pantalla completa */}
+                        {report.imagenes.length > 1 && (
+                            <View className="absolute bottom-12 left-0 right-0">
+                                <View className="flex-row justify-center space-x-2">
                                     {report.imagenes.map((_: string, index: number) => (
-                                        <TouchableOpacity key={`indicator-${index}`}>
+                                        <TouchableOpacity
+                                            key={`fullscreen-indicator-${index}`}
+                                            onPress={() => {
+                                                fullscreenCarouselRef.current?.scrollTo({
+                                                    index,
+                                                    animated: true,
+                                                });
+                                            }}>
                                             <View
-                                                className={`h-1 rounded-full transition-all duration-300 ${
-                                                    index === currentImageIndex
+                                                className={`h-2 rounded-full transition-all duration-300 ${
+                                                    index === fullscreenImageIndex
                                                         ? 'w-8 bg-[#537CF2]'
-                                                        : 'w-4 bg-white/60'
+                                                        : 'w-2 bg-white/60'
                                                 }`}
                                             />
                                         </TouchableOpacity>
@@ -253,10 +411,10 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                             </View>
                         )}
                     </View>
-                )}
+                </Modal>
 
                 {/* Título del reporte */}
-                <View className="mx-4 mt-4 rounded-xl bg-gradient-to-r from-[#537CF2] to-[#6366f1] p-4 shadow-lg">
+                <View className="mx-4 mt-4 rounded-xl bg-secondary p-4">
                     <Text className="text-center text-xl font-bold text-white">
                         {report.titulo}
                     </Text>
@@ -476,7 +634,7 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                 )}
             </ScrollView>
 
-            {/* Modal del mapa - Solo mostrar si hay datos de ubicación */}
+            {/* Modal del mapa */}
             {report && (
                 <ModalMap
                     visible={showMapModal}
