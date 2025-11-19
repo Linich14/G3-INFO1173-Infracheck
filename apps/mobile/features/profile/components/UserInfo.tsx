@@ -1,21 +1,31 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
-import { Mail, CreditCard, Phone, Camera } from 'lucide-react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, Image, Alert, RefreshControl, ScrollView } from 'react-native';
+import { Mail, CreditCard, Phone, Camera, QrCode, User } from 'lucide-react-native';
 import { ContactField } from './ContactField';
 import { EditEmailModal } from './EditEmailModal';
 import { EditPhoneModal } from './EditPhoneModal';
+import { EditNameModal } from './EditNameModal';
+import { QRSection } from './QRSection';
+import { UserStats } from './UserStats';
 import { UserInfoProps } from '../types';
+import { useVoteFeedback } from '~/features/posts/hooks/useVoteFeedback';
 import { useUser } from '../hooks/useUser';
+import { useProfileStats } from '../hooks/useProfileStats';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
   const [isPhoneModalVisible, setIsPhoneModalVisible] = useState(false);
+  const [isNameModalVisible, setIsNameModalVisible] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const { stats, loading: statsLoading, error: statsError, refresh: refreshStats } = useProfileStats();
   const { updateUser, refreshUser } = useUser();
+  const { showSuccess, showError } = useVoteFeedback();
+  const { t } = useLanguage();
 
   // Función helper para formatear el teléfono
   const formatPhone = (phone: number) => {
     const phoneStr = phone.toString();
-    // Formato chileno: +56 9 XXXX XXXX
     if (phoneStr.length === 11 && phoneStr.startsWith('569')) {
       return `+56 9 ${phoneStr.slice(3, 7)} ${phoneStr.slice(7)}`;
     }
@@ -34,8 +44,8 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
   // Handler para cambiar foto de perfil
   const handleChangePhoto = () => {
     Alert.alert(
-      'Cambiar foto de perfil',
-      'Esta funcionalidad estará disponible próximamente',
+      t('changePasswordTitle'),
+      t('profileChangePasswordComingSoon'),
       [{ text: 'OK' }]
     );
   };
@@ -45,19 +55,14 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
     try {
       const success = await updateUser({ usua_email: newEmail });
       if (success) {
-        // Recargar el perfil para sincronizar los datos
         await refreshUser();
-        Alert.alert(
-          '✅ Email actualizado', 
-          'Tu email ha sido actualizado correctamente',
-          [{ text: 'OK' }]
-        );
+        showSuccess(t('profileEmailUpdateSuccess'));
       } else {
-        Alert.alert('Error', 'No se pudo actualizar el email');
+        showError(t('profileEmailUpdateError'));
       }
       return success;
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo actualizar el email');
+    } catch (e: any) {
+      showError(e?.message || t('profileEmailUpdateError'));
       return false;
     }
   };
@@ -67,26 +72,53 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
     try {
       const success = await updateUser({ usua_telefono: newPhone });
       if (success) {
-        // Recargar el perfil para sincronizar los datos
         await refreshUser();
-        Alert.alert(
-          '✅ Teléfono actualizado', 
-          'Tu teléfono ha sido actualizado correctamente',
-          [{ text: 'OK' }]
-        );
+        showSuccess(t('profilePhoneUpdateSuccess'));
       } else {
-        Alert.alert('Error', 'No se pudo actualizar el teléfono');
+        showError(t('profilePhoneUpdateError'));
       }
       return success;
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo actualizar el teléfono');
+    } catch (e: any) {
+      showError(e?.message || t('profilePhoneUpdateError'));
       return false;
     }
   };
 
+  // Handler para guardar nombre y apellido
+  const handleSaveName = async (firstName: string, lastName: string): Promise<boolean> => {
+    try {
+      const success = await updateUser({ usua_nombre: firstName, usua_apellido: lastName });
+      if (success) {
+        await refreshUser();
+        showSuccess(t('profileNameUpdateSuccess'));
+      } else {
+        showError(t('profileNameUpdateError'));
+      }
+      return success;
+    } catch (e: any) {
+      showError(e?.message || t('profileNameUpdateError'));
+      return false;
+    }
+  };
+
+  const handleRefreshAll = useCallback(async () => {
+    // Refresca tanto los datos del usuario como las estadísticas de actividad
+    await Promise.all([refreshUser(), refreshStats()]);
+  }, [refreshUser, refreshStats]);
+
   return (
-    <View className="flex-1 px-3.5 w-full">
-      {/* User Avatar with Edit Button */}
+    <ScrollView
+      className="flex-1 px-3.5 w-full"
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={statsLoading}
+          onRefresh={handleRefreshAll}
+          tintColor="#537CF2"
+          colors={["#537CF2"]}
+        />
+      }
+    >
       <View className="self-center mt-8 relative">
         <View className="w-[108px] h-[108px] bg-[#537CF2] rounded-full justify-center items-center shadow-lg">
           {user.avatar ? (
@@ -102,7 +134,6 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
           )}
         </View>
         
-        {/* Camera Button */}
         <TouchableOpacity
           onPress={handleChangePhoto}
           className="absolute bottom-0 right-0 w-8 h-8 bg-[#537CF2] rounded-full justify-center items-center border-2 border-[#090A0D]"
@@ -112,7 +143,6 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </TouchableOpacity>
       </View>
 
-      {/* User Name */}
       <View className="justify-center items-center px-4 mt-6">
         <Text className="text-3xl font-medium text-white text-center leading-9">
           {user.full_name}
@@ -122,9 +152,63 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </Text>
       </View>
 
-      {/* Contact Information with Edit Buttons */}
+      <View className="flex-row justify-center items-center gap-4 mt-4 mb-1">
+        <TouchableOpacity
+          onPress={() => setShowQR(true)}
+          className="bg-[#13161E] p-3 rounded-xl"
+          activeOpacity={0.8}
+        >
+          <QrCode size={24} color="#537CF2" />
+        </TouchableOpacity>
+      </View>
+  {/* Stats de actividad solo para usuarios ciudadanos (rous_id === 3) */}
+  {user.rous_id === 3 && (
+        <>
+          {statsLoading && !stats && (
+            <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-white/5">
+              <Text className="text-gray-300 text-sm mb-2">{t('statsLoading')}</Text>
+            </View>
+          )}
+
+          {statsError && !stats && (
+            <View className="mx-4 mt-2 mb-1 rounded-2xl bg-[#13161E] px-4 py-4 border border-red-500/40">
+              <Text className="text-red-400 text-sm mb-3">{statsError}</Text>
+              <TouchableOpacity
+                onPress={refreshStats}
+                className="self-start bg-[#537CF2] px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white text-sm font-semibold">{t('statsRetry')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {stats && (
+            <UserStats
+              reportes_creados={stats.reportes_creados}
+              reportes_seguidos={stats.reportes_seguidos}
+              votos_recibidos={stats.votos_recibidos}
+              votos_realizados={stats.votos_realizados}
+            />
+          )}
+        </>
+      )}
+
+
+      {/* Nombre y apellido en el mismo bloque de contacto que email/teléfono */}
       <View className="px-3.5 py-5 mt-3 w-full">
-        {/* Email with Edit Button */}
+        <TouchableOpacity onPress={() => setIsNameModalVisible(true)} activeOpacity={0.7}>
+          <ContactField
+            icon={<User size={24} color="#60A5FA" />}
+            value={
+              user.usua_nombre && user.usua_apellido
+                ? `${user.usua_nombre} ${user.usua_apellido}`
+                : t('nameFieldPlaceholder')
+            }
+            className="mb-4"
+            showEditIcon={true}
+          />
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={() => setIsEmailModalVisible(true)} activeOpacity={0.7}>
           <ContactField
             icon={<Mail size={24} color="#f6fa00ff" />}
@@ -134,14 +218,12 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
           />
         </TouchableOpacity>
 
-        {/* RUT (no editable) */}
         <ContactField
           icon={<CreditCard size={24} color="#3cff00ff" />}
           value={user.usua_rut}
           className="mb-4"
         />
 
-        {/* Phone with Edit Button */}
         <TouchableOpacity onPress={() => setIsPhoneModalVisible(true)} activeOpacity={0.7}>
           <ContactField
             icon={<Phone size={24} color="#ff6b00ff" />}
@@ -152,7 +234,8 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Modals */}
+
+
       <EditEmailModal
         isVisible={isEmailModalVisible}
         currentEmail={user.usua_email}
@@ -166,6 +249,22 @@ export const UserInfo: React.FC<UserInfoProps> = ({ user }) => {
         onClose={() => setIsPhoneModalVisible(false)}
         onSave={handleSavePhone}
       />
-    </View>
+
+      <EditNameModal
+        isVisible={isNameModalVisible}
+        currentFirstName={user.usua_nombre}
+        currentLastName={user.usua_apellido}
+        onClose={() => setIsNameModalVisible(false)}
+        onSave={handleSaveName}
+      />
+
+      {showQR && (
+        <QRSection 
+          visible={showQR} 
+          onClose={() => setShowQR(false)} 
+          userId={user.usua_id}
+        />
+      )}
+    </ScrollView>
   );
 };

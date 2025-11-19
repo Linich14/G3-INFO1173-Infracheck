@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Keyboard, View, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Map, Settings, Users2 } from 'lucide-react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 function TabItem({
     label,
@@ -46,6 +47,7 @@ function TabItem({
 export default function Layout() {
     const [keyboardVisible, setKeyboardVisible] = useState(false);
     const insets = useSafeAreaInsets();
+    const { t } = useLanguage();
 
     useEffect(() => {
         const s = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -56,7 +58,7 @@ export default function Layout() {
         };
     }, []);
 
-    const BASE = 56;
+    const BASE = 70;
 
     return (
         <Tabs
@@ -79,9 +81,9 @@ export default function Layout() {
             <Tabs.Screen
                 name="home/index"
                 options={{
-                    title: 'Home',
+                    title: t('tabBarHome'),
                     tabBarIcon: ({ focused }) => (
-                        <TabItem label="Home" focused={focused}>
+                        <TabItem label={t('tabBarHome')} focused={focused}>
                             <Home size={24} color="#fff" />
                         </TabItem>
                     ),
@@ -91,22 +93,21 @@ export default function Layout() {
             <Tabs.Screen
                 name="(map)"
                 options={{
-                    title: 'Mapa',
+                    title: t('tabBarMap'),
                     tabBarIcon: ({ focused }) => (
-                        <TabItem label="Mapa" focused={focused}>
+                        <TabItem label={t('tabBarMap')} focused={focused}>
                             <Map size={24} color="#fff" />
                         </TabItem>
                     ),
                 }}
             />
 
-
             <Tabs.Screen
                 name="settings/index"
                 options={{
-                    title: 'Ajustes',
+                    title: t('tabBarSettings'),
                     tabBarIcon: ({ focused }) => (
-                        <TabItem label="Ajustes" focused={focused}>
+                        <TabItem label={t('tabBarSettings')} focused={focused}>
                             <Settings size={24} color="#fff" />
                         </TabItem>
                     ),
@@ -115,7 +116,7 @@ export default function Layout() {
 
             {/* Páginas ocultas - no aparecen en la barra de navegación */}
             <Tabs.Screen
-                name="report/[id]"
+                name="report/[idReport]"
                 options={{
                     href: null, // Oculta de la barra de navegación
                 }}
@@ -139,7 +140,7 @@ export default function Layout() {
                 }}
             />
             <Tabs.Screen
-                name="profile/index"
+                name="profile"
                 options={{
                     href: null, // Oculta de la barra de navegación
                 }}

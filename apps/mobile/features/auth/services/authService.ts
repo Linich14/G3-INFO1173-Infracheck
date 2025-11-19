@@ -6,6 +6,7 @@ const TOKEN_KEY = 'auth_token';
 const TOKEN_EXPIRY_KEY = 'auth_token_expiry';
 const USER_ROLE_ID_KEY = 'user_role_id';
 const USER_ROLE_NAME_KEY = 'user_role_name';
+const USER_ID_KEY = 'user_id';
 
 // Variable para controlar llamadas simultáneas a isAuthenticated
 let isAuthenticating = false;
@@ -187,6 +188,25 @@ export const saveUserRole = async (rous_id: number, rous_nombre: string): Promis
   }
 };
 
+// Guardar ID del usuario
+export const saveUserId = async (userId: string | number): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(USER_ID_KEY, userId.toString());
+  } catch (error) {
+    console.error('Error saving user ID:', error);
+  }
+};
+
+// Obtener ID del usuario
+export const getUserId = async (): Promise<string | null> => {
+  try {
+    return await AsyncStorage.getItem(USER_ID_KEY);
+  } catch (error) {
+    console.error('Error getting user ID:', error);
+    return null;
+  }
+};
+
 // Obtener datos del rol del usuario
 export const getUserRole = async (): Promise<{rous_id: number, rous_nombre: string} | null> => {
   try {
@@ -259,6 +279,9 @@ export const isAuthenticated = async (): Promise<boolean> => {
 // Login con backend
 export async function loginUser(data: LoginData): Promise<AuthResponse> {
   try {
+    // Verificar si hay un token guardado (no debería haberlo para login)
+    // const existingToken = await getToken();
+    
     const response = await fetch(`${API_CONFIG.BASE_URL}/api/v1/login/`, {
       method: 'POST',
       headers: {
@@ -266,7 +289,6 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
       },
       body: JSON.stringify(data),
     });
-
     const result = await response.json();
 
     // El backend envía token cuando el login es exitoso, no un campo 'success'
@@ -279,6 +301,11 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
       // Guardar datos del rol del usuario
       if (result.rous_id && result.rous_nombre) {
         await saveUserRole(result.rous_id, result.rous_nombre);
+      }
+
+      // Guardar ID del usuario
+      if (result.user_id) {
+        await saveUserId(result.user_id);
       }
 
       return {
@@ -298,14 +325,14 @@ export async function loginUser(data: LoginData): Promise<AuthResponse> {
     } else {
       return {
         success: false,
-        message: result.message || result.error || 'Verifica tus credenciales.',
+        message: result.message || result.error || 'authServiceInvalidCredentials',
       };
     }
   } catch (error: any) {
     console.error('Login error:', error.message);
     return {
       success: false,
-      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+      message: error.message || 'authServiceConnectionError',
     };
   }
 }
@@ -439,19 +466,19 @@ export const requestPasswordReset = async (data: PasswordResetRequest): Promise<
     if (response.ok) {
       return {
         success: result.success || true,
-        message: result.message || 'Código enviado exitosamente',
+        message: result.message || 'authServiceCodeSent',
       };
     } else {
       return {
         success: false,
-        message: result.message || result.error || 'Error al enviar el código',
+        message: result.message || result.error || 'authServiceSendCodeError',
       };
     }
   } catch (error: any) {
     console.error('Password reset request error:', error);
     return {
       success: false,
-      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+      message: error.message || 'authServiceConnectionError',
     };
   }
 };
@@ -476,20 +503,20 @@ export const verifyResetCode = async (data: VerifyResetCodeRequest): Promise<Ver
     if (response.ok && result.success) {
       return {
         success: true,
-        message: result.message || 'Código verificado exitosamente',
+        message: result.message || 'authServiceCodeVerified',
         reset_token: result.reset_token,
       };
     } else {
       return {
         success: false,
-        message: result.message || result.error || 'Código inválido o expirado',
+        message: result.message || result.error || 'authServiceCodeExpired',
       };
     }
   } catch (error: any) {
     console.error('Verify reset code error:', error);
     return {
       success: false,
-      message: error.message || 'Error de conexión. Verifica tu conexión a internet.',
+      message: error.message || 'authServiceConnectionError',
     };
   }
 };

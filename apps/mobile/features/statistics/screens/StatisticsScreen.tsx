@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { LineChart, BarChart } from 'react-native-chart-kit';
 import StatCard from '../components/StatCard';
 import ChartCard from '../components/ChartCard';
 import InsightCard from '../components/InsightCard';
+import { useLanguage } from '~/contexts/LanguageContext';
 import {
   GlobalStatistics,
   TypeDistribution,
@@ -36,6 +37,7 @@ import {
  * Muestra métricas generales de todos los reportes y proyectos del sistema
  */
 export default function StatisticsScreen() {
+  const { t, locale } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -227,7 +229,7 @@ export default function StatisticsScreen() {
     return (
       <View className="flex-1 bg-black pt-10">
         <View className="flex-1 items-center justify-center">
-          <Text className="text-lg text-white">Cargando estadísticas...</Text>
+          <Text className="text-lg text-white">{t('loading')}</Text>
         </View>
       </View>
     );
@@ -244,7 +246,7 @@ export default function StatisticsScreen() {
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text className="flex-1 text-center text-xl font-bold text-white">
-          Estadísticas Globales
+          {t('statisticsTitle')}
         </Text>
         {/* Espaciador para centrar título */}
         <View className="w-10" />
@@ -260,7 +262,7 @@ export default function StatisticsScreen() {
         {/* Última actualización */}
         <View className="mt-4 mb-2">
           <Text className="text-center text-xs text-gray-500">
-            Última actualización: {formatRelativeTime(lastUpdated)}
+            {t('statisticsLastUpdate')}: {formatRelativeTime(lastUpdated, t)}
           </Text>
         </View>
 
@@ -268,7 +270,7 @@ export default function StatisticsScreen() {
         <View className="mb-4">
           <View className="mb-3 flex-row items-center">
             <Ionicons name="bar-chart" size={20} color="#537CF2" />
-            <Text className="ml-2 text-lg font-bold text-blue-400">Resumen General</Text>
+            <Text className="ml-2 text-lg font-bold text-blue-400">{t('statisticsGlobalMetrics')}</Text>
           </View>
           <View className="flex-row flex-wrap justify-between">
             <View className="mb-3 w-[48%]">

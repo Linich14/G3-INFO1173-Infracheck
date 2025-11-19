@@ -11,6 +11,23 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-replace-this-k
 DEBUG = True
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+#GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
+#EOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
+
+import platform
+
+if platform.system() == 'Darwin':  # macOS
+    GDAL_LIBRARY_PATH = '/opt/homebrew/lib/libgdal.dylib'
+    GEOS_LIBRARY_PATH = '/opt/homebrew/lib/libgeos_c.dylib'
+elif os.name == 'nt':  # Windows
+    # Configuración GDAL para OSGeo4W
+    OSGEO_PATH = r'C:\OSGeo4W'
+    os.environ['PATH'] = os.path.join(OSGEO_PATH, 'bin') + ';' + os.environ['PATH']
+    os.environ['PROJ_LIB'] = os.path.join(OSGEO_PATH, 'share', 'proj')
+    os.environ['GDAL_DATA'] = os.path.join(OSGEO_PATH, 'share', 'gdal')
+    GDAL_LIBRARY_PATH = os.path.join(OSGEO_PATH, 'bin', 'gdal311.dll')
+    GEOS_LIBRARY_PATH = os.path.join(OSGEO_PATH, 'bin', 'geos_c.dll')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -95,6 +112,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS config
 CORS_ALLOW_ALL_ORIGINS = True
+
+# REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'interfaces.authentication.session_token_auth.SesionTokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Permitir acceso por defecto, proteger endpoints individualmente
+    ],
+    'UNAUTHENTICATED_USER': None,  # No usar AnonymousUser por defecto
+}
 
 # EMAIL Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

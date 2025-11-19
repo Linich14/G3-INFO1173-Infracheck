@@ -6,7 +6,7 @@ from .report_archivos import ReportArchivo
 from .seguimiento_reporte import SeguimientoReporte
 from .voto_reporte import VotoReporte
 from .comentario_reporte import ComentarioReporte
-from .report_history import ReportHistory
+from .report_history import ReportHistory  # Re-habilitado con db_constraint=False
 
 # Imports para mantener compatibilidad con migraciones antiguas
 from proyectos.models import ProyectoModel, ProyectoArchivosModel

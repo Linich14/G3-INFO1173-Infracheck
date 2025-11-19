@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from 'react';
-import { Pressable, View, Text } from 'react-native';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Pressable, View, Text, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { MapView, Camera, UserLocation, PointAnnotation } from '@maplibre/maplibre-react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
@@ -16,59 +16,12 @@ import {
 } from '../types';
 import PinDetailsModal from '../components/PinDetailsModal';
 import MapFilters from '../components/MapFilters';
+import MapPopup from '../components/MapPopup';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MapService from '../services/mapService';
+import { ReportService } from '~/features/report/services/reportService';
 
-// Datos de ejemplo - en producción vendrían de una API
-const SAMPLE_ANNOTATIONS: AnnotationData[] = [
-    {
-        id: '1',
-        type: AnnotationType.VIALIDAD_VEREDAS,
-        coordinate: [-72.591, -38.74],
-        title: 'Hueco en la calzada',
-        severity: 'high',
-        status: 'active',
-    },
-    {
-        id: '2',
-        type: AnnotationType.ALUMBRADO_PUBLICO,
-        coordinate: [-72.595, -38.742],
-        title: 'Luminaria sin funcionar',
-        severity: 'medium',
-        status: 'pending',
-    },
-    {
-        id: '3',
-        type: AnnotationType.AREAS_VERDES,
-        coordinate: [-72.588, -38.738],
-        title: 'Árbol caído',
-        severity: 'high',
-        status: 'pending',
-    },
-    {
-        id: '4',
-        type: AnnotationType.DRENAJE_AGUAS,
-        coordinate: [-72.593, -38.745],
-        title: 'Alcantarilla obstruida',
-        severity: 'medium',
-        status: 'active',
-    },
-    {
-        id: '5',
-        type: AnnotationType.MOBILIARIO_URBANO,
-        coordinate: [-72.589, -38.741],
-        title: 'Banca rota',
-        severity: 'low',
-        status: 'active',
-    },
-    {
-        id: '6',
-        type: AnnotationType.ACCESIBILIDAD,
-        coordinate: [-72.592, -38.739],
-        title: 'Rampa de acceso dañada',
-        severity: 'high',
-        status: 'pending',
-    },
-];
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function MapScreen() {
     const [location, setLocation] = useState<localizacion>({
@@ -82,42 +35,104 @@ export default function MapScreen() {
     const [cargando, setCargando] = useState(false);
     const [selectedAnnotation, setSelectedAnnotation] = useState<AnnotationData | null>(null);
 
-    // Estado de zoom - iniciado en 10
-    const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(10);
-    const [shouldUpdateCamera, setShouldUpdateCamera] = useState(true); // Control para la cámara
+    const [popupVisible, setPopupVisible] = useState(false);
+    const [popupAnnotation, setPopupAnnotation] = useState<AnnotationData | null>(null);
+    const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
 
-    // Referencia al MapView para usar getZoom()
+    const [currentZoomLevel, setCurrentZoomLevel] = useState<number>(13);
+    const [shouldUpdateCamera, setShouldUpdateCamera] = useState(true);
+
+    const [annotations, setAnnotations] = useState<AnnotationData[]>([]);
+    const [loadingAnnotations, setLoadingAnnotations] = useState(false);
+
     const mapRef = useRef<MapView>(null);
 
-    // Estado de filtros
     const [filterState, setFilterState] = useState<FilterState>({
         activeTypes: new Set(Object.values(AnnotationType)),
         showAll: true,
     });
     const [filtersVisible, setFiltersVisible] = useState(false);
 
-    const { getUserLocation, showPermissionModal, handleAcceptPermission, handleCancelPermission } = useUserLocation();
+    const { getUserLocation, showPermissionModal, handleAcceptPermission, handleCancelPermission } =
+        useUserLocation();
     const router = useRouter();
 
-    // Función para actualizar el zoom actual
+    const loadAnnotationsFromAPI = useCallback(async () => {
+        if (currentZoomLevel < ZOOM_CONFIG.MIN_ZOOM_TO_SHOW_POINTS) {
+            setAnnotations([]);
+            return;
+        }
+
+        setLoadingAnnotations(true);
+        try {
+            if (filterState.activeTypes.size === 0) {
+                setAnnotations([]);
+                return;
+            }
+
+            const geoJsonData = await MapService.getReportsGeoJSON(filterState.activeTypes);
+            const annotationData = MapService.featuresToAnnotationData(geoJsonData.features || []);
+            setAnnotations(annotationData);
+        } catch (error) {
+            setAnnotations([]);
+        } finally {
+            setLoadingAnnotations(false);
+        }
+    }, [filterState.activeTypes, currentZoomLevel]);
+
+    useEffect(() => {
+        loadAnnotationsFromAPI();
+    }, [loadAnnotationsFromAPI]);
+
     const updateCurrentZoom = useCallback(async () => {
         if (mapRef.current) {
             try {
                 const zoom = await mapRef.current.getZoom();
                 setCurrentZoomLevel(zoom);
-                console.log('Zoom level actualizado:', zoom);
             } catch (error) {
-                console.error('Error obteniendo zoom level:', error);
+                // Error silencioso
             }
         }
     }, []);
 
-    // Callback para cuando el mapa se mueve/hace zoom
+    const updatePopupPosition = useCallback(async () => {
+        if (popupVisible && popupAnnotation && mapRef.current) {
+            try {
+                const pointInView = await mapRef.current.getPointInView(popupAnnotation.coordinate);
+
+                const popupWidth = 288;
+                const popupHeight = 160;
+                const pinOffset = 20;
+
+                let x = pointInView[0] - popupWidth / 2;
+                let y = pointInView[1] - popupHeight - pinOffset;
+
+                if (x < 16) {
+                    x = 16;
+                } else if (x + popupWidth > SCREEN_WIDTH - 16) {
+                    x = SCREEN_WIDTH - popupWidth - 16;
+                }
+
+                if (y < 100) {
+                    y = pointInView[1] + 40;
+                }
+
+                setPopupPosition({ x, y });
+            } catch (error) {
+                // Error silencioso
+            }
+        }
+    }, [popupVisible, popupAnnotation]);
+
+    const onRegionWillChange = useCallback(() => {
+        // Mantener popup visible durante movimiento
+    }, []);
+
     const onRegionDidChange = useCallback(() => {
         updateCurrentZoom();
-        // Después del primer cambio, no actualizar más la cámara automáticamente
+        updatePopupPosition();
         setShouldUpdateCamera(false);
-    }, [updateCurrentZoom]);
+    }, [updateCurrentZoom, updatePopupPosition]);
 
     const centerOnUserLocation = async () => {
         try {
@@ -128,45 +143,145 @@ export default function MapScreen() {
                     longitud: userLocation.coords.longitude,
                     direccion: '',
                 });
-                // Solo actualizar la cámara cuando el usuario lo solicite explícitamente
                 setShouldUpdateCamera(true);
-                console.log('Ubicación del usuario centrada:', userLocation);
             }
         } catch (error) {
-            console.error('Error al obtener la ubicación del usuario:', error);
+            // Error silencioso
         }
     };
 
-    const handleAnnotationSelected = async (annotation: AnnotationData) => {
-        setSelectedAnnotation(annotation);
-        setCargando(true);
-        setModalVisible(true);
+    const hidePopup = useCallback(() => {
+        setPopupVisible(false);
+        setPopupAnnotation(null);
+    }, []);
+
+    const handleMapPress = useCallback(() => {
+        if (popupVisible) {
+            hidePopup();
+        }
+    }, [popupVisible, hidePopup]);
+
+    const handleAnnotationSelected = async (annotation: AnnotationData, event?: any) => {
+        setPopupAnnotation(annotation);
 
         try {
-            // Simular carga de datos específicos del pin
+            if (mapRef.current) {
+                const pointInView = await mapRef.current.getPointInView(annotation.coordinate);
+
+                const popupWidth = 288;
+                const popupHeight = 160;
+                const pinOffset = 20;
+
+                let x = pointInView[0] - popupWidth / 2;
+                let y = pointInView[1] - popupHeight - pinOffset;
+
+                if (x < 16) {
+                    x = 16;
+                } else if (x + popupWidth > SCREEN_WIDTH - 16) {
+                    x = SCREEN_WIDTH - popupWidth - 16;
+                }
+
+                if (y < 100) {
+                    y = pointInView[1] + 40;
+                }
+
+                setPopupPosition({ x, y });
+                setPopupVisible(true);
+            }
+        } catch (error) {
+            const fallbackPosition = {
+                x: SCREEN_WIDTH / 2 - 144,
+                y: SCREEN_HEIGHT / 2 - 80,
+            };
+
+            setPopupPosition(fallbackPosition);
+            setPopupVisible(true);
+        }
+    };
+
+    const handlePopupPress = async () => {
+        if (!popupAnnotation) return;
+
+        setSelectedAnnotation(popupAnnotation);
+        setCargando(true);
+        setModalVisible(true);
+        setPopupVisible(false);
+
+        try {
+            const reportDetail = await ReportService.getReportDetail(popupAnnotation.id);
+
+            if (reportDetail.success) {
+                const data = reportDetail.data;
+
+                const detalles: PinDetails = {
+                    id: data.id.toString(),
+                    titulo: data.titulo,
+                    descripcion: data.descripcion,
+                    tipoDenuncia: data.tipo_denuncia.nombre,
+                    ubicacion: {
+                        latitud: data.ubicacion.latitud,
+                        longitud: data.ubicacion.longitud,
+                        direccion: data.direccion,
+                    },
+                    nivelUrgencia: data.urgencia.etiqueta,
+                    fecha: data.fecha_creacion,
+                    imagenes: data.archivos
+                        .filter((archivo) => archivo.tipo === 'imagen')
+                        .map((archivo) => archivo.url),
+                    video: data.archivos.find((archivo) => archivo.tipo === 'video')?.url || '',
+                };
+
+                setPinDetails(detalles);
+            } else {
+                const detalles: PinDetails = {
+                    id: popupAnnotation.id,
+                    titulo: popupAnnotation.title,
+                    descripcion: popupAnnotation.description || 'Sin descripción',
+                    tipoDenuncia: popupAnnotation.tipo_denuncia_nombre || '',
+                    ubicacion: {
+                        latitud: popupAnnotation.coordinate[1],
+                        longitud: popupAnnotation.coordinate[0],
+                        direccion: popupAnnotation.direccion || '',
+                    },
+                    nivelUrgencia: popupAnnotation.urgencia_label || '',
+                    fecha: popupAnnotation.fecha_creacion || new Date().toISOString(),
+                    imagenes: popupAnnotation.imagen_principal
+                        ? [popupAnnotation.imagen_principal]
+                        : [],
+                    video: '',
+                };
+
+                setPinDetails(detalles);
+            }
+        } catch (error) {
             const detalles: PinDetails = {
-                id: annotation.id,
-                titulo: annotation.title,
-                descripcion: annotation.description || 'Sin descripción',
-                tipoDenuncia: annotation.type,
+                id: popupAnnotation.id,
+                titulo: popupAnnotation.title,
+                descripcion: popupAnnotation.description || 'Sin descripción',
+                tipoDenuncia: popupAnnotation.tipo_denuncia_nombre || '',
                 ubicacion: {
-                    latitud: annotation.coordinate[1],
-                    longitud: annotation.coordinate[0],
-                    direccion: '',
+                    latitud: popupAnnotation.coordinate[1],
+                    longitud: popupAnnotation.coordinate[0],
+                    direccion: popupAnnotation.direccion || '',
                 },
-                nivelUrgencia: annotation.severity || 'low',
-                fecha: new Date().toISOString(),
-                imagenes: ['https://picsum.photos/400/400'],
+                nivelUrgencia: popupAnnotation.urgencia_label || '',
+                fecha: popupAnnotation.fecha_creacion || new Date().toISOString(),
+                imagenes: popupAnnotation.imagen_principal
+                    ? [popupAnnotation.imagen_principal]
+                    : [],
                 video: '',
             };
 
-            await new Promise((resolve) => setTimeout(resolve, 1500));
             setPinDetails(detalles);
-        } catch (error) {
-            console.error('Error al cargar detalles del pin:', error);
         } finally {
             setCargando(false);
         }
+    };
+
+    const handleOpenFullScreen = () => {
+        if (!popupAnnotation) return;
+        setModalVisible(false);
+        router.push(`/(tabs)/report/${popupAnnotation.id}`);
     };
 
     const closeModal = () => {
@@ -175,70 +290,109 @@ export default function MapScreen() {
         setSelectedAnnotation(null);
     };
 
-    // Filtrar anotaciones basado SOLO en filtros y zoom global
     const getVisibleAnnotations = useCallback(() => {
-        // Verificar zoom global primero
         if (currentZoomLevel < ZOOM_CONFIG.MIN_ZOOM_TO_SHOW_POINTS) {
             return [];
         }
 
-        // Solo filtrar por tipo si el zoom es suficiente
-        return SAMPLE_ANNOTATIONS.filter((annotation) => {
+        if (filterState.activeTypes.size === 0) {
+            return [];
+        }
+
+        const filtered = annotations.filter((annotation) => {
             return filterState.activeTypes.has(annotation.type);
         });
-    }, [filterState.activeTypes, currentZoomLevel]);
+
+        return filtered;
+    }, [annotations, currentZoomLevel, filterState.activeTypes]);
 
     const renderAnnotations = () => {
         const visibleAnnotations = getVisibleAnnotations();
 
-        return visibleAnnotations.map((annotation) => {
-            const config = ANNOTATION_CONFIGS[annotation.type];
+        if (visibleAnnotations.length === 0) {
+            return null;
+        }
 
-            return (
-                <PointAnnotation
-                    key={annotation.id}
-                    id={annotation.id}
-                    coordinate={annotation.coordinate}
-                    onSelected={() => handleAnnotationSelected(annotation)}>
-                    <View className="items-center justify-center">
-                        <MaterialCommunityIcons
-                            name={config.icon}
-                            size={config.size}
-                            color={config.color}
-                        />
-                        {annotation.severity === 'high' && (
-                            <View className="absolute -right-1 -top-1 h-3 w-3 rounded-full border border-white bg-red-500" />
-                        )}
-                    </View>
-                </PointAnnotation>
-            );
-        });
+        return visibleAnnotations
+            .map((annotation) => {
+                const config = ANNOTATION_CONFIGS[annotation.type];
+
+                if (!config) {
+                    return null;
+                }
+
+                return (
+                    <PointAnnotation
+                        key={annotation.id}
+                        id={annotation.id}
+                        coordinate={annotation.coordinate}
+                        onSelected={(event) => handleAnnotationSelected(annotation, event)}>
+                        <View className="items-center justify-center">
+                            <MaterialCommunityIcons
+                                name={config.icon as any}
+                                size={config.size}
+                                color={annotation.marker_color || config.color}
+                            />
+                            {(annotation.severity === 'Alta' ||
+                                annotation.severity === 'Crítica') && (
+                                <View
+                                    className={`absolute -right-1 -top-1 h-3 w-3 rounded-full border border-white ${
+                                        annotation.severity === 'Crítica'
+                                            ? 'bg-red-600'
+                                            : 'bg-red-500'
+                                    }`}
+                                />
+                            )}
+                            {(annotation.status === 'Resuelto' ||
+                                annotation.status === 'Cerrado') && (
+                                <View className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border border-white bg-green-500" />
+                            )}
+                        </View>
+                    </PointAnnotation>
+                );
+            })
+            .filter(Boolean);
     };
 
     return (
         <SafeAreaView edges={['top', 'left', 'right']} className="flex-1">
             <View className="flex-1">
-                <View className="h-full w-full">
-                    <MapView
-                        ref={mapRef}
-                        style={{ flex: 1 }}
-                        compassEnabled={true}
-                        mapStyle={MAP_CONFIG.STYLE_URL}
-                        onRegionDidChange={onRegionDidChange}>
-                        {/* Solo mostrar Camera cuando sea necesario actualizar */}
-                        {shouldUpdateCamera && (
-                            <Camera
-                                centerCoordinate={[location.longitud, location.latitud]}
-                                zoomLevel={12} // Zoom inicial en 10
-                                animationDuration={1000}
-                            />
-                        )}
-                        <UserLocation />
-                        {renderAnnotations()}
-                    </MapView>
-                </View>
+                <TouchableWithoutFeedback onPress={handleMapPress}>
+                    <View className="h-full w-full">
+                        <MapView
+                            ref={mapRef}
+                            style={{ flex: 1 }}
+                            compassEnabled={true}
+                            mapStyle={MAP_CONFIG.STYLE_URL}
+                            onRegionWillChange={onRegionWillChange}
+                            onRegionDidChange={onRegionDidChange}
+                            onPress={handleMapPress}>
+                            {shouldUpdateCamera && (
+                                <Camera
+                                    centerCoordinate={[location.longitud, location.latitud]}
+                                    zoomLevel={ZOOM_CONFIG.DEFAULT_ZOOM}
+                                    animationDuration={1000}
+                                />
+                            )}
+                            <UserLocation />
+                            {renderAnnotations()}
+                        </MapView>
+                    </View>
+                </TouchableWithoutFeedback>
 
-                {/* Filtros */}
+                {loadingAnnotations && (
+                    <View className="absolute left-1/2 top-20 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2">
+                        <Text className="text-sm text-white">Cargando reportes...</Text>
+                    </View>
+                )}
+
+                <MapPopup
+                    annotation={popupAnnotation}
+                    visible={popupVisible}
+                    onPress={handlePopupPress}
+                    position={popupPosition}
+                />
+
                 <MapFilters
                     filterState={filterState}
                     onFilterChange={setFilterState}
@@ -247,7 +401,6 @@ export default function MapScreen() {
                     currentZoom={currentZoomLevel}
                 />
 
-                {/* Botones de acción */}
                 <View className="absolute bottom-0 right-0 flex-col items-center gap-3 px-4 py-7">
                     <Pressable
                         className="aspect-square flex-1 rounded-full bg-primary p-2"
@@ -266,9 +419,9 @@ export default function MapScreen() {
                     pinDetails={pinDetails}
                     visible={modalVisible}
                     onClose={closeModal}
+                    onOpenFullScreen={handleOpenFullScreen}
                 />
 
-                {/* Modal de permisos GPS */}
                 <GPSPermissionModal
                     visible={showPermissionModal}
                     onAccept={handleAcceptPermission}

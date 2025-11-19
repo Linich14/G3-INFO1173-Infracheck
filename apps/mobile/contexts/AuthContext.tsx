@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await logoutService();
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      
       setIsLoggedIn(false);
       setUserRole(null);
       await logoutService();
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoggedIn(false);
       setUserRole(null);
     } catch (error) {
-      console.error('Error during logout:', error);
+      
     }
   };
 
@@ -76,7 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserRole(null);
       router.replace('/(auth)/sign-in');
     } catch (error) {
-      console.error('Error handling session expiration:', error);
+      
     }
   };
 
@@ -84,9 +84,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeApp = async () => {
       try {
         await initializeSecureStorage({ enableMigration: true });
-        console.log('Secure storage initialized successfully');
+        
       } catch (error) {
-        console.warn('Failed to initialize secure storage, attempting cleanup:', error);
+
 
         // Intentar limpieza de emergencia para datos corruptos
         try {
@@ -94,14 +94,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const { secureClearAll } = await import('../services/secureStorage');
           await secureClearAll();
 
-          console.log('✅ Emergency cleanup completed, retrying initialization...');
+          
 
           // Reintentar inicialización después de limpieza
           await initializeSecureStorage({ enableMigration: true });
-          console.log('Secure storage reinitialized successfully after emergency cleanup');
+
         } catch (cleanupError) {
-          console.error('Failed emergency cleanup and reinitialize:', cleanupError);
-          console.warn('Continuing with degraded mode - some features may not work');
+
         }
       }
 

@@ -15,8 +15,12 @@ from .views.voto_views import (
 )
 from .views.comentario_views import (
     crear_comentario_reporte,
-    listar_comentarios_reporte
+    listar_comentarios_reporte,
+    eliminar_comentario_reporte,
+    restaurar_comentario_reporte
 )
+
+from .views.geojson_views import ReportGeoJSONView, ReportGeoJSONClusterView
 
 urlpatterns = [
     # CRUD de reportes con clases APIView
@@ -31,6 +35,11 @@ urlpatterns = [
     path('<int:report_id>/media/upload/', ReportMediaUploadView.as_view(), name='report_media_upload'),
     path('<int:report_id>/media/<int:archivo_id>/delete/', ReportMediaDeleteView.as_view(), name='report_media_delete'),
     
+    # Vistas GeoJSON
+    path('geojson/', ReportGeoJSONView.as_view(), name='reports-geojson'),
+    path('geojson/clusters/', ReportGeoJSONClusterView.as_view(), name='reports-geojson-clusters'),
+ 
+
     # Vista con paginación (usando decorador para funciones específicas)
     path('paginated/', get_reports, name='get_reports_paginated'),
     
@@ -47,4 +56,6 @@ urlpatterns = [
     # ==================== COMENTARIOS DE REPORTES ====================
     path('<int:report_id>/comments/', crear_comentario_reporte, name='create-comment'),
     path('<int:report_id>/comments/list/', listar_comentarios_reporte, name='list-report-comments'),
+    path('comments/<int:comment_id>/delete/', eliminar_comentario_reporte, name='delete-comment'),
+    path('admin/comments/<int:comment_id>/restore/', restaurar_comentario_reporte, name='restore-comment'),
 ]

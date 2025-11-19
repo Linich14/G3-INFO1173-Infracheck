@@ -31,13 +31,17 @@ class TokenAuthenticationMiddleware(MiddlewareMixin):
             '/api/v1/verify-reset-code/',
             '/api/v1/reset-password/',
             '/admin/',
-            '/api/',
             '/media/'
         ]
         
-        # Si es una ruta pública, solo verificar token sin forzar autenticación
+        # Si es una ruta pública, no verificar autenticación
         is_public_path = any(request.path.startswith(path) for path in public_paths)
         
+        if is_public_path:
+            return None
+        
+        # Para otras rutas, solo procesar el token si existe pero no bloquear
+        # Dejar que DRF maneje la autenticación con @permission_classes
         # Obtener token del header Authorization
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
         
@@ -56,11 +60,6 @@ class TokenAuthenticationMiddleware(MiddlewareMixin):
                     # Verificar si el usuario está habilitado (soft delete)
                     if sesion_token.usua_id.usua_estado == 0:
                         logger.debug(f"Usuario deshabilitado intentó autenticarse: {sesion_token.usua_id.usua_nickname}")
-                        # Si no es ruta pública, retornar error
-                        if not is_public_path:
-                            return JsonResponse({
-                                'errors': ['Cuenta deshabilitada. Contacta soporte para reactivar.']
-                            }, status=403)
                     else:
                         request.auth_user = sesion_token.usua_id
                         request.auth_token = sesion_token
@@ -69,27 +68,10 @@ class TokenAuthenticationMiddleware(MiddlewareMixin):
                     # Token expirado - eliminarlo
                     sesion_token.delete()
                     logger.debug(f"Token expirado eliminado: {token_value[:10]}...")
-                    
-                    # Si no es ruta pública, retornar error
-                    if not is_public_path:
-                        return JsonResponse({
-                            'errors': ['Token expirado.']
-                        }, status=401)
             
             except SesionToken.DoesNotExist:
                 logger.debug(f"Token no válido: {token_value[:10]}...")
-                
-                # Si no es ruta pública, retornar error
-                if not is_public_path:
-                    return JsonResponse({
-                        'errors': ['Token inválido.']
-                    }, status=401)
-        else:
-            # No hay token válido
-            if not is_public_path:
-                return JsonResponse({
-                    'errors': ['Token de autorización requerido. Use: Authorization: Bearer <token>']
-                }, status=401)
         
         # Continuar con el request normalmente
+        # DRF manejará la autenticación y permisos
         return None

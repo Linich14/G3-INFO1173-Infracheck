@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, Alert } from 'react-native';
 import { X, Phone, Check } from 'lucide-react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface EditPhoneModalProps {
   isVisible: boolean;
@@ -26,6 +27,7 @@ export const EditPhoneModal: React.FC<EditPhoneModalProps> = ({
 
   const [phone, setPhone] = useState(extractLastDigits(currentPhone));
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useLanguage();
 
   const formatPhoneInput = (text: string) => {
     // Remover todo excepto números
@@ -56,12 +58,12 @@ export const EditPhoneModal: React.FC<EditPhoneModalProps> = ({
     const numbers = phone.replace(/\D/g, '');
     
     if (!numbers) {
-      Alert.alert('Error', 'El teléfono no puede estar vacío');
+      Alert.alert(t('notifyErrorTitle'), t('profileEditPhoneErrorEmpty'));
       return;
     }
 
     if (!validatePhone(phone)) {
-      Alert.alert('Error', 'Por favor ingresa 8 dígitos para el número móvil');
+      Alert.alert(t('notifyErrorTitle'), t('profileEditPhoneErrorInvalid'));
       return;
     }
 
@@ -102,7 +104,7 @@ export const EditPhoneModal: React.FC<EditPhoneModalProps> = ({
         <View className="bg-[#13161E] rounded-2xl p-6 w-full max-w-sm">
           {/* Header */}
           <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-white text-xl font-bold">Editar Teléfono</Text>
+            <Text className="text-white text-xl font-bold">{t('editPhoneTitle')}</Text>
             <TouchableOpacity onPress={resetAndClose} activeOpacity={0.7}>
               <X size={24} color="white" />
             </TouchableOpacity>
@@ -110,14 +112,14 @@ export const EditPhoneModal: React.FC<EditPhoneModalProps> = ({
 
           {/* Phone Input */}
           <View className="mb-4">
-            <Text className="text-gray-300 text-sm mb-2">Nuevo teléfono</Text>
+            <Text className="text-gray-300 text-sm mb-2">{t('editPhoneLabel')}</Text>
             <View className="flex-row items-center bg-[#1D212D] rounded-lg px-4 py-3">
               <Phone size={20} color="#537CF2" />
               <Text className="text-gray-400 ml-3">+56 9 </Text>
               <TextInput
                 value={phone}
                 onChangeText={handlePhoneChange}
-                placeholder="1234 5678"
+                placeholder={t('editPhonePlaceholder')}
                 placeholderTextColor="#6B7280"
                 className="flex-1 text-white"
                 keyboardType="numeric"
@@ -126,7 +128,7 @@ export const EditPhoneModal: React.FC<EditPhoneModalProps> = ({
               />
             </View>
             <Text className="text-gray-500 text-xs mt-1">
-              Ingresa solo los 8 dígitos finales (automáticamente se agrega +56 9)
+              {t('editPhoneHint')}
             </Text>
           </View>
 
@@ -138,7 +140,7 @@ export const EditPhoneModal: React.FC<EditPhoneModalProps> = ({
               activeOpacity={0.8}
               disabled={isLoading}
             >
-              <Text className="text-white text-center font-medium">Cancelar</Text>
+              <Text className="text-white text-center font-medium">{t('cancel')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -151,7 +153,7 @@ export const EditPhoneModal: React.FC<EditPhoneModalProps> = ({
             >
               <Check size={16} color="white" />
               <Text className="text-white font-medium ml-2">
-                {isLoading ? 'Guardando...' : 'Guardar'}
+                {isLoading ? t('saving') : t('save')}
               </Text>
             </TouchableOpacity>
           </View>

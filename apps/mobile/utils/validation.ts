@@ -32,14 +32,46 @@ export function getPasswordValidationState(password: string) {
   };
 }
 
-export function validateRegisterData(data: RegisterData) {
+export function validateRegisterData(
+  data: RegisterData,
+  translate: (key: 'rutErrorDefault' | 'emailErrorDefault' | 'passwordReqLength' | 'passwordReqUppercase' | 'passwordReqNumber' | 'passwordReqNoSpecial' | 'passwordsDoNotMatch' | 'registerUsernameRequired' | 'registerPhoneInvalid') => string,
+) {
   const errors: { field: string; message: string }[] = [];
-  if (!isValidRut(data.rut)) errors.push({ field: 'rut', message: 'RUT inválido' });
-  if (!isValidEmail(data.email)) errors.push({ field: 'email', message: 'Correo inválido' });
-  if (!data.username) errors.push({ field: 'username', message: 'Usuario requerido' });
-  if (!isValidPassword(data.password)) errors.push({ field: 'password', message: 'La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula, un número y no contener caracteres especiales.' });
-  if (data.password !== data.confirmPassword) errors.push({ field: 'confirmPassword', message: 'Las contraseñas no coinciden' });
-  if (!/^\d{8}$/.test(data.phone.replace('+569', ''))) errors.push({ field: 'phone', message: 'Teléfono inválido' });
+
+  if (!isValidRut(data.rut)) {
+    errors.push({ field: 'rut', message: translate('rutErrorDefault') });
+  }
+
+  if (!isValidEmail(data.email)) {
+    errors.push({ field: 'email', message: translate('emailErrorDefault') });
+  }
+
+  if (!data.username) {
+    errors.push({ field: 'username', message: translate('registerUsernameRequired') });
+  }
+
+  if (!isValidPassword(data.password)) {
+    errors.push({
+      field: 'password',
+      message:
+        translate('passwordReqLength') +
+        ' • ' +
+        translate('passwordReqUppercase') +
+        ' • ' +
+        translate('passwordReqNumber') +
+        ' • ' +
+        translate('passwordReqNoSpecial'),
+    });
+  }
+
+  if (data.password !== data.confirmPassword) {
+    errors.push({ field: 'confirmPassword', message: translate('passwordsDoNotMatch') });
+  }
+
+  if (!/^\d{8}$/.test(data.phone.replace('+569', ''))) {
+    errors.push({ field: 'phone', message: translate('registerPhoneInvalid') });
+  }
+
   return { isValid: errors.length === 0, errors };
 }
 

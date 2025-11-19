@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text } from 'react-native';
 import { isValidEmail } from '../../../utils/validation';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface EmailInputProps {
   value: string;
@@ -14,6 +15,7 @@ interface EmailInputProps {
 const EmailInput: React.FC<EmailInputProps> = ({ value, onChangeText, placeholder, error }) => {
   const [touched, setTouched] = useState(false);
   const valid = isValidEmail(value);
+  const { t } = useLanguage();
 
   // Resetear touched si el campo queda vacío
   React.useEffect(() => {
@@ -28,7 +30,7 @@ const EmailInput: React.FC<EmailInputProps> = ({ value, onChangeText, placeholde
           onChangeText(text);
           if (!touched && text.length > 0) setTouched(true);
         }}
-        placeholder={placeholder || 'usuarioinfracheck@correo.cl'}
+        placeholder={placeholder || t('emailPlaceholder')}
         placeholderTextColor="#ccc"
         keyboardType="email-address"
         autoCapitalize="none"
@@ -36,7 +38,7 @@ const EmailInput: React.FC<EmailInputProps> = ({ value, onChangeText, placeholde
       />
       {(error || (touched && value.length > 0 && !valid)) && (
         <Text style={{ color: 'red', fontSize: 14, marginTop: 4}}>
-          {error ? error : 'Ingresa un correo válido (ej: usuario@dominio.com)'}
+          {error ? error : t('emailErrorDefault')}
         </Text>
       )}
     </View>

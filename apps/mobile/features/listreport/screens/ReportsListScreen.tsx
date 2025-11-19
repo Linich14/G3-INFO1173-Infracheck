@@ -1,97 +1,25 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, FlatList, TextInput, RefreshControl } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, FlatList, TextInput, RefreshControl, ActivityIndicator, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ReportListItem from '../components/ReportListItem';
 import { ReportListItem as ReportListItemType, ReportsListFilters, ReportStatus, UrgencyLevel } from '../types';
-
-// Mock data - En producción vendría de la API
-const mockReports: ReportListItemType[] = [
-  {
-    id: '1',
-    titulo: 'Calle en mal estado con baches profundos',
-    descripcion: 'La calle presenta múltiples baches y grietas que dificultan el tránsito vehicular y peatonal. La situación se ha agravado después de las últimas lluvias.',
-    descripcionCorta: 'La calle presenta múltiples baches y grietas que dificultan el tránsito...',
-    autor: 'Juan Gomez',
-    fecha: '2024-10-07T10:30:00Z',
-    fechaRelativa: 'hace 2h',
-    estado: 'En proceso',
-    tipoDenuncia: 'Infraestructura Vial',
-    nivelUrgencia: 'Alto',
-    imagenPreview: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-    ubicacion: 'Av. Alemania 1234, Temuco',
-    votos: 23,
-    comentarios: 5,
-  },
-  {
-    id: '2',
-    titulo: 'Semáforo completamente apagado en intersección',
-    descripcion: 'El semáforo del cruce principal lleva 3 días sin funcionar, causando problemas de tráfico y riesgo de accidentes.',
-    descripcionCorta: 'El semáforo del cruce principal lleva 3 días sin funcionar...',
-    autor: 'Ana Pérez',
-    fecha: '2024-10-06T08:15:00Z',
-    fechaRelativa: 'ayer',
-    estado: 'Nuevo',
-    tipoDenuncia: 'Seguridad Vial',
-    nivelUrgencia: 'Crítico',
-    imagenPreview: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400',
-    ubicacion: 'Cruce Av. Balmaceda con Bulnes',
-    votos: 42,
-    comentarios: 12,
-  },
-  {
-    id: '3',
-    titulo: 'Basura acumulada en esquina residencial',
-    descripcion: 'Se ha acumulado basura en la esquina durante más de una semana. El mal olor y presencia de roedores afecta a los vecinos.',
-    descripcionCorta: 'Se ha acumulado basura en la esquina durante más de una semana...',
-    autor: 'Carlos Mendez',
-    fecha: '2024-10-05T16:45:00Z',
-    fechaRelativa: 'hace 2d',
-    estado: 'En proceso',
-    tipoDenuncia: 'Limpieza',
-    nivelUrgencia: 'Medio',
-    ubicacion: 'Calle Portales 567, Temuco',
-    votos: 18,
-    comentarios: 3,
-  },
-  {
-    id: '4',
-    titulo: 'Luminaria pública quemada en zona oscura',
-    descripcion: 'La luminaria está quemada hace 2 semanas, zona muy oscura de noche representando riesgo para peatones.',
-    descripcionCorta: 'La luminaria está quemada hace 2 semanas, zona muy oscura...',
-    autor: 'María González',
-    fecha: '2024-10-04T20:30:00Z',
-    fechaRelativa: 'hace 3d',
-    estado: 'Nuevo',
-    tipoDenuncia: 'Iluminación Pública',
-    nivelUrgencia: 'Alto',
-    ubicacion: 'Poste 142, Av. Alemania altura 800',
-    votos: 31,
-    comentarios: 7,
-  },
-  {
-    id: '5',
-    titulo: 'Vereda completamente destruida',
-    descripcion: 'La vereda está rota y presenta peligro para caminar. Impide el acceso a personas con movilidad reducida.',
-    descripcionCorta: 'La vereda está rota y presenta peligro para caminar...',
-    autor: 'Pedro Martínez',
-    fecha: '2024-10-03T14:20:00Z',
-    fechaRelativa: 'hace 4d',
-    estado: 'Resuelto',
-    tipoDenuncia: 'Accesibilidad',
-    nivelUrgencia: 'Medio',
-    ubicacion: 'Vereda norte, Av. Alemania cuadra 7',
-    votos: 15,
-    comentarios: 2,
-  },
-];
+import { useReports } from '../hooks/useReports';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 const ITEMS_PER_PAGE = 10;
 
+// Opciones persistentes para filtros
+const ALL_STATUSES: (ReportStatus | 'todos')[] = ['todos', 'Nuevo', 'En proceso', 'Resuelto', 'Rechazado', 'Cancelado'];
+const ALL_URGENCIES: (UrgencyLevel | 'todos')[] = ['todos', 'Bajo', 'Medio', 'Alto', 'Crítico'];
+const ALL_TYPES = ['todos', 'Alumbrado público', 'Baches', 'Limpieza', 'Área verde', 'Seguridad', 'Otro'];
+
 export default function ReportsListScreen() {
+  const { t } = useLanguage();
+  
+  // Estados UI locales
   const [currentPage, setCurrentPage] = useState(1);
-  const [refreshing, setRefreshing] = useState(false);
   const [filters, setFilters] = useState<ReportsListFilters>({
     searchQuery: '',
     status: 'todos',
@@ -101,14 +29,59 @@ export default function ReportsListScreen() {
     sortOrder: 'desc',
   });
 
-  // Obtener valores únicos para filtros
-  const uniqueStatuses: ReportStatus[] = ['Nuevo', 'En proceso', 'Resuelto', 'Rechazado', 'Cancelado'];
-  const uniqueTypes: string[] = Array.from(new Set(mockReports.map(r => r.tipoDenuncia)));
-  const uniqueUrgencies: UrgencyLevel[] = ['Bajo', 'Medio', 'Alto', 'Crítico'];
+  // Estados para modales de selección
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [showUrgencyModal, setShowUrgencyModal] = useState(false);
+  const [showSortModal, setShowSortModal] = useState(false);
 
-  // Filtrar y ordenar reportes
+  // Hook para obtener datos de la API
+  const {
+    allResults,
+    loading,
+    error,
+    setFilters: setApiFilters,
+    refresh,
+    loadMore,
+    hasMore,
+  } = useReports({ 
+    limit: 50,
+    debounceMs: 500,
+  });
+
+  // Mapear urgencia a número para la API
+  const mapUrgencyToNumber = (urgency: UrgencyLevel | 'todos'): number | undefined => {
+    if (urgency === 'todos') return undefined;
+    const map: Record<UrgencyLevel, number> = {
+      'Bajo': 1,
+      'Medio': 2,
+      'Alto': 3,
+      'Crítico': 3,
+    };
+    return map[urgency];
+  };
+
+  // Obtener etiquetas para mostrar en los selectores
+  const getStatusLabel = (status: ReportStatus | 'todos') => 
+    status === 'todos' ? t('listReportAllStatuses') : status;
+  
+  const getTypeLabel = (type: string) => 
+    type === 'todos' ? t('listReportAllTypes') : type;
+  
+  const getUrgencyLabel = (urgency: UrgencyLevel | 'todos') => 
+    urgency === 'todos' ? t('listReportAllUrgencies') : urgency;
+  
+  const getSortLabel = () => {
+    if (filters.sortBy === 'fecha' && filters.sortOrder === 'desc') return t('listReportSortByRecent');
+    if (filters.sortBy === 'fecha' && filters.sortOrder === 'asc') return t('listReportSortByOldest');
+    if (filters.sortBy === 'urgencia') return t('listReportSortByUrgency');
+    if (filters.sortBy === 'votos') return t('listReportSortByVotes');
+    return t('listReportSortBy');
+  };
+
+  // Filtrar y ordenar reportes (client-side)
   const filteredAndSortedReports = useMemo(() => {
-    let filtered = [...mockReports];
+    let filtered = [...allResults];
 
     // Aplicar búsqueda
     if (filters.searchQuery.trim()) {
@@ -157,7 +130,7 @@ export default function ReportsListScreen() {
     });
 
     return filtered;
-  }, [filters]);
+  }, [allResults, filters]);
 
   // Paginación
   const paginatedReports = useMemo(() => {
@@ -168,11 +141,9 @@ export default function ReportsListScreen() {
   const totalPages = Math.ceil(filteredAndSortedReports.length / ITEMS_PER_PAGE);
 
   // Handlers
-  const handleRefresh = () => {
-    setRefreshing(true);
-    // Aquí iría la lógica para recargar datos de la API
-    setTimeout(() => setRefreshing(false), 1000);
-  };
+  const handleRefresh = useCallback(() => {
+    refresh();
+  }, [refresh]);
 
   const handleReportPress = (report: ReportListItemType) => {
     // Navegar al detalle del reporte
@@ -184,12 +155,21 @@ export default function ReportsListScreen() {
     console.log('Compartir reporte:', report.id);
   };
 
-  const handleFilterChange = (key: keyof ReportsListFilters, value: any) => {
+  const handleFilterChange = useCallback((key: keyof ReportsListFilters, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
-  };
+    
+    // Actualizar filtros de API cuando sea necesario
+    if (key === 'searchQuery') {
+      setApiFilters({ search: value || undefined });
+    } else if (key === 'urgency' && value !== 'todos') {
+      setApiFilters({ urgencia: mapUrgencyToNumber(value) });
+    } else if (key === 'urgency' && value === 'todos') {
+      setApiFilters({ urgencia: undefined });
+    }
+  }, [setApiFilters]);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setFilters({
       searchQuery: '',
       status: 'todos',
@@ -199,34 +179,17 @@ export default function ReportsListScreen() {
       sortOrder: 'desc',
     });
     setCurrentPage(1);
-  };
+    setApiFilters({});
+  }, [setApiFilters]);
 
-  const hasActiveFilters = () => {
+  const hasActiveFilters = useCallback(() => {
     return filters.searchQuery.trim() !== '' ||
            filters.status !== 'todos' ||
            filters.type !== 'todos' ||
            filters.urgency !== 'todos' ||
            filters.sortBy !== 'fecha' ||
            filters.sortOrder !== 'desc';
-  };
-
-  // Componente de botón de filtro
-  const FilterButton = ({
-    title,
-    isActive,
-    onPress
-  }: {
-    title: string;
-    isActive: boolean;
-    onPress: () => void;
-  }) => (
-    <TouchableOpacity
-      className={`mr-2 rounded-lg px-3 py-2 ${isActive ? 'bg-[#537CF2]' : 'bg-[#1D212D]'}`}
-      onPress={onPress}
-    >
-      <Text className={`text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>{title}</Text>
-    </TouchableOpacity>
-  );
+  }, [filters]);
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -239,7 +202,7 @@ export default function ReportsListScreen() {
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text className="flex-1 text-center text-xl font-bold text-white">
-          Lista de Reportes
+          {t('listReportTitle')}
         </Text>
         {/* Espaciador para centrar título */}
         <View className="w-10" />
@@ -249,7 +212,7 @@ export default function ReportsListScreen() {
         className="flex-1 px-4"
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={loading}
             onRefresh={handleRefresh}
             tintColor="#537CF2"
           />
@@ -261,7 +224,7 @@ export default function ReportsListScreen() {
             <Ionicons name="search" size={20} color="gray" />
             <TextInput
               className="ml-3 flex-1 text-white"
-              placeholder="Buscar reportes..."
+              placeholder={t('listReportSearchPlaceholder')}
               placeholderTextColor="gray"
               value={filters.searchQuery}
               onChangeText={(text) => handleFilterChange('searchQuery', text)}
@@ -278,108 +241,88 @@ export default function ReportsListScreen() {
           </View>
           {filters.searchQuery.length > 0 && (
             <Text className="mt-2 text-xs text-blue-400">
-              Buscando: "{filters.searchQuery}" - {filteredAndSortedReports.length} resultado{filteredAndSortedReports.length !== 1 ? 's' : ''}
+              {t('listReportSearching')} "{filters.searchQuery}" - {filteredAndSortedReports.length} {filteredAndSortedReports.length !== 1 ? t('listReportResults') : t('listReportResult')}
             </Text>
           )}
         </View>
 
-        {/* Filtros */}
+        {/* Filtros en Grid 2x2 */}
         <View className="mb-4 rounded-xl bg-[#13161E] p-4">
-          <View className="mb-3">
-            <Text className="mb-2 text-sm font-bold text-blue-400">Filtrar por estado:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <FilterButton
-                title="Todos"
-                isActive={filters.status === 'todos'}
-                onPress={() => handleFilterChange('status', 'todos')}
-              />
-              {uniqueStatuses.map(status => (
-                <FilterButton
-                  key={status}
-                  title={status}
-                  isActive={filters.status === status}
-                  onPress={() => handleFilterChange('status', status)}
-                />
-              ))}
-            </ScrollView>
+          <View className="mb-3 flex-row items-center justify-between">
+            <Text className="text-sm font-bold text-blue-400">{t('listReportFilters')}</Text>
+            {hasActiveFilters() && (
+              <TouchableOpacity
+                className="rounded-lg bg-red-500/20 px-3 py-1"
+                onPress={clearFilters}
+              >
+                <Text className="text-xs text-red-400">{t('listReportClearFilters')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          <View className="mb-3">
-            <Text className="mb-2 text-sm font-bold text-blue-400">Tipo de denuncia:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <FilterButton
-                title="Todos"
-                isActive={filters.type === 'todos'}
-                onPress={() => handleFilterChange('type', 'todos')}
-              />
-              {uniqueTypes.map(type => (
-                <FilterButton
-                  key={type}
-                  title={type}
-                  isActive={filters.type === type}
-                  onPress={() => handleFilterChange('type', type)}
-                />
-              ))}
-            </ScrollView>
-          </View>
+          {/* Grid 2x2 de selectores */}
+          <View className="gap-3">
+            {/* Fila 1 */}
+            <View className="flex-row gap-3">
+              {/* Estado */}
+              <TouchableOpacity
+                className="flex-1 rounded-lg bg-[#1D212D] p-3"
+                onPress={() => setShowStatusModal(true)}
+              >
+                <Text className="mb-1 text-xs text-gray-400">{t('listReportStatus')}</Text>
+                <View className="flex-row items-center justify-between">
+                  <Text className="flex-1 text-sm text-white" numberOfLines={1}>
+                    {getStatusLabel(filters.status)}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="gray" />
+                </View>
+              </TouchableOpacity>
 
-          <View className="mb-3">
-            <Text className="mb-2 text-sm font-bold text-blue-400">Nivel de urgencia:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <FilterButton
-                title="Todos"
-                isActive={filters.urgency === 'todos'}
-                onPress={() => handleFilterChange('urgency', 'todos')}
-              />
-              {uniqueUrgencies.map(urgency => (
-                <FilterButton
-                  key={urgency}
-                  title={urgency}
-                  isActive={filters.urgency === urgency}
-                  onPress={() => handleFilterChange('urgency', urgency)}
-                />
-              ))}
-            </ScrollView>
-          </View>
+              {/* Tipo */}
+              <TouchableOpacity
+                className="flex-1 rounded-lg bg-[#1D212D] p-3"
+                onPress={() => setShowTypeModal(true)}
+              >
+                <Text className="mb-1 text-xs text-gray-400">{t('listReportType')}</Text>
+                <View className="flex-row items-center justify-between">
+                  <Text className="flex-1 text-sm text-white" numberOfLines={1}>
+                    {getTypeLabel(filters.type)}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="gray" />
+                </View>
+              </TouchableOpacity>
+            </View>
 
-          <View>
-            <Text className="mb-2 text-sm font-bold text-blue-400">Ordenar por:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <FilterButton
-                title="Más recientes"
-                isActive={filters.sortBy === 'fecha' && filters.sortOrder === 'desc'}
-                onPress={() => {
-                  handleFilterChange('sortBy', 'fecha');
-                  handleFilterChange('sortOrder', 'desc');
-                }}
-              />
-              <FilterButton
-                title="Más antiguos"
-                isActive={filters.sortBy === 'fecha' && filters.sortOrder === 'asc'}
-                onPress={() => {
-                  handleFilterChange('sortBy', 'fecha');
-                  handleFilterChange('sortOrder', 'asc');
-                }}
-              />
-              <FilterButton
-                title="Más urgentes"
-                isActive={filters.sortBy === 'urgencia'}
-                onPress={() => handleFilterChange('sortBy', 'urgencia')}
-              />
-              <FilterButton
-                title="Más votados"
-                isActive={filters.sortBy === 'votos'}
-                onPress={() => handleFilterChange('sortBy', 'votos')}
-              />
-              {hasActiveFilters() && (
-                <TouchableOpacity
-                  className="mr-2 rounded-lg bg-[#537CF2] px-3 py-2"
-                  onPress={clearFilters}
-                >
-                  <Text className="text-sm text-white">Limpiar filtros</Text>
-                </TouchableOpacity>
-              )}
-            </ScrollView>
+            {/* Fila 2 */}
+            <View className="flex-row gap-3">
+              {/* Urgencia */}
+              <TouchableOpacity
+                className="flex-1 rounded-lg bg-[#1D212D] p-3"
+                onPress={() => setShowUrgencyModal(true)}
+              >
+                <Text className="mb-1 text-xs text-gray-400">{t('listReportUrgency')}</Text>
+                <View className="flex-row items-center justify-between">
+                  <Text className="flex-1 text-sm text-white" numberOfLines={1}>
+                    {getUrgencyLabel(filters.urgency)}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="gray" />
+                </View>
+              </TouchableOpacity>
+
+              {/* Ordenar */}
+              <TouchableOpacity
+                className="flex-1 rounded-lg bg-[#1D212D] p-3"
+                onPress={() => setShowSortModal(true)}
+              >
+                <Text className="mb-1 text-xs text-gray-400">{t('listReportSort')}</Text>
+                <View className="flex-row items-center justify-between">
+                  <Text className="flex-1 text-sm text-white" numberOfLines={1}>
+                    {getSortLabel()}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="gray" />
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -387,14 +330,41 @@ export default function ReportsListScreen() {
         <View className="mb-4 rounded-xl bg-[#13161E] p-4">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-lg font-bold text-blue-400">
-              Reportes ({filteredAndSortedReports.length})
+              {t('listReportReportsCount').replace('{count}', filteredAndSortedReports.length.toString())}
             </Text>
             <Text className="text-sm text-gray-400">
-              Página {currentPage} de {totalPages}
+              {t('listReportPage')} {currentPage} {t('listReportOf')} {totalPages}
             </Text>
           </View>
 
-          {paginatedReports.length > 0 ? (
+          {/* Estado de carga */}
+          {loading && allResults.length === 0 && (
+            <View className="items-center py-8">
+              <ActivityIndicator size="large" color="#537CF2" />
+              <Text className="mt-2 text-center text-gray-400">
+                {t('listReportLoading')}
+              </Text>
+            </View>
+          )}
+
+          {/* Error state */}
+          {error && !loading && (
+            <View className="items-center py-8">
+              <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+              <Text className="mt-2 text-center text-red-400">
+                {error}
+              </Text>
+              <TouchableOpacity
+                className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2"
+                onPress={handleRefresh}
+              >
+                <Text className="text-white">{t('listReportRetry')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Lista de reportes */}
+          {!loading && !error && paginatedReports.length > 0 ? (
             <FlatList
               data={paginatedReports}
               renderItem={({ item }) => (
@@ -407,14 +377,40 @@ export default function ReportsListScreen() {
               keyExtractor={(item) => item.id}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
+              ItemSeparatorComponent={() => <View className="h-3" />}
             />
-          ) : (
+          ) : !loading && !error ? (
             <View className="items-center py-8">
               <Ionicons name="document-text-outline" size={48} color="gray" />
               <Text className="mt-2 text-center text-gray-400">
-                No se encontraron reportes con los filtros aplicados
+                {t('listReportNoResults')}
               </Text>
+              {hasActiveFilters() && (
+                <TouchableOpacity
+                  className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2"
+                  onPress={clearFilters}
+                >
+                  <Text className="text-white">{t('listReportClearFiltersButton')}</Text>
+                </TouchableOpacity>
+              )}
             </View>
+          ) : null}
+
+          {/* Indicador de carga al final (load more) */}
+          {loading && allResults.length > 0 && (
+            <View className="items-center py-4">
+              <ActivityIndicator size="small" color="#537CF2" />
+            </View>
+          )}
+
+          {/* Botón para cargar más (si hay más datos en el backend) */}
+          {hasMore && !loading && allResults.length > 0 && (
+            <TouchableOpacity
+              className="mt-4 items-center rounded-lg bg-[#537CF2] py-3"
+              onPress={loadMore}
+            >
+              <Text className="text-white font-semibold">{t('listReportLoadMore')}</Text>
+            </TouchableOpacity>
           )}
 
           {/* Paginación */}
@@ -429,7 +425,7 @@ export default function ReportsListScreen() {
               >
                 <Ionicons name="chevron-back" size={16} color={currentPage === 1 ? 'gray' : 'white'} />
                 <Text className={`ml-1 text-sm ${currentPage === 1 ? 'text-gray-400' : 'text-white'}`}>
-                  Anterior
+                  {t('listReportPrevious')}
                 </Text>
               </TouchableOpacity>
 
@@ -441,7 +437,7 @@ export default function ReportsListScreen() {
                 disabled={currentPage === totalPages}
               >
                 <Text className={`mr-1 text-sm ${currentPage === totalPages ? 'text-gray-400' : 'text-white'}`}>
-                  Siguiente
+                  {t('listReportNext')}
                 </Text>
                 <Ionicons name="chevron-forward" size={16} color={currentPage === totalPages ? 'gray' : 'white'} />
               </TouchableOpacity>
@@ -449,6 +445,194 @@ export default function ReportsListScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Modal de Estado */}
+      <Modal
+        visible={showStatusModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowStatusModal(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-end"
+          activeOpacity={1}
+          onPress={() => setShowStatusModal(false)}
+        >
+          <View className="bg-[#13161E] rounded-t-3xl p-4">
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="text-lg font-bold text-white">{t('listReportFilterByStatus')}</Text>
+              <TouchableOpacity onPress={() => setShowStatusModal(false)}>
+                <Ionicons name="close" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView className="max-h-96">
+              {ALL_STATUSES.map((status) => (
+                <TouchableOpacity
+                  key={status}
+                  className={`mb-2 rounded-lg p-4 ${
+                    filters.status === status ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+                  }`}
+                  onPress={() => {
+                    handleFilterChange('status', status);
+                    setShowStatusModal(false);
+                  }}
+                >
+                  <Text className="text-white">{getStatusLabel(status)}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal de Tipo */}
+      <Modal
+        visible={showTypeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowTypeModal(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-end"
+          activeOpacity={1}
+          onPress={() => setShowTypeModal(false)}
+        >
+          <View className="bg-[#13161E] rounded-t-3xl p-4">
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="text-lg font-bold text-white">{t('listReportTypeOfComplaint')}</Text>
+              <TouchableOpacity onPress={() => setShowTypeModal(false)}>
+                <Ionicons name="close" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView className="max-h-96">
+              {ALL_TYPES.map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  className={`mb-2 rounded-lg p-4 ${
+                    filters.type === type ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+                  }`}
+                  onPress={() => {
+                    handleFilterChange('type', type);
+                    setShowTypeModal(false);
+                  }}
+                >
+                  <Text className="text-white">{getTypeLabel(type)}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal de Urgencia */}
+      <Modal
+        visible={showUrgencyModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowUrgencyModal(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-end"
+          activeOpacity={1}
+          onPress={() => setShowUrgencyModal(false)}
+        >
+          <View className="bg-[#13161E] rounded-t-3xl p-4">
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="text-lg font-bold text-white">{t('listReportUrgencyLevel')}</Text>
+              <TouchableOpacity onPress={() => setShowUrgencyModal(false)}>
+                <Ionicons name="close" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView className="max-h-96">
+              {ALL_URGENCIES.map((urgency) => (
+                <TouchableOpacity
+                  key={urgency}
+                  className={`mb-2 rounded-lg p-4 ${
+                    filters.urgency === urgency ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+                  }`}
+                  onPress={() => {
+                    handleFilterChange('urgency', urgency);
+                    setShowUrgencyModal(false);
+                  }}
+                >
+                  <Text className="text-white">{getUrgencyLabel(urgency)}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal de Ordenamiento */}
+      <Modal
+        visible={showSortModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSortModal(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-end"
+          activeOpacity={1}
+          onPress={() => setShowSortModal(false)}
+        >
+          <View className="bg-[#13161E] rounded-t-3xl p-4">
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="text-lg font-bold text-white">{t('listReportSortBy')}</Text>
+              <TouchableOpacity onPress={() => setShowSortModal(false)}>
+                <Ionicons name="close" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView className="max-h-96">
+              <TouchableOpacity
+                className={`mb-2 rounded-lg p-4 ${
+                  filters.sortBy === 'fecha' && filters.sortOrder === 'desc' ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+                }`}
+                onPress={() => {
+                  handleFilterChange('sortBy', 'fecha');
+                  handleFilterChange('sortOrder', 'desc');
+                  setShowSortModal(false);
+                }}
+              >
+                <Text className="text-white">{t('listReportSortByRecent')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`mb-2 rounded-lg p-4 ${
+                  filters.sortBy === 'fecha' && filters.sortOrder === 'asc' ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+                }`}
+                onPress={() => {
+                  handleFilterChange('sortBy', 'fecha');
+                  handleFilterChange('sortOrder', 'asc');
+                  setShowSortModal(false);
+                }}
+              >
+                <Text className="text-white">{t('listReportSortByOldest')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`mb-2 rounded-lg p-4 ${
+                  filters.sortBy === 'urgencia' ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+                }`}
+                onPress={() => {
+                  handleFilterChange('sortBy', 'urgencia');
+                  setShowSortModal(false);
+                }}
+              >
+                <Text className="text-white">{t('listReportSortByUrgency')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`mb-2 rounded-lg p-4 ${
+                  filters.sortBy === 'votos' ? 'bg-[#537CF2]' : 'bg-[#1D212D]'
+                }`}
+                onPress={() => {
+                  handleFilterChange('sortBy', 'votos');
+                  setShowSortModal(false);
+                }}
+              >
+                <Text className="text-white">{t('listReportSortByVotes')}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }

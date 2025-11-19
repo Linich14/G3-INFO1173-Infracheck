@@ -89,15 +89,15 @@ class ProyectoModel(models.Model):
     def get_color_estado(self) -> str:
         """Retorna el color CSS según el estado"""
         colores = {
-            1: 'bg-blue-700',      # Planificación
-            2: 'bg-purple-700',    # En Progreso
-            3: 'bg-green-800',     # Completado
-            4: 'bg-red-700',       # Cancelado
-            5: 'bg-blue-700',      # Pendiente
-            6: 'bg-yellow-700',    # Aprobado
-            7: 'bg-gray-700'       # Rechazado
+            1: 'bg-blue-600',      # Planificación
+            2: 'bg-yellow-600',    # En Progreso
+            3: 'bg-green-600',     # Completado
+            4: 'bg-red-600',       # Cancelado
+            5: 'bg-gray-600',      # Pendiente
+            6: 'bg-teal-600',      # Aprobado
+            7: 'bg-orange-600'     # Rechazado
         }
-        return colores.get(self.proy_estado, 'bg-gray-700')
+        return colores.get(self.proy_estado, 'bg-gray-600')
     
     def get_total_archivos(self) -> int:
         """Retorna el total de archivos asociados"""

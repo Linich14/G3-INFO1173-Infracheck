@@ -13,8 +13,8 @@ package "Capa de Presentación" #LightBlue {
   [Expo Router] as ExpoRouter
   [MapLibre GL] as MapLibre
   
-  MobileApp --> ExpoRouter
-  MobileApp --> MapLibre
+  MobileApp -- ExpoRouter
+  MobileApp -- MapLibre
 }
 
 ' =====================================================
@@ -49,20 +49,20 @@ package "API REST - Django" #LightYellow {
     [External Services] as ExternalServices
   }
   
-  APIv1 --> Serializers
-  APIv1 --> Validators
-  APIv1 --> UseCases
+  APIv1 -- Serializers
+  APIv1 -- Validators
+  APIv1 -- UseCases
   APIv1 ..> Middleware
   
-  UseCases --> AppServices
-  UseCases --> DTOs
-  UseCases --> Entities
+  UseCases -- AppServices
+  UseCases -- DTOs
+  UseCases -- Entities
   
-  AppServices --> DomainServices
-  AppServices --> RepoInterface
+  AppServices -- DomainServices
+  AppServices -- RepoInterface
   
   RepoInterface <|.. RepoImpl
-  RepoImpl --> DBConfig
+  RepoImpl -- DBConfig
 }
 
 ' =====================================================
@@ -76,10 +76,10 @@ package "Módulos del Sistema" #LightGreen {
   [Módulo Notificaciones] as NotificationsModule
 }
 
-APIv1 --> AuthModule
-APIv1 --> ReportsModule
-APIv1 --> ProjectsModule
-APIv1 --> NotificationsModule
+APIv1 -- AuthModule
+APIv1 -- ReportsModule
+APIv1 -- ProjectsModule
+APIv1 -- NotificationsModule
 
 ' =====================================================
 ' CAPA DE DATOS
@@ -97,9 +97,9 @@ package "Capa de Datos" #LightCoral {
   [Sistema de Archivos] as FileSystem
 }
 
-DBConfig --> DB
-RepoImpl --> DB
-ExternalServices --> FileSystem
+DBConfig -- DB
+RepoImpl -- DB
+ExternalServices -- FileSystem
 
 ' =====================================================
 ' SERVICIOS EXTERNOS
@@ -110,14 +110,14 @@ cloud "Servicios Externos" #Lavender {
   [Servicio Email] as EmailService
 }
 
-ExternalServices --> MapTiler
-ExternalServices --> EmailService
+ExternalServices -- MapTiler
+ExternalServices -- EmailService
 
 ' =====================================================
 ' CONEXIONES PRINCIPALES
 ' =====================================================
 
-MobileApp --> APIv1 : HTTP/REST
+MobileApp -- APIv1 : HTTP/REST
 
 ' =====================================================
 ' NOTAS

@@ -1,44 +1,85 @@
+import React from 'react';
 import { View, Text, Pressable, Modal } from 'react-native';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface ModalFileOptionProps {
     visible: boolean;
     onClose: () => void;
-    onTakePhoto: () => void;
-    onSelectFromGallery: () => void;
+    onTakePhoto?: () => void;
+    onSelectFromGallery?: () => void;
+    onRecordVideo?: () => void;
+    onSelectVideoFromGallery?: () => void;
+    type: 'image' | 'video';
 }
 
-const ModalFileOption = ({
+const ModalFileOption: React.FC<ModalFileOptionProps> = ({
     visible,
     onClose,
     onTakePhoto,
     onSelectFromGallery,
-}: ModalFileOptionProps) => {
+    onRecordVideo,
+    onSelectVideoFromGallery,
+    type,
+}) => {
+    const { t } = useLanguage();
+    
     return (
-        <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
-            <Pressable className="flex-1 justify-end bg-black/50" onPress={onClose}>
-                <Pressable
-                    className="rounded-t-xl bg-secondary p-6"
-                    onPress={(e) => e.stopPropagation()}>
-                    <Text className="mb-4 text-lg font-bold text-white">Seleccionar archivo</Text>
-
+        <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+            <Pressable className="flex-1 bg-black/50" onPress={onClose}>
+                <View className="flex-1 items-center justify-center px-8">
                     <Pressable
-                        className="mb-3 rounded-lg bg-background p-4"
-                        onPress={() => {
-                            onTakePhoto();
-                            onClose();
-                        }}>
-                        <Text className="text-center text-white">Tomar foto</Text>
-                    </Pressable>
+                        onPress={() => {}}
+                        className="w-full max-w-sm rounded-2xl bg-tertiary p-6">
+                        <Text className="mb-6 text-center text-xl font-semibold text-white">
+                            {type === 'image' ? t('reportMediaAddImage') : t('reportMediaAddVideo')}
+                        </Text>
 
-                    <Pressable
-                        className="rounded-lg bg-background p-4"
-                        onPress={() => {
-                            onSelectFromGallery();
-                            onClose();
-                        }}>
-                        <Text className="text-center text-white">Seleccionar de la galería</Text>
+                        {type === 'image' ? (
+                            <>
+                                <Pressable
+                                    onPress={onTakePhoto}
+                                    className="mb-4 flex-row items-center rounded-lg bg-secondary p-4 active:bg-slate-600">
+                                    <MaterialCommunityIcons name="camera" size={24} color="white" />
+                                    <Text className="ml-3 text-white">{t('reportMediaTakePhoto')}</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    onPress={onSelectFromGallery}
+                                    className="mb-6 flex-row items-center rounded-lg bg-secondary p-4 active:bg-slate-600">
+                                    <MaterialCommunityIcons name="image" size={24} color="white" />
+                                    <Text className="ml-3 text-white">{t('reportMediaSelectGallery')}</Text>
+                                </Pressable>
+                            </>
+                        ) : (
+                            <>
+                                <Pressable
+                                    onPress={onRecordVideo}
+                                    className="mb-4 flex-row items-center rounded-lg bg-secondary p-4 active:bg-slate-600">
+                                    <MaterialCommunityIcons name="video" size={24} color="white" />
+                                    <Text className="ml-3 text-white">{t('reportMediaRecordVideo')}</Text>
+                                </Pressable>
+
+                                <Pressable
+                                    onPress={onSelectVideoFromGallery}
+                                    className="mb-6 flex-row items-center rounded-lg bg-secondary p-4 active:bg-slate-600">
+                                    <MaterialCommunityIcons
+                                        name="video-outline"
+                                        size={24}
+                                        color="white"
+                                    />
+                                    <Text className="ml-3 text-white">{t('reportMediaSelectGallery')}</Text>
+                                </Pressable>
+                            </>
+                        )}
+
+                        <Pressable
+                            onPress={onClose}
+                            className="items-center rounded-lg bg-gray-600 p-4 active:bg-gray-700">
+                            <Text className="font-semibold text-white">{t('cancel')}</Text>
+                        </Pressable>
                     </Pressable>
-                </Pressable>
+                </View>
             </Pressable>
         </Modal>
     );

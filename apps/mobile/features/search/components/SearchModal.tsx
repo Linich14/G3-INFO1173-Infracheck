@@ -11,6 +11,7 @@ import {
 import { X, Search } from 'lucide-react-native';
 import { SearchModalProps } from '../types';
 import { Report } from '../../comments/types';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 export const SearchModal: React.FC<SearchModalProps> = ({
   visible,
@@ -18,6 +19,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   reports,
   onSelectReport,
 }) => {
+  const { t } = useLanguage();
   const [searchText, setSearchText] = useState('');
 
   const filteredReports = useMemo(() => {
@@ -53,7 +55,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
       
       <View className="flex-row items-center justify-between">
         <Text className="text-gray-400 text-xs flex-1 mr-2" numberOfLines={1}>
-          Por {report.author}
+          {t('searchBy')} {report.author}
         </Text>
         <Text className="text-gray-400 text-xs">
           {report.timeAgo}
@@ -62,7 +64,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
       
       <View className="flex-row items-center mt-2">
         <Text className="text-gray-400 text-xs">
-          {report.comments.length} comentario{report.comments.length !== 1 ? 's' : ''}
+          {report.comments.length} {report.comments.length !== 1 ? t('searchCommentsPlural') : t('searchCommentsSingular')}
         </Text>
       </View>
     </TouchableOpacity>
@@ -82,7 +84,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
             <View className="flex-row items-center flex-1">
               <Search size={24} color="#537CF2" />
               <Text className="text-[#537CF2] text-lg font-bold ml-3">
-                Buscar Publicaciones
+                {t('searchTitle')}
               </Text>
             </View>
             <TouchableOpacity
@@ -104,7 +106,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               <TextInput
                 value={searchText}
                 onChangeText={setSearchText}
-                placeholder="Buscar por título..."
+                placeholder={t('searchPlaceholder')}
                 placeholderTextColor="#9CA3AF"
                 className="flex-1 ml-3 text-white text-base"
                 autoFocus
@@ -127,27 +129,27 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               <View className="flex-1 justify-center items-center py-20">
                 <Search size={48} color="#537CF2" />
                 <Text className="text-[#537CF2] text-lg font-medium mt-4">
-                  Ingresa un término de búsqueda
+                  {t('searchPlaceholder')}
                 </Text>
                 <Text className="text-gray-400 text-sm mt-2 text-center px-8">
-                  Busca publicaciones por título
+                  {t('searchTitle')}
                 </Text>
               </View>
             ) : filteredReports.length === 0 ? (
               <View className="flex-1 justify-center items-center py-20">
                 <Search size={48} color="#537CF2" />
                 <Text className="text-[#537CF2] text-lg font-medium mt-4">
-                  Sin resultados
+                  {t('searchNoResults')}
                 </Text>
                 <Text className="text-gray-400 text-sm mt-2 text-center px-8">
-                  No se encontraron publicaciones con &quot;{searchText}&quot;
+                  {t('searchNoResults')} &quot;{searchText}&quot;
                 </Text>
               </View>
             ) : (
               <>
                 <View className="px-4 py-3 bg-[#13161E] mx-4 rounded-lg mt-2">
                   <Text className="text-[#537CF2] text-sm font-medium">
-                    {filteredReports.length} resultado{filteredReports.length !== 1 ? 's' : ''} encontrado{filteredReports.length !== 1 ? 's' : ''}
+                    {filteredReports.length} {filteredReports.length !== 1 ? t('searchCommentsPlural') : t('searchCommentsSingular')}
                   </Text>
                 </View>
                 <View className="py-4">
