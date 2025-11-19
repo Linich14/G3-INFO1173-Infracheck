@@ -44,4 +44,5 @@ export interface CommentsModalProps {
     comments: Comment[];
     onAddComment: (content: string) => Promise<void>;
     onRefreshComments?: () => void;
+    highlightCommentId?: string; // ID del comentario a resaltar cuando se abre el modal
 }

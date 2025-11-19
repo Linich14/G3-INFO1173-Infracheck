@@ -51,6 +51,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   comments: initialComments,
   onAddComment,
   onRefreshComments,
+  highlightCommentId,
 }) => {
   const { t } = useLanguage();
   const [commentText, setCommentText] = useState('');
@@ -58,6 +59,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [isLoading, setIsLoading] = useState(false);
   const [emptyMessage, setEmptyMessage] = useState(t('commentsEmpty'));
+  const scrollViewRef = useRef<ScrollView>(null);
+  const commentRefs = useRef<{ [key: string]: View | null }>({});
   
   // Estado para el toast local
   const [localToast, setLocalToast] = useState<{
@@ -153,11 +156,32 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
       }));
 
       setComments(transformedComments);
+      
+      // Si hay un comentario a destacar, hacer scroll a él después de un pequeño delay
+      if (highlightCommentId) {
+        setTimeout(() => {
+          scrollToComment(highlightCommentId);
+        }, 500);
+      }
     } catch (error: any) {
       console.error('Error loading comments:', error);
       showLocalToast(error.message || t('commentsErrorLoad'), 'error');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Función para hacer scroll a un comentario específico
+  const scrollToComment = (commentId: string) => {
+    const commentRef = commentRefs.current[commentId];
+    if (commentRef && scrollViewRef.current) {
+      commentRef.measureLayout(
+        scrollViewRef.current as any,
+        (x, y) => {
+          scrollViewRef.current?.scrollTo({ y: y - 100, animated: true });
+        },
+        () => console.log('Error measuring comment position')
+      );
     }
   };
 
@@ -275,12 +299,22 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
   const renderComment = (comment: Comment) => {
     const isOwnComment = comment.es_autor;
     const canDelete = comment.puede_eliminar;
+    const isHighlighted = highlightCommentId && comment.id.toString() === highlightCommentId;
     
     return (
       <View 
-        key={comment.id} 
+        key={comment.id}
+        ref={(ref) => {
+          if (ref) {
+            commentRefs.current[comment.id.toString()] = ref;
+          }
+        }}
         className={`mb-4 rounded-lg p-3 ${
-          isOwnComment ? 'bg-[#1a2332] border border-[#537CF2]/30' : 'bg-[#0f172a]'
+          isHighlighted
+            ? 'bg-[#537CF2]/20 border-2 border-[#537CF2]'
+            : isOwnComment 
+              ? 'bg-[#1a2332] border border-[#537CF2]/30' 
+              : 'bg-[#0f172a]'
         }`}
       >
         <View className="flex-row items-center mb-2">
@@ -290,6 +324,11 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
             {isOwnComment && (
               <View className="ml-2 bg-[#537CF2] px-2 py-0.5 rounded-full">
                 <Text className="text-white text-xs font-semibold">{t('commentsYouLabel')}</Text>
+              </View>
+            )}
+            {isHighlighted && (
+              <View className="ml-2 bg-[#537CF2] px-2 py-0.5 rounded-full">
+                <Text className="text-white text-xs font-semibold">Nuevo</Text>
               </View>
             )}
           </View>
@@ -340,6 +379,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
 
           {/* Comments List */}
           <ScrollView
+            ref={scrollViewRef}
             className="flex-1 px-4"
             contentContainerStyle={{
               paddingVertical: 16,

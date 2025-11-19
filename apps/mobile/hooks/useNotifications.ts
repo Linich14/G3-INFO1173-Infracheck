@@ -12,12 +12,18 @@ const POLLING_INTERVAL = 30000; // 30 segundos
 export const useNotifications = (enablePolling: boolean = true) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNotifications = useCallback(async (unreadOnly: boolean = false) => {
+  const fetchNotifications = useCallback(async (unreadOnly: boolean = false, isRefreshing: boolean = false) => {
     try {
-      setLoading(true);
+      
+      if (isRefreshing) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       
       const response: NotificationsResponse = await getNotifications(unreadOnly);
@@ -37,6 +43,7 @@ export const useNotifications = (enablePolling: boolean = true) => {
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
@@ -87,7 +94,7 @@ export const useNotifications = (enablePolling: boolean = true) => {
   }, []);
 
   const refreshNotifications = useCallback(() => {
-    return fetchNotifications(false);
+    return fetchNotifications(false, true);
   }, [fetchNotifications]);
 
   // Polling para actualizar contador en tiempo real
@@ -105,13 +112,14 @@ export const useNotifications = (enablePolling: boolean = true) => {
 
   // Carga inicial
   useEffect(() => {
-    fetchNotifications();
+    fetchNotifications(false, false);
   }, [fetchNotifications]);
 
   return {
     notifications,
     unreadCount,
     loading,
+    refreshing,
     error,
     fetchNotifications,
     fetchUnreadCount,

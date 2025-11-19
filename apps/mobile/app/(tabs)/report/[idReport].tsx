@@ -5,13 +5,24 @@ export default function ReportDetailsRoute() {
     const router = useRouter();
 
     // Cambiar de params.id a params.idReport para coincidir con el nombre del archivo
-    const params = useLocalSearchParams<{ idReport?: string | string[] }>();
+    const params = useLocalSearchParams<{ 
+        idReport?: string | string[];
+        comentarioId?: string | string[];
+    }>();
+    
     const reportId =
         typeof params.idReport === 'string'
             ? params.idReport
             : Array.isArray(params.idReport)
               ? params.idReport[0]
               : '';
+
+    const comentarioId =
+        typeof params.comentarioId === 'string'
+            ? params.comentarioId
+            : Array.isArray(params.comentarioId)
+              ? params.comentarioId[0]
+              : undefined;
 
     const onBack = () => {
         try {
@@ -26,5 +37,5 @@ export default function ReportDetailsRoute() {
         }
     };
 
-    return <ReportDetailsScreen reportId={reportId} onBack={onBack} />;
+    return <ReportDetailsScreen reportId={reportId} comentarioId={comentarioId} onBack={onBack} />;
 }

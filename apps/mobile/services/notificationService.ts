@@ -8,6 +8,7 @@ export interface Notification {
   tipo: 'info' | 'success' | 'warning' | 'error';
   leida: boolean;
   denuncia_id: number | null;
+  comentario_id: number | null;
   fecha_creacion: string;
   fecha_lectura: string | null;
   tiempo_transcurrido: string;
@@ -36,13 +37,14 @@ export const getNotifications = async (unreadOnly: boolean = false): Promise<Not
         throw new Error('No tienes permisos para acceder a las notificaciones. Por favor, inicia sesión nuevamente.');
       }
       const errorData = await response.json().catch(() => ({}));
+      console.error('[notificationService] Error data:', errorData);
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
-  } catch (error: any) {
-    console.error('Error fetching notifications:', error);
+    const data = await response.json();
     
+    return data;
+  } catch (error: any) {
     if (error.message?.includes('Session expired') || error.message?.includes('permisos')) {
       throw error;
     }

@@ -13,13 +13,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Carousel from 'react-native-reanimated-carousel';
 import { useSharedValue } from 'react-native-reanimated';
 import { useReportDetails } from '../hooks/useReportDetails';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useUserContext } from '../../../contexts/UserContext';
 import { useLanguage } from '~/contexts/LanguageContext';
 import ModalMap from '../components/modalMap';
+import { CommentsModal, Report } from '~/features/comments';
 
 type Props = {
     reportId: string;
+    comentarioId?: string;
     onBack: () => void;
 };
 
@@ -78,9 +80,23 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
 
     // Estado para controlar el modal del mapa
     const [showMapModal, setShowMapModal] = useState(false);
+    
+    // Estado para controlar el modal de comentarios
+    const [showCommentsModal, setShowCommentsModal] = useState(false);
 
     // Obtener el usuario actual del UserContext
     const { user } = useUserContext();
+
+    // Verificar si se debe abrir el modal de comentarios automáticamente
+    useEffect(() => {
+        if (comentarioId && report) {
+            // Pequeño delay para asegurar que el componente esté montado
+            const timer = setTimeout(() => {
+                setShowCommentsModal(true);
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [comentarioId, report]);
 
     // Función para verificar si el usuario actual es el propietario del reporte
     const isOwner = report && user && report.usuario.id === user.usua_id;
@@ -661,6 +677,25 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                         address: report.ubicacion.direccion,
                     }}
                     title={t('reportDetailsLocationMapTitle')}
+                />
+            )}
+
+            {/* Modal de comentarios */}
+            {report && (
+                <CommentsModal
+                    visible={showCommentsModal}
+                    onClose={() => setShowCommentsModal(false)}
+                    postTitle={report.titulo}
+                    reportId={reportId}
+                    comments={[]}
+                    onAddComment={async (content: string) => {
+                        // La lógica de agregar comentarios se maneja dentro del CommentsModal
+                        console.log('Comment added:', content);
+                    }}
+                    onRefreshComments={() => {
+                        refetch();
+                    }}
+                    highlightCommentId={comentarioId}
                 />
             )}
         </SafeAreaView>

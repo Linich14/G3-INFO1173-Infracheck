@@ -41,7 +41,6 @@ export const createComment = async (
   try {
     const url = `${API_URL}/api/reports/${reportId}/comments/`;
     
-    
     const response = await axios.post<CreateCommentResponse>(
       url,
       { comentario },
@@ -52,8 +51,6 @@ export const createComment = async (
         },
       }
     );
-
-    console.log('Comment created successfully:', response.data);
     return response.data;
   } catch (error: any) {
     

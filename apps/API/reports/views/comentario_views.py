@@ -16,6 +16,7 @@ from infrastructure.exceptions import (
     UserPermissionError,
     UserAuthenticationError
 )
+from notifications.services.notification_service import notification_service
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,18 @@ def crear_comentario_reporte(request, report_id):
             reporte=reporte,
             comentario=comentario_texto
         )
+
+        # Notificar a los seguidores del reporte (excepto al autor del comentario)
+        try:
+            notification_service.notify_followers_new_comment(
+                reporte=reporte,
+                comentario=comentario,
+                autor_comentario=usuario
+            )
+            logger.info(f"Notificaciones enviadas por comentario en reporte #{report_id}")
+        except Exception as e:
+            logger.error(f"Error al enviar notificaciones: {str(e)}")
+            # No fallar la creación del comentario si falla la notificación
 
         # Verificar si es administrador
         es_admin = usuario.rous_id.rous_nombre.lower() == 'admin'

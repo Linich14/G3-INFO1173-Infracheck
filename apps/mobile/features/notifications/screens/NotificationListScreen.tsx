@@ -14,6 +14,7 @@ const NotificationListScreen: React.FC = () => {
     notifications,
     unreadCount,
     loading,
+    refreshing,
     error,
     markAsRead,
     markAllAsRead,
@@ -28,7 +29,21 @@ const NotificationListScreen: React.FC = () => {
       
       // Si tiene denuncia asociada, navegar al detalle
       if (notification.denuncia_id) {
-        router.push(`/report/${notification.denuncia_id}`);
+        // Si tiene comentario_id, pasar como parámetro para hacer scroll
+        if (notification.comentario_id) {
+          router.push({
+            pathname: '/(tabs)/report/[idReport]',
+            params: { 
+              idReport: notification.denuncia_id.toString(),
+              comentarioId: notification.comentario_id.toString()
+            }
+          });
+        } else {
+          router.push({
+            pathname: '/(tabs)/report/[idReport]',
+            params: { idReport: notification.denuncia_id.toString() }
+          });
+        }
       }
     } catch (err) {
       console.error('Error al procesar notificación:', err);
@@ -118,7 +133,7 @@ const NotificationListScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
+            refreshing={refreshing}
             onRefresh={refreshNotifications}
             tintColor="#537CF2"
           />
