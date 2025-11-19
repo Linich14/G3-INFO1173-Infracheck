@@ -65,7 +65,7 @@ const getReportTypeTranslation = (type: string, t: any): string => {
     return typeMap[type] || type;
 };
 
-export default function ReportDetailsScreen({ reportId, onBack }: Props) {
+export default function ReportDetailsScreen({ reportId, comentarioId, onBack }: Props) {
     const { t, locale } = useLanguage();
     const { report, loading, error, refetch } = useReportDetails(reportId);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
