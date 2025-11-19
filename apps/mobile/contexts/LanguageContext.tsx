@@ -186,6 +186,79 @@ const TRANSLATIONS: Record<
         projectPriorityNormal: string;
         projectViewDetails: string;
         projectOriginReport: string;
+        // Projects - List Screen
+        projectsListTitle: string;
+        projectsListSearchPlaceholder: string;
+        projectsListSearch: string;
+        projectsListFilterAll: string;
+        projectsListFilterPriority: string;
+        projectsListFilterStatus: string;
+        projectsListClearFilters: string;
+        projectsListSortRecent: string;
+        projectsListSortOldest: string;
+        projectsListSortPriority: string;
+        projectsListSortVotes: string;
+        projectsListEmptyDescription: string;
+        projectsListPage: string;
+        projectsListOf: string;
+        projectsListPreviousPage: string;
+        projectsListNextPage: string;
+        // Projects - Details Screen
+        projectDetailsTitle: string;
+        projectDetailsLoading: string;
+        projectDetailsStatus: string;
+        projectDetailsPriority: string;
+        projectDetailsEstimatedStartDate: string;
+        projectDetailsNotSpecified: string;
+        projectDetailsAssociatedReports: string;
+        projectDetailsVotesInFavor: string;
+        projectDetailsReportType: string;
+        projectDetailsDescription: string;
+        projectDetailsActions: string;
+        projectDetailsUpdateStatus: string;
+        projectDetailsViewReports: string;
+        projectDetailsReportProblem: string;
+        // Projects - Update Status
+        projectUpdateStatusTitle: string;
+        projectUpdateStatusPlanning: string;
+        projectUpdateStatusInProgress: string;
+        projectUpdateStatusCompleted: string;
+        projectUpdateStatusCanceled: string;
+        projectUpdateStatusPending: string;
+        projectUpdateStatusApproved: string;
+        projectUpdateStatusRejected: string;
+        projectUpdateStatusSuccess: string;
+        projectUpdateStatusSuccessMessage: string;
+        projectUpdateStatusError: string;
+        projectUpdateStatusErrorMessage: string;
+        projectUpdateStatusCurrent: string;
+        projectUpdateStatusSelectNew: string;
+        projectUpdateStatusCancel: string;
+        // Projects - Associated Reports
+        projectReportsTitle: string;
+        projectReportsLoading: string;
+        projectReportsError: string;
+        projectReportsRetry: string;
+        projectReportsEmpty: string;
+        // Projects - Report Problem
+        projectReportProblemTitle: string;
+        projectReportProblemError: string;
+        projectReportProblemPlaceholder: string;
+        projectReportProblemErrorTooShort: string;
+        projectReportProblemSuccess: string;
+        projectReportProblemSuccessMessage: string;
+        projectReportProblemHow: string;
+        projectReportProblemHowDescription: string;
+        projectReportProblemDescribe: string;
+        projectReportProblemMinChars: string;
+        projectReportProblemCharsRemaining: string;
+        projectReportProblemTips: string;
+        projectReportProblemTip1: string;
+        projectReportProblemTip2: string;
+        projectReportProblemTip3: string;
+        projectReportProblemTip4: string;
+        projectReportProblemCancel: string;
+        projectReportProblemSubmit: string;
         // Sound Notifications
         soundNotificationTitle: string;
         soundEnabled: string;
@@ -446,6 +519,16 @@ const TRANSLATIONS: Record<
         // Home - Auth Content
         homeCriticalReportsTitle: string;
         homeNoCriticalReports: string;
+        homeLoadingData: string;
+        homeReportsOfDay: string;
+        homeUrgent: string;
+        homePending: string;
+        homeResolved: string;
+        homeQuickActions: string;
+        homeProjectsList: string;
+        homeCreateProject: string;
+        homeReportsList: string;
+        homeViewStatistics: string;
         // Notifications - Create Screen
         notifyCreateTitle: string;
         notifyCreateSubtitle: string;
@@ -931,13 +1014,6 @@ const TRANSLATIONS: Record<
         filtersCategoryEmergencies: string;
         filtersCategoryInfrastructure: string;
 
-        mapCategoryStreets: string;
-        mapCategoryLighting: string;
-        mapCategoryDrainage: string;
-        mapCategoryParks: string;
-        mapCategoryGarbage: string;
-        mapCategoryEmergencies: string;
-        mapCategoryFurniture: string;
         mapCategoryInfrastructure: string;
         // Report Types - NUEVO
         reportTypeStreets: string;
@@ -1153,6 +1229,79 @@ const TRANSLATIONS: Record<
         projectPriorityNormal: 'Normal',
         projectViewDetails: 'Ver detalle',
         projectOriginReport: 'Reporte origen',
+        // Projects - List Screen
+        projectsListTitle: 'Lista de Proyectos',
+        projectsListSearchPlaceholder: 'Buscar proyectos...',
+        projectsListSearch: 'Búsqueda',
+        projectsListFilterAll: 'Todos',
+        projectsListFilterPriority: 'Por prioridad',
+        projectsListFilterStatus: 'Por estado',
+        projectsListClearFilters: 'Limpiar filtros',
+        projectsListSortRecent: 'Más recientes',
+        projectsListSortOldest: 'Más antiguos',
+        projectsListSortPriority: 'Por prioridad',
+        projectsListSortVotes: 'Más votados',
+        projectsListEmptyDescription: 'No hay proyectos disponibles',
+        projectsListPage: 'Página',
+        projectsListOf: 'de',
+        projectsListPreviousPage: 'Anterior',
+        projectsListNextPage: 'Siguiente',
+        // Projects - Details Screen
+        projectDetailsTitle: 'Detalles del Proyecto',
+        projectDetailsLoading: 'Cargando detalles...',
+        projectDetailsStatus: 'Estado',
+        projectDetailsPriority: 'Prioridad',
+        projectDetailsEstimatedStartDate: 'Fecha estimada de inicio',
+        projectDetailsNotSpecified: 'No especificada',
+        projectDetailsAssociatedReports: 'Reportes asociados',
+        projectDetailsVotesInFavor: 'Votos a favor',
+        projectDetailsReportType: 'Tipo de reporte',
+        projectDetailsDescription: 'Descripción',
+        projectDetailsActions: 'Acciones',
+        projectDetailsUpdateStatus: 'Actualizar Estado',
+        projectDetailsViewReports: 'Ver Reportes Asociados',
+        projectDetailsReportProblem: 'Reportar Problema',
+        // Projects - Update Status
+        projectUpdateStatusTitle: 'Actualizar Estado',
+        projectUpdateStatusPlanning: 'Planificación',
+        projectUpdateStatusInProgress: 'En Progreso',
+        projectUpdateStatusCompleted: 'Completado',
+        projectUpdateStatusCanceled: 'Cancelado',
+        projectUpdateStatusPending: 'Pendiente',
+        projectUpdateStatusApproved: 'Aprobado',
+        projectUpdateStatusRejected: 'Rechazado',
+        projectUpdateStatusSuccess: 'Estado Actualizado',
+        projectUpdateStatusSuccessMessage: 'El estado del proyecto se actualizó correctamente',
+        projectUpdateStatusError: 'Error al Actualizar',
+        projectUpdateStatusErrorMessage: 'No se pudo actualizar el estado del proyecto',
+        projectUpdateStatusCurrent: 'Estado actual',
+        projectUpdateStatusSelectNew: 'Selecciona el nuevo estado',
+        projectUpdateStatusCancel: 'Cancelar',
+        // Projects - Associated Reports
+        projectReportsTitle: 'Reportes Asociados',
+        projectReportsLoading: 'Cargando reportes...',
+        projectReportsError: 'Error al cargar reportes',
+        projectReportsRetry: 'Reintentar',
+        projectReportsEmpty: 'No hay reportes asociados',
+        // Projects - Report Problem
+        projectReportProblemTitle: 'Reportar Problema',
+        projectReportProblemError: 'Error',
+        projectReportProblemPlaceholder: 'Describe el problema aquí...',
+        projectReportProblemErrorTooShort: 'La descripción debe tener al menos 10 caracteres',
+        projectReportProblemSuccess: 'Reporte Enviado',
+        projectReportProblemSuccessMessage: 'Tu reporte se ha enviado correctamente',
+        projectReportProblemHow: '¿Cómo funciona?',
+        projectReportProblemHowDescription: 'Describe el problema que encontraste en este proyecto. Tu reporte será revisado por el equipo responsable.',
+        projectReportProblemDescribe: 'Describe el Problema',
+        projectReportProblemMinChars: 'Mínimo 10 caracteres',
+        projectReportProblemCharsRemaining: 'caracteres restantes',
+        projectReportProblemTips: 'Consejos para un buen reporte:',
+        projectReportProblemTip1: '• Sé específico sobre el problema',
+        projectReportProblemTip2: '• Incluye detalles relevantes',
+        projectReportProblemTip3: '• Evita lenguaje ofensivo',
+        projectReportProblemTip4: '• Sugiere posibles soluciones si las conoces',
+        projectReportProblemCancel: 'Cancelar',
+        projectReportProblemSubmit: 'Enviar Reporte',
         soundNotificationTitle: 'Sonidos de Notificación',
         soundEnabled: 'Activado',
         soundDisabled: 'Desactivado',
@@ -1412,6 +1561,16 @@ const TRANSLATIONS: Record<
         // Home - Auth Content
         homeCriticalReportsTitle: 'Reportes Críticos',
         homeNoCriticalReports: 'No hay reportes críticos pendientes',
+        homeLoadingData: 'Cargando datos...',
+        homeReportsOfDay: 'Reportes del Día',
+        homeUrgent: 'Urgentes',
+        homePending: 'Pendientes',
+        homeResolved: 'Resueltos',
+        homeQuickActions: 'Acciones Rápidas',
+        homeProjectsList: 'Lista Proyectos',
+        homeCreateProject: 'Crear Proyecto',
+        homeReportsList: 'Lista Reportes',
+        homeViewStatistics: 'Ver Estadísticas',
         // Notifications - Create Screen
         notifyCreateTitle: 'Crear Notificación',
         notifyCreateSubtitle: 'Panel Administrativo',
@@ -1908,13 +2067,6 @@ const TRANSLATIONS: Record<
         filtersCategoryGarbage: 'Basura y Limpieza',
         filtersCategoryEmergencies: 'Emergencias',
         filtersCategoryInfrastructure: 'Infraestructura',
-        mapCategoryStreets: 'Calles y Veredas en Mal Estado',
-        mapCategoryLighting: 'Luz o Alumbrado Público Dañado',
-        mapCategoryDrainage: 'Drenaje o Aguas Estancadas',
-        mapCategoryParks: 'Parques, Plazas o Árboles con Problemas',
-        mapCategoryGarbage: 'Basura, Escombros o Espacios Sucios',
-        mapCategoryEmergencies: 'Emergencias o Situaciones de Riesgo',
-        mapCategoryFurniture: 'Infraestructura o Mobiliario Público Dañado',
         mapCategoryInfrastructure: 'Infraestructura Pública',
         // Report Types - NUEVO
         reportTypeStreets: 'Calles y Veredas en Mal Estado',
@@ -2130,6 +2282,79 @@ const TRANSLATIONS: Record<
         projectPriorityNormal: 'Normal',
         projectViewDetails: 'View details',
         projectOriginReport: 'Origin report',
+        // Projects - List Screen
+        projectsListTitle: 'Projects List',
+        projectsListSearchPlaceholder: 'Search projects...',
+        projectsListSearch: 'Search',
+        projectsListFilterAll: 'All',
+        projectsListFilterPriority: 'By priority',
+        projectsListFilterStatus: 'By status',
+        projectsListClearFilters: 'Clear filters',
+        projectsListSortRecent: 'Most recent',
+        projectsListSortOldest: 'Oldest',
+        projectsListSortPriority: 'By priority',
+        projectsListSortVotes: 'Most voted',
+        projectsListEmptyDescription: 'No projects available',
+        projectsListPage: 'Page',
+        projectsListOf: 'of',
+        projectsListPreviousPage: 'Previous',
+        projectsListNextPage: 'Next',
+        // Projects - Details Screen
+        projectDetailsTitle: 'Project Details',
+        projectDetailsLoading: 'Loading details...',
+        projectDetailsStatus: 'Status',
+        projectDetailsPriority: 'Priority',
+        projectDetailsEstimatedStartDate: 'Estimated start date',
+        projectDetailsNotSpecified: 'Not specified',
+        projectDetailsAssociatedReports: 'Associated reports',
+        projectDetailsVotesInFavor: 'Votes in favor',
+        projectDetailsReportType: 'Report type',
+        projectDetailsDescription: 'Description',
+        projectDetailsActions: 'Actions',
+        projectDetailsUpdateStatus: 'Update Status',
+        projectDetailsViewReports: 'View Associated Reports',
+        projectDetailsReportProblem: 'Report Problem',
+        // Projects - Update Status
+        projectUpdateStatusTitle: 'Update Status',
+        projectUpdateStatusPlanning: 'Planning',
+        projectUpdateStatusInProgress: 'In Progress',
+        projectUpdateStatusCompleted: 'Completed',
+        projectUpdateStatusCanceled: 'Canceled',
+        projectUpdateStatusPending: 'Pending',
+        projectUpdateStatusApproved: 'Approved',
+        projectUpdateStatusRejected: 'Rejected',
+        projectUpdateStatusSuccess: 'Status Updated',
+        projectUpdateStatusSuccessMessage: 'The project status was successfully updated',
+        projectUpdateStatusError: 'Update Error',
+        projectUpdateStatusErrorMessage: 'Could not update project status',
+        projectUpdateStatusCurrent: 'Current status',
+        projectUpdateStatusSelectNew: 'Select new status',
+        projectUpdateStatusCancel: 'Cancel',
+        // Projects - Associated Reports
+        projectReportsTitle: 'Associated Reports',
+        projectReportsLoading: 'Loading reports...',
+        projectReportsError: 'Error loading reports',
+        projectReportsRetry: 'Retry',
+        projectReportsEmpty: 'No associated reports',
+        // Projects - Report Problem
+        projectReportProblemTitle: 'Report Problem',
+        projectReportProblemError: 'Error',
+        projectReportProblemPlaceholder: 'Describe the problem here...',
+        projectReportProblemErrorTooShort: 'Description must be at least 10 characters',
+        projectReportProblemSuccess: 'Report Sent',
+        projectReportProblemSuccessMessage: 'Your report has been sent successfully',
+        projectReportProblemHow: 'How does it work?',
+        projectReportProblemHowDescription: 'Describe the problem you found in this project. Your report will be reviewed by the responsible team.',
+        projectReportProblemDescribe: 'Describe the Problem',
+        projectReportProblemMinChars: 'Minimum 10 characters',
+        projectReportProblemCharsRemaining: 'characters remaining',
+        projectReportProblemTips: 'Tips for a good report:',
+        projectReportProblemTip1: '• Be specific about the problem',
+        projectReportProblemTip2: '• Include relevant details',
+        projectReportProblemTip3: '• Avoid offensive language',
+        projectReportProblemTip4: '• Suggest possible solutions if you know them',
+        projectReportProblemCancel: 'Cancel',
+        projectReportProblemSubmit: 'Submit Report',
         soundNotificationTitle: 'Notification Sounds',
         soundEnabled: 'Enabled',
         soundDisabled: 'Disabled',
@@ -2389,6 +2614,16 @@ const TRANSLATIONS: Record<
         // Home - Auth Content
         homeCriticalReportsTitle: 'Critical Reports',
         homeNoCriticalReports: 'No critical reports pending',
+        homeLoadingData: 'Loading data...',
+        homeReportsOfDay: 'Reports of the Day',
+        homeUrgent: 'Urgent',
+        homePending: 'Pending',
+        homeResolved: 'Resolved',
+        homeQuickActions: 'Quick Actions',
+        homeProjectsList: 'Projects List',
+        homeCreateProject: 'Create Project',
+        homeReportsList: 'Reports List',
+        homeViewStatistics: 'View Statistics',
         // Notifications - Create Screen
         notifyCreateTitle: 'Create Notification',
         notifyCreateSubtitle: 'Admin Panel',
@@ -2881,13 +3116,6 @@ const TRANSLATIONS: Record<
         filtersCategoryGarbage: 'Trash and Cleaning',
         filtersCategoryEmergencies: 'Emergencies',
         filtersCategoryInfrastructure: 'Infrastructure',
-        mapCategoryStreets: 'Streets and Sidewalks in Poor Condition',
-        mapCategoryLighting: 'Damaged Street Lighting',
-        mapCategoryDrainage: 'Drainage or Standing Water',
-        mapCategoryParks: 'Parks, Squares or Trees with Problems',
-        mapCategoryGarbage: 'Garbage, Debris or Dirty Spaces',
-        mapCategoryEmergencies: 'Emergencies or Risk Situations',
-        mapCategoryFurniture: 'Damaged Infrastructure or Public Furniture',
         mapCategoryInfrastructure: 'Public Infrastructure',
         // Report Types - NUEVO
         reportTypeStreets: 'Streets and Sidewalks in Poor Condition',
