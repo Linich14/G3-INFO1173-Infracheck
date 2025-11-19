@@ -36,10 +36,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
 
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = async (forceCheck = false) => {
     setIsLoading(true);
     try {
-      const authenticated = await isAuthenticated();
+      const authenticated = await isAuthenticated(forceCheck);
       setIsLoggedIn(authenticated);
 
       if (authenticated) {
@@ -104,7 +104,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      await checkAuthStatus();
+      // Forzar verificación solo en el inicio de la app
+      await checkAuthStatus(true);
     };
 
     initializeApp();

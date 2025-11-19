@@ -10,6 +10,8 @@ const USER_ID_KEY = 'user_id';
 
 // Variable para controlar llamadas simultáneas a isAuthenticated
 let isAuthenticating = false;
+let lastAuthCheck = 0;
+const AUTH_CHECK_INTERVAL = 60000; // Solo verificar con backend cada 60 segundos
 
 // Función para migrar tokens existentes al almacenamiento seguro
 export const migrateToSecureStorage = async (): Promise<void> => {
@@ -226,10 +228,16 @@ export const getUserRole = async (): Promise<{rous_id: number, rous_nombre: stri
 };
 
 // Verificar si hay sesión activa y el token es válido
-export const isAuthenticated = async (): Promise<boolean> => {
+export const isAuthenticated = async (forceCheck = false): Promise<boolean> => {
   const token = await getToken();
   if (!token) {
     return false;
+  }
+
+  // Si no es un check forzado y verificamos recientemente, confiar en token local
+  const now = Date.now();
+  if (!forceCheck && (now - lastAuthCheck) < AUTH_CHECK_INTERVAL) {
+    return true;
   }
 
   // Verificar con el backend si el token es válido y no ha expirado
@@ -253,6 +261,7 @@ export const isAuthenticated = async (): Promise<boolean> => {
     if (response.ok) {
       const result = await response.json();
       if (result.valid) {
+        lastAuthCheck = now;
         return true;
       } else {
         // Token inválido o expirado según el backend, cerrar sesión
