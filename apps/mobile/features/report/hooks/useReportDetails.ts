@@ -141,8 +141,9 @@ const adaptReportData = (apiData: ApiReportDetails): ReportDetails => {
         usuario: apiData.usuario,
         ciudad: apiData.ciudad.nombre,
         estadisticas: apiData.estadisticas,
-        votos: apiData.votos, // Pasar estructura embebida
-        seguimiento: apiData.seguimiento, // Pasar estructura embebida
+        votos: apiData.votos,
+        seguimiento: apiData.seguimiento,
+        archivos: apiData.archivos || [], // Mantener los archivos originales con sus IDs
     };
 };
 

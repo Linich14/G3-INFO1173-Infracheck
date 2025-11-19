@@ -259,6 +259,14 @@ const TRANSLATIONS: Record<
         projectReportProblemTip4: string;
         projectReportProblemCancel: string;
         projectReportProblemSubmit: string;
+        // Projects - Create Project
+        projectCreateError: string;
+        projectCreateErrorNoReport: string;
+        projectCreateErrorNoName: string;
+        projectCreateErrorNoDescription: string;
+        projectCreateErrorDescriptionTooShort: string;
+        projectCreateSuccess: string;
+        projectCreateSuccessMessage: string;
         // Sound Notifications
         soundNotificationTitle: string;
         soundEnabled: string;
@@ -1052,6 +1060,28 @@ const TRANSLATIONS: Record<
         formSelectLocation: string;
         formTitlePlaceholder: string;
         formDescriptionPlaceholder: string;
+        manageImagesTitle: string;
+        manageImagesInstructions: string;
+        manageImagesCurrentTitle: string;
+        manageImagesNewTitle: string;
+        manageImagesNewLabel: string;
+        manageImagesEmpty: string;
+        manageImagesAddButton: string;
+        manageImagesAddDescription: string;
+        manageImagesSelectFirst: string;
+        manageImagesSelectToDelete: string;
+        manageImagesDeleteConfirmTitle: string;
+        manageImagesDeleteConfirmMessage: string;
+        manageImagesDeleteSuccess: string;
+        manageImagesDeleteError: string;
+        manageImagesDeletePartial: string;
+        manageImagesUploadSuccess: string;
+        manageImagesUploadError: string;
+        manageImagesSelectedToDelete: string;
+        manageImagesSelectedToUpload: string;
+        reportDetailsActionsManageImages: string;
+        upload: string;
+        warning: string;
     }
 > = {
     es: {
@@ -1302,6 +1332,14 @@ const TRANSLATIONS: Record<
         projectReportProblemTip4: '• Sugiere posibles soluciones si las conoces',
         projectReportProblemCancel: 'Cancelar',
         projectReportProblemSubmit: 'Enviar Reporte',
+        // Projects - Create Project
+        projectCreateError: 'Error',
+        projectCreateErrorNoReport: 'Debes seleccionar una denuncia',
+        projectCreateErrorNoName: 'El nombre del proyecto es obligatorio',
+        projectCreateErrorNoDescription: 'La descripción es obligatoria',
+        projectCreateErrorDescriptionTooShort: 'La descripción debe tener al menos 20 caracteres',
+        projectCreateSuccess: 'Proyecto Creado',
+        projectCreateSuccessMessage: 'El proyecto se ha creado exitosamente',
         soundNotificationTitle: 'Sonidos de Notificación',
         soundEnabled: 'Activado',
         soundDisabled: 'Desactivado',
@@ -2106,6 +2144,30 @@ const TRANSLATIONS: Record<
         formSelectLocation: 'Cambiar Ubicación',
         formTitlePlaceholder: 'Ingrese un título descriptivo',
         formDescriptionPlaceholder: 'Describa detalladamente el problema',
+        manageImagesTitle: 'Gestionar Imágenes',
+        manageImagesInstructions:
+            'Toca las imágenes para seleccionar las que deseas eliminar, o agrega nuevas imágenes',
+        manageImagesCurrentTitle: 'Imágenes Actuales',
+        manageImagesNewTitle: 'Nuevas Imágenes',
+        manageImagesNewLabel: 'Nueva',
+        manageImagesEmpty: 'No hay imágenes en este reporte',
+        manageImagesAddButton: 'Agregar Imágenes',
+        manageImagesAddDescription: 'Toca para seleccionar desde cámara o galería',
+        manageImagesSelectFirst: 'Selecciona al menos una imagen para subir',
+        manageImagesSelectToDelete: 'Selecciona al menos una imagen para eliminar',
+        manageImagesDeleteConfirmTitle: 'Eliminar Imágenes',
+        manageImagesDeleteConfirmMessage: '¿Estás seguro de que quieres eliminar imagen(es)?',
+        manageImagesDeleteSuccess: 'imagen(es) eliminada(s) exitosamente',
+        manageImagesDeleteError: 'Error al eliminar las imágenes',
+        manageImagesDeletePartial:
+            'de imagen(es) eliminada(s). Algunas imágenes no pudieron eliminarse.',
+        manageImagesUploadSuccess: 'Imágenes subidas exitosamente',
+        manageImagesUploadError: 'Error al subir las imágenes',
+        manageImagesSelectedToDelete: 'Seleccionadas para eliminar',
+        manageImagesSelectedToUpload: 'Nuevas para subir',
+        reportDetailsActionsManageImages: 'Gestionar Imágenes',
+        upload: 'Subir',
+        warning: 'Advertencia',
     },
     en: {
         settings: 'Settings',
@@ -2355,6 +2417,14 @@ const TRANSLATIONS: Record<
         projectReportProblemTip4: '• Suggest possible solutions if you know them',
         projectReportProblemCancel: 'Cancel',
         projectReportProblemSubmit: 'Submit Report',
+        // Projects - Create Project
+        projectCreateError: 'Error',
+        projectCreateErrorNoReport: 'You must select a report',
+        projectCreateErrorNoName: 'Project name is required',
+        projectCreateErrorNoDescription: 'Description is required',
+        projectCreateErrorDescriptionTooShort: 'Description must be at least 20 characters',
+        projectCreateSuccess: 'Project Created',
+        projectCreateSuccessMessage: 'The project has been created successfully',
         soundNotificationTitle: 'Notification Sounds',
         soundEnabled: 'Enabled',
         soundDisabled: 'Disabled',
@@ -3155,6 +3225,28 @@ const TRANSLATIONS: Record<
         formSelectLocation: 'Change Location',
         formTitlePlaceholder: 'Enter a descriptive title',
         formDescriptionPlaceholder: 'Describe the problem in detail',
+        manageImagesTitle: 'Manage Images',
+        manageImagesInstructions: 'Tap images to select ones you want to delete, or add new images',
+        manageImagesCurrentTitle: 'Current Images',
+        manageImagesNewTitle: 'New Images',
+        manageImagesNewLabel: 'New',
+        manageImagesEmpty: 'No images in this report',
+        manageImagesAddButton: 'Add Images',
+        manageImagesAddDescription: 'Tap to select from camera or gallery',
+        manageImagesSelectFirst: 'Select at least one image to upload',
+        manageImagesSelectToDelete: 'Select at least one image to delete',
+        manageImagesDeleteConfirmTitle: 'Delete Images',
+        manageImagesDeleteConfirmMessage: 'Are you sure you want to delete image(s)?',
+        manageImagesDeleteSuccess: 'image(s) deleted successfully',
+        manageImagesDeleteError: 'Error deleting images',
+        manageImagesDeletePartial: 'of image(s) deleted. Some images could not be deleted.',
+        manageImagesUploadSuccess: 'Images uploaded successfully',
+        manageImagesUploadError: 'Error uploading images',
+        manageImagesSelectedToDelete: 'Selected for deletion',
+        manageImagesSelectedToUpload: 'New to upload',
+        reportDetailsActionsManageImages: 'Manage Images',
+        upload: 'Upload',
+        warning: 'Warning',
     },
 };
 

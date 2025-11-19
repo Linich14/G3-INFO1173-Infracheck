@@ -21,6 +21,7 @@ import { useLanguage } from '~/contexts/LanguageContext';
 import ModalMap from '../components/modalMap';
 import { CommentsModal, Report } from '~/features/comments';
 import EditReportScreen from './EditReport.screen';
+import ManageImagesScreen from './ManageImages.screen';
 
 type Props = {
     reportId: string;
@@ -90,6 +91,9 @@ export default function ReportDetailsScreen({ reportId, comentarioId, onBack }: 
 
     // Nuevo estado para mostrar pantalla de edición
     const [showEditScreen, setShowEditScreen] = useState(false);
+
+    // Nuevo estado para mostrar pantalla de gestión de imágenes
+    const [showManageImagesScreen, setShowManageImagesScreen] = useState(false);
 
     // Obtener el usuario actual del UserContext
     const { user } = useUserContext();
@@ -176,6 +180,29 @@ export default function ReportDetailsScreen({ reportId, comentarioId, onBack }: 
                 },
             ]
         );
+    };
+
+    // Función para manejar gestión de imágenes
+    const handleManageImages = () => {
+        // Filtrar solo las imágenes de los archivos con sus IDs
+        const imageFiles =
+            report.archivos
+                ?.filter((archivo) => archivo.tipo === 'imagen')
+                .map((archivo) => ({
+                    id: archivo.id,
+                    url: archivo.url.startsWith('http')
+                        ? archivo.url
+                        : `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000'}${archivo.url}`,
+                })) || [];
+
+        console.log('Passing images to ManageImages:', imageFiles);
+        setShowManageImagesScreen(true);
+    };
+
+    // Función para volver de la pantalla de gestión de imágenes
+    const handleBackFromManageImages = () => {
+        setShowManageImagesScreen(false);
+        refetch(); // Recargar datos actualizados
     };
 
     // Función para volver de la pantalla de edición
@@ -354,6 +381,29 @@ export default function ReportDetailsScreen({ reportId, comentarioId, onBack }: 
                     </View>
                 </View>
             </SafeAreaView>
+        );
+    }
+
+    // Si estamos en modo gestión de imágenes, mostrar esa pantalla
+    if (showManageImagesScreen && report) {
+        return (
+            <ManageImagesScreen
+                reportId={reportId}
+                images={
+                    report.archivos
+                        ?.filter((archivo) => archivo.tipo === 'imagen')
+                        .map((archivo) => ({
+                            id: archivo.id,
+                            url: archivo.url.startsWith('http')
+                                ? archivo.url
+                                : `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000'}${archivo.url}`,
+                        })) || []
+                }
+                onBack={handleBackFromManageImages}
+                onSuccess={() => {
+                    // Opcional: mostrar mensaje de éxito
+                }}
+            />
         );
     }
 
@@ -729,16 +779,17 @@ export default function ReportDetailsScreen({ reportId, comentarioId, onBack }: 
                 {/* Acciones - Solo mostrar si el usuario es el propietario del reporte */}
                 {isOwner && (
                     <View className="mx-4 mb-6 mt-4">
-                        {report.estadisticas.puede_agregar_imagenes && (
-                            <TouchableOpacity className="mb-3 rounded-xl bg-green-600 p-4">
-                                <View className="flex-row items-center justify-center">
-                                    <Ionicons name="camera-outline" size={20} color="white" />
-                                    <Text className="ml-2 font-semibold text-white">
-                                        {t('reportDetailsActionsAdd')}
-                                    </Text>
-                                </View>
-                            </TouchableOpacity>
-                        )}
+                        {/* Botón para gestionar imágenes */}
+                        <TouchableOpacity
+                            className="mb-3 rounded-xl bg-green-600 p-4"
+                            onPress={handleManageImages}>
+                            <View className="flex-row items-center justify-center">
+                                <Ionicons name="images-outline" size={20} color="white" />
+                                <Text className="ml-2 font-semibold text-white">
+                                    {t('reportDetailsActionsManageImages') || 'Gestionar Imágenes'}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
 
                         <TouchableOpacity
                             className="mb-3 rounded-xl bg-[#537CF2] p-4"

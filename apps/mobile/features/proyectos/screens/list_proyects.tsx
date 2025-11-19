@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, FlatList, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useProjects } from '../hooks/useProjects';
 import ProjectCard from '../../../components/ProjectCard';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -51,6 +51,13 @@ export default function App() {
     setPage,
     refresh,
   } = useProjects({ pageSize: ITEMS_PER_PAGE });
+
+  // Refrescar la lista cuando la pantalla recibe foco (vuelve de detalles)
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   // derive unique filter options from fetched results
   const uniquePriorities = useMemo(() => Array.from(new Set(allResults.map((p) => p.prioridad).filter(Boolean as any))), [allResults]);
