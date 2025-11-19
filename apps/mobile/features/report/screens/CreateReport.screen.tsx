@@ -150,9 +150,19 @@ export default function CreateReportScreen() {
         <SafeAreaView className="flex-1 bg-background">
             {/* Header */}
             <View className="mx-4 flex-row items-center rounded-lg bg-tertiary px-4 py-3">
+                {/* Botón para volver atrás */}
+                <Pressable
+                    onPress={handleBackPress}
+                    className="mr-3 rounded-full p-2 active:bg-gray-700">
+                    <X size={24} color="white" />
+                </Pressable>
+
                 <Text className="flex-1 text-center text-3xl font-semibold text-primary">
                     {t('reportCreateScreenTitle')}
                 </Text>
+
+                {/* Espacio para mantener el título centrado */}
+                <View className="w-10" />
             </View>
 
             <ScrollView className="flex-1 px-4 py-2" showsVerticalScrollIndicator={false}>
@@ -177,7 +187,9 @@ export default function CreateReportScreen() {
                         className="items-center rounded-lg bg-blue-600 p-4 active:bg-blue-700"
                         disabled={isSubmitting}>
                         <Text className="text-lg font-semibold text-white">
-                            {isSubmitting ? t('reportCreateProcessing') : t('reportCreatePreviewTitle')}
+                            {isSubmitting
+                                ? t('reportCreateProcessing')
+                                : t('reportCreatePreviewTitle')}
                         </Text>
                     </Pressable>
                 </View>

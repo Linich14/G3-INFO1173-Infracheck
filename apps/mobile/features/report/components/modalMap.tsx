@@ -59,41 +59,36 @@ const ModalMap = ({
             console.log('Initial location:', initialLocation);
             console.log('View location:', viewLocation);
 
-            // Reset estados
-            setIsMapReady(false);
-
-            let centerLocation: Location | null = null;
-
             // En modo visualización, usar viewLocation si está disponible
             if (isViewMode && viewLocation) {
-                centerLocation = viewLocation;
                 setSelectedLocation(viewLocation);
+                const center: [number, number] = [viewLocation.longitude, viewLocation.latitude];
+                setCameraCenter(center);
                 console.log('Using view location:', viewLocation);
             }
-            // En modo selección, priorizar initialLocation
+            // En modo selección
             else if (!isViewMode) {
                 if (initialLocation) {
-                    centerLocation = initialLocation;
                     setSelectedLocation(initialLocation);
+                    const center: [number, number] = [
+                        initialLocation.longitude,
+                        initialLocation.latitude,
+                    ];
+                    setCameraCenter(center);
                     console.log('Using initial location:', initialLocation);
                 } else if (location) {
-                    centerLocation = {
+                    const userLocation = {
                         latitude: location.coords.latitude,
                         longitude: location.coords.longitude,
                     };
-                    setSelectedLocation(centerLocation);
-                    console.log('Using user location:', centerLocation);
+                    setSelectedLocation(userLocation);
+                    const center: [number, number] = [
+                        userLocation.longitude,
+                        userLocation.latitude,
+                    ];
+                    setCameraCenter(center);
+                    console.log('Using user location:', userLocation);
                 }
-            }
-
-            // Establecer centro de cámara
-            if (centerLocation) {
-                const center: [number, number] = [
-                    centerLocation.longitude,
-                    centerLocation.latitude,
-                ];
-                setCameraCenter(center);
-                console.log('Setting camera center:', center);
             }
         } else {
             // Limpiar estados cuando se cierra
@@ -108,8 +103,8 @@ const ModalMap = ({
         console.log('Map pressed, isMapReady:', isMapReady, 'isViewMode:', isViewMode);
 
         // Solo permitir selección si no es modo visualización y el mapa está listo
-        if (!isMapReady || isViewMode) {
-            console.log('Map press ignored - not ready or view mode');
+        if (isViewMode) {
+            console.log('Map press ignored - view mode');
             return;
         }
 
@@ -313,15 +308,13 @@ const ModalMap = ({
                         {!isViewMode && (
                             <Pressable
                                 onPress={handleConfirmLocation}
-                                disabled={!selectedLocation || !isMapReady}
+                                disabled={!selectedLocation}
                                 className={`flex-1 items-center rounded-lg p-3 ${
-                                    selectedLocation && isMapReady ? 'bg-[#537CF2]' : 'bg-gray-700'
+                                    selectedLocation ? 'bg-[#537CF2]' : 'bg-gray-700'
                                 }`}>
                                 <Text
                                     className={`font-medium ${
-                                        selectedLocation && isMapReady
-                                            ? 'text-white'
-                                            : 'text-gray-400'
+                                        selectedLocation ? 'text-white' : 'text-gray-400'
                                     }`}>
                                     {t('reportMapConfirm') || 'Confirmar'}
                                 </Text>
