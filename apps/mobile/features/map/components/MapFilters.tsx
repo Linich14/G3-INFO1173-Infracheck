@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { AnnotationType, ANNOTATION_CONFIGS, FilterState } from '../types';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface MapFiltersProps {
     filterState: FilterState;
@@ -12,18 +13,13 @@ interface MapFiltersProps {
 }
 
 const FILTER_LABELS: Record<AnnotationType, string> = {
-    [AnnotationType.VIALIDAD_VEREDAS]: 'Vialidad',
-    [AnnotationType.ALUMBRADO_PUBLICO]: 'Alumbrado',
-    [AnnotationType.DRENAJE_AGUAS]: 'Drenaje',
-    [AnnotationType.AREAS_VERDES]: 'Áreas Verdes',
-    [AnnotationType.MOBILIARIO_URBANO]: 'Mobiliario',
-    [AnnotationType.SENALIZACION]: 'Señalización',
-    [AnnotationType.CICLOVIAS]: 'Ciclovías',
-    [AnnotationType.PARADEROS_TRANSPORTE]: 'Transporte',
-    [AnnotationType.INFRAESTRUCTURA_MUNICIPAL]: 'Municipal',
-    [AnnotationType.LIMPIEZA_ESPACIO_PUBLICO]: 'Limpieza',
-    [AnnotationType.ACCESIBILIDAD]: 'Accesibilidad',
-    [AnnotationType.RIESGOS_EMERGENCIAS]: 'Emergencias',
+    [AnnotationType.CALLES_VEREDAS]: 'Calles y Veredas',
+    [AnnotationType.ALUMBRADO_DANADO]: 'Alumbrado Público',
+    [AnnotationType.DRENAJE_AGUAS]: 'Drenaje y Aguas',
+    [AnnotationType.PARQUES_ARBOLES]: 'Parques y Árboles',
+    [AnnotationType.BASURA_ESCOMBROS]: 'Basura y Escombros',
+    [AnnotationType.EMERGENCIAS_RIESGOS]: 'Emergencias',
+    [AnnotationType.MOBILIARIO_DANADO]: 'Mobiliario Público',
 };
 
 export default function MapFilters({
@@ -33,6 +29,18 @@ export default function MapFilters({
     onToggleVisibility,
     currentZoom = 0,
 }: MapFiltersProps) {
+    const { t } = useLanguage();
+    
+    const FILTER_LABELS: Record<AnnotationType, string> = {
+        [AnnotationType.CALLES_VEREDAS]: t('mapCategoryStreets'),
+        [AnnotationType.ALUMBRADO_DANADO]: t('mapCategoryLighting'),
+        [AnnotationType.DRENAJE_AGUAS]: t('mapCategoryDrainage'),
+        [AnnotationType.PARQUES_ARBOLES]: t('mapCategoryParks'),
+        [AnnotationType.BASURA_ESCOMBROS]: t('mapCategoryGarbage'),
+        [AnnotationType.EMERGENCIAS_RIESGOS]: t('mapCategoryEmergencies'),
+        [AnnotationType.MOBILIARIO_DANADO]: t('mapCategoryFurniture'),
+    };
+    
     const toggleFilter = (type: AnnotationType) => {
         const newActiveTypes = new Set(filterState.activeTypes);
 
@@ -70,7 +78,7 @@ export default function MapFilters({
                     className="flex-row items-center rounded-lg bg-white px-4 py-3 shadow-lg">
                     <MaterialCommunityIcons name="filter-variant" size={22} color="#374151" />
                     <View className="ml-2 flex-row items-center">
-                        <Text className="font-semibold text-gray-800">Filtros</Text>
+                        <Text className="font-semibold text-gray-800">{t('mapFiltersTitle')}</Text>
                         <View className="ml-2 rounded-full bg-blue-500 px-2 py-0.5">
                             <Text className="text-xs font-medium text-white">
                                 {activeCount}/{totalCount}
@@ -91,7 +99,7 @@ export default function MapFilters({
                 <View className="mx-4 mb-2 rounded-lg bg-white p-3 shadow-xl">
                     {/* Header with Show All */}
                     <View className="mb-3 flex-row items-center justify-between">
-                        <Text className="text-lg font-semibold text-gray-800">Categorías</Text>
+                        <Text className="text-lg font-semibold text-gray-800">{t('mapCategoriesTitle')}</Text>
                         <Pressable
                             onPress={toggleAll}
                             className={`rounded-full px-4 py-2 ${
@@ -101,7 +109,7 @@ export default function MapFilters({
                                 className={`font-medium ${
                                     filterState.showAll ? 'text-white' : 'text-gray-700'
                                 }`}>
-                                {filterState.showAll ? 'Deseleccionar todo' : 'Seleccionar todo'}
+                                {filterState.showAll ? t('mapDeselectAll') : t('mapSelectAll')}
                             </Text>
                         </Pressable>
                     </View>
@@ -140,7 +148,7 @@ export default function MapFilters({
                                                     : undefined,
                                             }}>
                                             <MaterialCommunityIcons
-                                                name={config.icon}
+                                                name={config.icon as any}
                                                 size={24}
                                                 color={isActive ? config.color : '#9CA3AF'}
                                             />
@@ -165,10 +173,10 @@ export default function MapFilters({
                                 <MaterialCommunityIcons
                                     name="information"
                                     size={20}
-                                    color="#F59E0B"
+                                    color="#3B82F6"
                                 />
-                                <Text className="ml-2 text-sm text-amber-800">
-                                    Acerca el mapa para ver los reportes
+                                <Text className="ml-2 text-sm text-gray-600">
+                                    {t('mapZoomToSee')}
                                 </Text>
                             </View>
                         </View>

@@ -89,19 +89,19 @@ export const getInsightColor = (type: 'success' | 'warning' | 'info' | 'danger')
 /**
  * Formatea una fecha relativa
  */
-export const formatRelativeTime = (date: Date): string => {
+export const formatRelativeTime = (date: Date, t: (key: string) => string): string => {
   const now = new Date();
   const diffInMs = now.getTime() - date.getTime();
   const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
   const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-  if (diffInMinutes < 1) return 'Hace un momento';
-  if (diffInMinutes < 60) return `Hace ${diffInMinutes} min`;
-  if (diffInHours < 24) return `Hace ${diffInHours}h`;
-  if (diffInDays === 1) return 'Ayer';
-  if (diffInDays < 7) return `Hace ${diffInDays} días`;
-  if (diffInDays < 30) return `Hace ${Math.floor(diffInDays / 7)} semanas`;
+  if (diffInMinutes < 1) return t('statisticsTimeNow');
+  if (diffInMinutes < 60) return `${diffInMinutes} ${t('statisticsTimeMinutes')}`;
+  if (diffInHours < 24) return `${diffInHours}${t('statisticsTimeHours')}`;
+  if (diffInDays === 1) return t('statisticsTimeYesterday');
+  if (diffInDays < 7) return `${diffInDays} ${t('statisticsTimeDays')}`;
+  if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} ${t('statisticsTimeWeeks')}`;
 
   return date.toLocaleDateString('es-CL');
 };

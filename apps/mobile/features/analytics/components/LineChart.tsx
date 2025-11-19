@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Svg, { Polyline, Circle, Text as SvgText } from 'react-native-svg';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface LineChartProps {
   data: { label: string; value: number; color: string }[];
@@ -54,6 +55,7 @@ function SimpleLineChart({ data, width = 320, height = 200 }: LineChartProps) {
 }
 
 export function LineChart({ data, width = 320, height = 200 }: LineChartProps) {
+  const { t } = useLanguage();
   // Usar SVG si está disponible, sino usar componente simple
   try {
     const maxValue = Math.max(...data.map(d => d.value));
@@ -134,7 +136,7 @@ export function LineChart({ data, width = 320, height = 200 }: LineChartProps) {
         {/* Leyenda */}
         <View className="flex-row justify-center mt-4 flex-wrap">
           <Text className="text-gray-400 text-sm">
-            Reportes por día de la semana
+            {t('analyticsReportsByDay')}
           </Text>
         </View>
       </View>

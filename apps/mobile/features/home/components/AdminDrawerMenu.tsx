@@ -2,6 +2,8 @@ import React from "react";
 import { View, Text, TouchableOpacity, Animated, Image } from "react-native";
 import { Home, Map, Settings, LogOut, ChevronRight } from "lucide-react-native";
 import { router } from "expo-router";
+import { useUser } from "../../profile/hooks/useUser";
+import { useLanguage } from "~/contexts/LanguageContext";
 
 const MENU_BG = "#0f172a";
 const ACCENT = "#537CF2";
@@ -15,6 +17,9 @@ interface AdminDrawerMenuProps {
 }
 
 export default function AdminDrawerMenu({ drawerX, DRAWER_W, insets, onClose, onLogout }: AdminDrawerMenuProps) {
+  const { user, loading } = useUser();
+  const { t } = useLanguage();
+
   return (
     <Animated.View
       style={{
@@ -32,7 +37,7 @@ export default function AdminDrawerMenu({ drawerX, DRAWER_W, insets, onClose, on
       }}
     >
       <View style={{ marginBottom: 16 }}>
-        <Text style={{ color: ACCENT, fontSize: 20, fontWeight: "700" }}>Menú Admin</Text>
+        <Text style={{ color: ACCENT, fontSize: 20, fontWeight: "700" }}>{t('drawerAdminMenuTitle')}</Text>
       </View>
 
       {/* Sección de perfil del usuario */}
@@ -61,7 +66,9 @@ export default function AdminDrawerMenu({ drawerX, DRAWER_W, insets, onClose, on
         </View>
         
         <Image 
-          source={{ uri: 'https://ui-avatars.com/api/?name=Admin+User&background=537CF2&color=fff&size=60' }}
+          source={{ 
+            uri: user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || t('drawerUser'))}&background=537CF2&color=fff&size=60` 
+          }}
           style={{
             width: 60,
             height: 60,
@@ -77,21 +84,21 @@ export default function AdminDrawerMenu({ drawerX, DRAWER_W, insets, onClose, on
           fontWeight: '600',
           marginBottom: 4 
         }}>
-          Admin Usuario
+          {loading ? t('drawerLoading') : (user?.full_name || t('drawerAdminUser'))}
         </Text>
         <Text style={{ 
           color: '#94a3b8', 
           fontSize: 14,
           marginBottom: 4
         }}>
-          admin@infracheck.com
+          {loading ? '' : (user?.usua_email || t('drawerAdminEmail'))}
         </Text>
         <Text style={{ 
           color: '#94a3b8', 
           fontSize: 12,
           fontStyle: 'italic'
         }}>
-          Toca para ver perfil
+          {t('drawerTapToProfile')}
         </Text>
       </TouchableOpacity>
 
@@ -99,24 +106,24 @@ export default function AdminDrawerMenu({ drawerX, DRAWER_W, insets, onClose, on
 
       <TouchableOpacity onPress={() => { onClose(); router.replace("/(tabs)/home"); }} style={styles.item}>
         <Home size={20} color="#fff" />
-        <Text style={styles.text}>Inicio</Text>
+        <Text style={styles.text}>{t('drawerHome')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => { onClose(); router.push("/(tabs)/(map)"); }} style={styles.item}>
         <Map size={20} color="#fff" />
-        <Text style={styles.text}>Mapa</Text>
+        <Text style={styles.text}>{t('drawerMap')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => { onClose(); router.push("/(tabs)/settings"); }} style={styles.item}>
         <Settings size={20} color="#fff" />
-        <Text style={styles.text}>Ajustes</Text>
+        <Text style={styles.text}>{t('drawerSettings')}</Text>
       </TouchableOpacity>
 
       <View style={styles.separator} />
 
       <TouchableOpacity onPress={onLogout} style={styles.item}>
         <LogOut size={20} color="#fff" />
-        <Text style={styles.text}>Cerrar sesión</Text>
+        <Text style={styles.text}>{t('drawerLogout')}</Text>
       </TouchableOpacity>
     </Animated.View>
   );

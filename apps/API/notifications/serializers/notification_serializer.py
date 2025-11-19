@@ -6,6 +6,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     """Serializer para listar notificaciones"""
     
     denuncia_id = serializers.IntegerField(source='denuncia.id', read_only=True, allow_null=True)
+    comentario_id = serializers.IntegerField(source='comentario.id', read_only=True, allow_null=True)
     tiempo_transcurrido = serializers.SerializerMethodField()
     
     class Meta:
@@ -17,6 +18,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             'tipo',
             'leida',
             'denuncia_id',
+            'comentario_id',
             'fecha_creacion',
             'fecha_lectura',
             'tiempo_transcurrido'
@@ -58,6 +60,7 @@ class NotificationAdminSerializer(serializers.ModelSerializer):
     
     denuncia_id = serializers.IntegerField(source='denuncia.id', read_only=True, allow_null=True)
     denuncia_titulo = serializers.CharField(source='denuncia.titulo', read_only=True, allow_null=True)
+    comentario_id = serializers.IntegerField(source='comentario.id', read_only=True, allow_null=True)
     tiempo_transcurrido = serializers.SerializerMethodField()
     
     # Información del usuario
@@ -75,6 +78,7 @@ class NotificationAdminSerializer(serializers.ModelSerializer):
             'leida',
             'denuncia_id',
             'denuncia_titulo',
+            'comentario_id',
             'fecha_creacion',
             'fecha_lectura',
             'tiempo_transcurrido',

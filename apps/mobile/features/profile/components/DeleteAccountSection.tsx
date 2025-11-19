@@ -11,6 +11,7 @@ import {
 import { AlertTriangle } from 'lucide-react-native';
 import { useAuth } from '~/contexts/AuthContext';
 import { deleteAccount } from '../services/profileService';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 export const DeleteAccountSection: React.FC = () => {
     const [showFirstConfirm, setShowFirstConfirm] = useState(false);
@@ -18,6 +19,7 @@ export const DeleteAccountSection: React.FC = () => {
     const [confirmText, setConfirmText] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { logout } = useAuth();
+    const { t } = useLanguage();
 
     const handleFirstConfirm = () => {
         setShowFirstConfirm(false);
@@ -26,7 +28,7 @@ export const DeleteAccountSection: React.FC = () => {
 
     const handleDelete = async () => {
         if (confirmText !== 'ELIMINAR') {
-            Alert.alert('Error', 'Debes escribir "ELIMINAR" exactamente para confirmar');
+            Alert.alert(t('notifyErrorTitle'), t('profileDeleteErrorConfirm'));
             return;
         }
 
@@ -35,7 +37,7 @@ export const DeleteAccountSection: React.FC = () => {
             const result = await deleteAccount();
 
             if (result.success) {
-                Alert.alert('Cuenta Eliminada', result.message, [
+                Alert.alert(t('profileDeleteSuccessTitle'), result.message, [
                     {
                         text: 'OK',
                         onPress: () => {
@@ -45,10 +47,10 @@ export const DeleteAccountSection: React.FC = () => {
                     },
                 ]);
             } else {
-                Alert.alert('Error', result.message);
+                Alert.alert(t('profileDeleteErrorTitle'), result.message);
             }
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Error de conexión. Intenta nuevamente.');
+            Alert.alert(t('profileDeleteErrorTitle'), error.message || t('profileDeleteErrorConnection'));
         } finally {
             setIsLoading(false);
             setShowSecondConfirm(false);
@@ -73,9 +75,9 @@ export const DeleteAccountSection: React.FC = () => {
                     <AlertTriangle size={24} color="#dc3545" />
                 </View>
                 <View className="flex-1 justify-center py-4 pr-4">
-                    <Text className="mb-1 text-xl font-bold text-white">Eliminar Cuenta</Text>
+                    <Text className="mb-1 text-xl font-bold text-white">{t('deleteAccountTitle')}</Text>
                     <Text className="text-sm text-gray-400">
-                        Acción irreversible - Contacta soporte para recuperar
+                        {t('deleteAccountSubtitle')}
                     </Text>
                 </View>
                 <View className="items-center justify-center pr-4">
@@ -94,29 +96,25 @@ export const DeleteAccountSection: React.FC = () => {
                         <View className="mb-4 items-center">
                             <AlertTriangle size={48} color="#dc3545" />
                             <Text className="mb-2 mt-3 text-xl font-bold text-white">
-                                ¿Eliminar Cuenta?
+                                {t('deleteAccountConfirmTitle')}
                             </Text>
                         </View>
 
                         <Text className="mb-6 text-center leading-5 text-gray-300">
-                            Esta acción desactivará tu cuenta permanentemente y es irreversible
-                            desde la aplicación.
-                            {'\n\n'}Perderás acceso a todos tus datos y no podrás iniciar sesión.
-                            {'\n\n'}Para reactivar, deberás contactar directamente con soporte
-                            técnico.
+                            {t('deleteAccountConfirmBody')}
                         </Text>
 
                         <View className="flex-row gap-3">
                             <TouchableOpacity
                                 className="flex-1 items-center rounded-xl bg-[#333] py-3"
                                 onPress={handleCancel}>
-                                <Text className="font-medium text-gray-300">Cancelar</Text>
+                                <Text className="font-medium text-gray-300">{t('cancel')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 className="flex-1 items-center rounded-xl bg-[#dc3545] py-3"
                                 onPress={handleFirstConfirm}>
-                                <Text className="font-bold text-white">Continuar</Text>
+                                <Text className="font-bold text-white">{t('continue')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -134,21 +132,19 @@ export const DeleteAccountSection: React.FC = () => {
                         <View className="mb-4 items-center">
                             <AlertTriangle size={32} color="#dc3545" />
                             <Text className="mb-2 mt-2 text-lg font-bold text-white">
-                                Confirmar Eliminación
+                                {t('deleteAccountSecondTitle')}
                             </Text>
                         </View>
 
                         <Text className="mb-4 text-center leading-5 text-gray-300">
-                            Para confirmar la eliminación permanente de tu cuenta, escribe
-                            <Text className="font-bold text-[#dc3545]"> &quot;ELIMINAR&quot; </Text>
-                            en el campo abajo:
+                            {t('deleteAccountSecondBody')}
                         </Text>
 
                         <TextInput
                             className="mb-6 rounded-xl border border-[#444] bg-[#2a2a2a] px-4 py-3 text-center text-lg text-white"
                             value={confirmText}
                             onChangeText={setConfirmText}
-                            placeholder="Escribe ELIMINAR"
+                            placeholder={t('deleteAccountConfirmPlaceholder')}
                             placeholderTextColor="#666"
                             autoCapitalize="characters"
                             autoCorrect={false}
@@ -161,7 +157,7 @@ export const DeleteAccountSection: React.FC = () => {
                                 className="flex-1 items-center rounded-xl bg-[#333] py-3"
                                 onPress={handleCancel}
                                 disabled={isLoading}>
-                                <Text className="font-medium text-gray-300">Cancelar</Text>
+                                <Text className="font-medium text-gray-300">{t('cancel')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -175,7 +171,7 @@ export const DeleteAccountSection: React.FC = () => {
                                 {isLoading ? (
                                     <ActivityIndicator color="#ffffff" size="small" />
                                 ) : (
-                                    <Text className="font-bold text-white">Eliminar Cuenta</Text>
+                                    <Text className="font-bold text-white">{t('deleteAccountButton')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>

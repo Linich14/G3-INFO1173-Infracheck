@@ -1,43 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { UserCircle2, Bell, Globe, Sun, Check, ChevronDown } from 'lucide-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SonidosNotificacion } from '~/components/SonidosNotificacion';
-
-/** ---------- Traducciones simples (i18n local) ---------- */
-type Locale = 'es' | 'en';
-
-const TRANSLATIONS: Record<Locale, {
-  settings: string;
-  account: string;
-  notifications: string;
-  language: string;
-  appearance: string;
-  spanish: string;
-  english: string;
-}> = {
-  es: {
-    settings: 'Ajustes',
-    account: 'Cuenta',
-    notifications: 'Notificaciones',
-    language: 'Idioma',
-    appearance: 'Apariencia',
-    spanish: 'Español',
-    english: 'Inglés',
-  },
-  en: {
-    settings: 'Settings',
-    account: 'Account',
-    notifications: 'Notifications',
-    language: 'Language',
-    appearance: 'Appearance',
-    spanish: 'Spanish',
-    english: 'English',
-  },
-};
-
-const STORAGE_KEY = 'app_locale';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 /** ---------- UI Row Reutilizable ---------- */
 type RowProps = {
@@ -69,43 +36,21 @@ function SettingRow({ icon, label, right, onPress, disabled }: RowProps) {
 export default function SettingsPag() {
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [appearanceEnabled, setAppearanceEnabled] = useState(true);
-
-  // Locale
-  const [locale, setLocale] = useState<Locale>('es');
+  const { locale, setLocale, t } = useLanguage();
   const [langOpen, setLangOpen] = useState(false);
 
-  // Cargar/Persistir idioma
-  useEffect(() => {
-    (async () => {
-      try {
-        const saved = await AsyncStorage.getItem(STORAGE_KEY);
-        if (saved === 'es' || saved === 'en') setLocale(saved);
-      } catch {}
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        await AsyncStorage.setItem(STORAGE_KEY, locale);
-      } catch {}
-    })();
-  }, [locale]);
-
-  const t = useMemo(() => TRANSLATIONS[locale], [locale]);
-
-  const LANGS: { code: Locale; label: string }[] = useMemo(
+  const LANGS: { code: 'es' | 'en'; label: string }[] = useMemo(
     () => [
-      { code: 'es', label: locale === 'es' ? t.spanish : TRANSLATIONS[locale].spanish }, // muestra "Español"/"Spanish"
-      { code: 'en', label: locale === 'en' ? t.english : TRANSLATIONS[locale].english }, // muestra "Inglés"/"English"
+      { code: 'es', label: locale === 'es' ? t('spanish') : t('spanish') },
+      { code: 'en', label: locale === 'en' ? t('english') : t('english') },
     ],
     [locale, t]
   );
 
   const currentLangLabel =
-    locale === 'es' ? t.spanish : t.english;
+    locale === 'es' ? t('spanish') : t('english');
 
-  const pickLang = (code: Locale) => {
+  const pickLang = (code: 'es' | 'en') => {
     setLocale(code);
     setLangOpen(false);
   };
@@ -115,20 +60,20 @@ export default function SettingsPag() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header "píldora" */}
         <View className="bg-[#13161E] p-3 mx-4 mt-2 mb-3 rounded-[12px]">
-          <Text className="text-[#537CF2] font-bold text-center text-2xl">{t.settings}</Text>
+          <Text className="text-[#537CF2] font-bold text-center text-2xl">{t('settings')}</Text>
         </View>
 
         {/* Cuenta / Account */}
         <SettingRow
           icon={<UserCircle2 size={28} color="#FF8C2A" />}
-          label={t.account}
-          onPress={() => {}}
+          label={t('account')}
+          onPress={() => router.push('/profile')}
         />
 
         {/* Notificaciones / Notifications */}
         <SettingRow
           icon={<Bell size={28} color="#F9504F" />}
-          label={t.notifications}
+          label={t('notifications')}
           right={
             <Switch
               value={notifEnabled}
@@ -142,7 +87,7 @@ export default function SettingsPag() {
       {/* Idioma / Language */}
       <SettingRow
         icon={<Globe size={28} color="#22c55e" />}
-        label={t.language}
+  label={t('language')}
         onPress={() => setLangOpen(v => !v)}
         right={
           <View className="flex-row items-center gap-2">
@@ -176,7 +121,7 @@ export default function SettingsPag() {
       {/* Apariencia / Appearance */}
       <SettingRow
         icon={<Sun size={28} color="#FFD85A" />}
-        label={t.appearance}
+        label={t('appearance')}
         right={
           <Switch
             value={appearanceEnabled}

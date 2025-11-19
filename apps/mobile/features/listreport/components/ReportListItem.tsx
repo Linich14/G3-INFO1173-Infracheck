@@ -59,7 +59,7 @@ const getUrgencyIcon = (urgencia: UrgencyLevel): keyof typeof Ionicons.glyphMap 
 export default function ReportListItemComponent({ report, onPress, onShare }: ReportListItemProps) {
   return (
     <TouchableOpacity
-      className="mb-3 rounded-xl bg-[#13161E] p-4 shadow-sm"
+      className="rounded-xl bg-[#13161E] p-4 shadow-sm"
       onPress={() => onPress(report)}
       activeOpacity={0.7}
     >

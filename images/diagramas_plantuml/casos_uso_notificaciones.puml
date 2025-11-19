@@ -47,36 +47,36 @@ package "Generación Automática" {
 ' =====================================================
 
 ' Usuario - Gestión personal
-usuario --> UC1
-usuario --> UC2
-usuario --> UC3
-usuario --> UC5
+usuario -- UC1
+usuario -- UC2
+usuario -- UC3
+usuario -- UC5
 
 ' Usuario - Configuración
-usuario --> UC5
-usuario --> UC6
+usuario -- UC5
+usuario -- UC6
 
 ' Admin - Administración
-admin --> UC7
-admin --> UC8
-admin --> UC9
+admin -- UC7
+admin -- UC8
+admin -- UC9
 
 ' Admin también puede ver sus propias notificaciones
-admin --> UC1
-admin --> UC2
-admin --> UC3
+admin -- UC1
+admin -- UC2
+admin -- UC3
 
 ' Sistema - Generación automática
-sistema --> UC10
-sistema --> UC11
-sistema --> UC12
-sistema --> UC13
+sistema -- UC10
+sistema -- UC11
+sistema -- UC12
+sistema -- UC13
 
 ' Notificaciones llegan a usuarios
-UC10 --> usuario : envía
-UC11 --> usuario : envía
-UC12 --> usuario : envía
-UC13 --> usuario : envía
+UC10 -- usuario : envía
+UC11 -- usuario : envía
+UC12 -- usuario : envía
+UC13 -- usuario : envía
 
 ' =====================================================
 ' NOTAS

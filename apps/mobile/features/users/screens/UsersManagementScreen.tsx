@@ -17,8 +17,10 @@ import {
 } from '../services/usersService';
 // Importar hook de autenticación
 import { useAuth } from '../../../contexts/AuthContext';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 export default function UsersManagementScreen() {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   
@@ -69,13 +71,13 @@ export default function UsersManagementScreen() {
       loadUsers();
     } else if (userRole !== null) {
       // Si el userRole no es null y no es 1, mostrar error
-      setErrorMessage('Acceso denegado. Solo administradores pueden ver usuarios.');
+      setErrorMessage(t('usersAccessDenied'));
       Alert.alert(
-        'Acceso denegado', 
-        'Solo administradores pueden ver usuarios.',
+        t('usersAccessDenied'), 
+        t('usersAccessDeniedMessage'),
         [
           {
-            text: 'Entendido',
+            text: t('usersUnderstood'),
             onPress: () => navigation.goBack()
           }
         ]
@@ -90,7 +92,7 @@ export default function UsersManagementScreen() {
     const result = await testConnection();
     
     Alert.alert(
-      result.success ? 'Conectividad OK' : 'Error de Conectividad',
+      result.success ? t('usersConnectivityOk') : t('usersConnectivityError'),
       result.message,
       [{ text: 'OK' }]
     );
@@ -189,19 +191,19 @@ Revisa la consola para detalles completos.
         // Solo mostrar alert para errores manuales, no para polling
         if (source === 'manual' || source === 'inicial') {
           Alert.alert(
-            'Error al cargar usuarios', 
-            result.message || 'No se pudieron cargar los usuarios',
+            t('usersErrorLoad'), 
+            result.message || t('usersErrorLoad'),
             [
-              { text: 'Reintentar', onPress: () => loadUsersWithCache(true, 'manual') },
-              { text: 'Probar Conexión', onPress: testServerConnection },
-              { text: 'Verificar Auth', onPress: testAuthentication },
-              { text: 'Cancelar', style: 'cancel' }
+              { text: t('usersRetry'), onPress: () => loadUsersWithCache(true, 'manual') },
+              { text: t('usersTestConnection'), onPress: testServerConnection },
+              { text: t('usersVerifyAuth'), onPress: testAuthentication },
+              { text: t('usersCancel'), style: 'cancel' }
             ]
           );
         }
       }
     } catch (error) {
-      setErrorMessage('Error inesperado al cargar usuarios');
+      setErrorMessage(t('usersErrorUnexpected'));
     } finally {
       setLoading(false);
       setIsLoadingUsers(false);
@@ -225,11 +227,11 @@ Revisa la consola para detalles completos.
       if (result.success && result.data) {
         setUsers(result.data);
       } else {
-        setErrorMessage(result.message || 'Error al cargar usuarios');
+        setErrorMessage(result.message || t('usersErrorLoad'));
       }
     } catch (error) {
       console.error('❌ Error inesperado:', error);
-      setErrorMessage('Error inesperado al cargar usuarios');
+      setErrorMessage(t('usersErrorUnexpected'));
     } finally {
       setLoading(false);
       setIsLoadingUsers(false);
@@ -246,15 +248,15 @@ Revisa la consola para detalles completos.
   // Función para toggle de estado con API
   const handleToggleUserStatus = async (user: User) => {
     const newStatus = user.usua_estado === 1 ? 0 : 1;
-    const statusText = newStatus === 1 ? 'habilitar' : 'deshabilitar';
+    const statusText = newStatus === 1 ? t('usersConfirmEnable') : t('usersConfirmDisable');
     
     Alert.alert(
-      'Confirmar cambio',
+      t('usersConfirmToggle'),
       `¿Estás seguro que deseas ${statusText} a ${user.usua_nickname}?`,
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('usersCancel'), style: 'cancel' },
         {
-          text: 'Confirmar',
+          text: t('usersConfirm'),
           style: 'default',
           onPress: async () => {
             try {
@@ -270,15 +272,15 @@ Revisa la consola para detalles completos.
                   )
                 );
                 
-                Alert.alert('Éxito', result.message);
+                Alert.alert(t('usersConfirm'), result.message);
 
               } else {
-                Alert.alert('Error', result.message);
+                Alert.alert(t('usersError'), result.message);
                 console.error('❌ Error al actualizar estado:', result.message);
               }
             } catch (error) {
               console.error('❌ Error inesperado al actualizar estado:', error);
-              Alert.alert('Error', 'Error inesperado al actualizar el estado');
+              Alert.alert(t('usersError'), t('usersErrorUpdate'));
             }
           }
         }
@@ -383,13 +385,13 @@ Revisa la consola para detalles completos.
         <UsersSearchBar 
           onSearch={handleSearch}
           loading={loading}
-          onRefresh={handleRefresh}
-          refreshing={refreshing}
         />
         <UsersList 
           users={users} 
           onToggleUserStatus={handleToggleUserStatus}
           loading={loading}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
         />
       </View>
 

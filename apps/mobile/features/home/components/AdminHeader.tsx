@@ -3,13 +3,16 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { AlignJustify, UserCircle2 } from "lucide-react-native";
 import { router } from "expo-router";
 import { NotificationBell } from "~/components/NotificationBell";
+import { useLanguage } from "~/contexts/LanguageContext";
 
 interface AdminHeaderProps {
   onMenuPress: () => void;
   title?: string;
 }
 
-export default function AdminHeader({ onMenuPress, title = "Panel - Admin" }: AdminHeaderProps) {
+export default function AdminHeader({ onMenuPress, title }: AdminHeaderProps) {
+  const { t } = useLanguage();
+
   return (
     <View className="bg-[#13161E] flex-row justify-between p-4">
       <View className="flex-row items-center gap-4">
@@ -17,13 +20,13 @@ export default function AdminHeader({ onMenuPress, title = "Panel - Admin" }: Ad
           onPress={onMenuPress}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
-          accessibilityLabel="Abrir menú"
+          accessibilityLabel={t('headerOpenMenu')}
           activeOpacity={0.6}
         >
           <AlignJustify size={26} color="white" />
         </TouchableOpacity>
 
-        <Text className="text-[#537CF2] font-bold text-2xl">{title}</Text>
+        <Text className="text-[#537CF2] font-bold text-2xl">{title || t('headerAdminPanel')}</Text>
       </View>
 
       <View className="flex-row items-center gap-6">
@@ -32,7 +35,7 @@ export default function AdminHeader({ onMenuPress, title = "Panel - Admin" }: Ad
           onPress={() => router.push('/profile')}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
-          accessibilityLabel="Perfil"
+          accessibilityLabel={t('headerProfile')}
           activeOpacity={0.6}
         >
           <UserCircle2 size={26} color="white" />

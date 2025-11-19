@@ -215,8 +215,27 @@ class ReportListView(APIView):
             limit = min(int(request.GET.get('limit', 10)), 50)  # Máximo 50
             
             # Construir filtros
-            filters = {'usuario_id': usuario_id}  # Solo reportes del usuario autenticado
+            filters = {}
             
+            # IMPORTANTE: El query string ya NO debe incluir usuario_id para filtrar
+            # El usuario_id autenticado solo se usa para calcular si ha votado
+            
+            # Si se especifica 'mis_reportes=true', filtrar por reportes del usuario autenticado
+            if request.GET.get('mis_reportes', '').lower() == 'true':
+                filters['usuario_id'] = usuario_id
+                # Mostrar todos los reportes del usuario (incluidos los no visibles)
+            else:
+                # Por defecto, solo mostrar reportes visibles de todos los usuarios
+                filters['visible'] = True
+            
+            # Si se especifica 'autor_id', filtrar por ese autor específico
+            if request.GET.get('autor_id'):
+                filters['usuario_id'] = int(request.GET.get('autor_id'))
+                # Si el autor es el mismo que el autenticado, mostrar todos sus reportes
+                if int(request.GET.get('autor_id')) != usuario_id:
+                    filters['visible'] = True
+            
+            # Permitir override del filtro visible si se especifica explícitamente
             if request.GET.get('visible'):
                 visible_str = request.GET.get('visible')
                 filters['visible'] = visible_str.lower() == 'true' if isinstance(visible_str, str) else bool(visible_str)
@@ -236,11 +255,12 @@ class ReportListView(APIView):
             if request.GET.get('search'):
                 filters['search'] = request.GET.get('search')
             
-            # Obtener reportes con paginación
+            # Obtener reportes con paginación (incluir usuario_id para calcular votos)
             result = ReportService.get_reports_with_cursor_pagination(
                 cursor=cursor,
                 limit=limit,
-                filters=filters
+                filters=filters,
+                usuario_id=usuario_id
             )
             
             return Response(result, status=status.HTTP_200_OK)
@@ -294,16 +314,15 @@ class ReportDetailView(APIView):
                     'error': 'Token de autenticación inválido o expirado'
                 }, status=status.HTTP_401_UNAUTHORIZED)
             
-            # Obtener reporte específico del usuario con todas las relaciones
+            # Obtener reporte sin filtrar por usuario (permite ver reportes de otros)
             report = ReportModel.objects.select_related(
                 'usuario', 'denuncia_estado', 'tipo_denuncia', 'ciudad'
             ).prefetch_related('archivos').get(
-                id=report_id, 
-                usuario_id=usuario_id
+                id=report_id
             )
             
-            # Verificar visibilidad
-            if not report.visible and not report.belongs_to_user(usuario_id):
+            # Verificar visibilidad (solo si el reporte no es visible y no pertenece al usuario)
+            if not report.visible and report.usuario_id != usuario_id:
                 return Response({
                     'success': False,
                     'error': 'Reporte no encontrado'
@@ -534,17 +553,27 @@ class ReportDeleteView(APIView):
                     'error': 'Token de autenticación inválido o expirado'
                 }, status=status.HTTP_401_UNAUTHORIZED)
             
+            # Verificar si el usuario es administrador
+            usuario = getattr(request, 'auth_user', None)
+            rol_nombre = usuario.rous_id.rous_nombre.lower().strip() if usuario and usuario.rous_id else ''
+            is_admin = 'admin' in rol_nombre
+            
             # Obtener el reporte
             try:
-                report = ReportModel.objects.get(id=report_id, usuario_id=usuario_id)
+                if is_admin:
+                    # Admin puede eliminar cualquier reporte
+                    report = ReportModel.objects.get(id=report_id)
+                else:
+                    # Usuario normal solo puede eliminar sus propios reportes
+                    report = ReportModel.objects.get(id=report_id, usuario_id=usuario_id)
             except ReportModel.DoesNotExist:
                 return Response({
                     'success': False,
                     'error': 'Reporte no encontrado'
                 }, status=status.HTTP_404_NOT_FOUND)
             
-            # Verificar permisos
-            if not report.belongs_to_user(usuario_id):
+            # Verificar permisos (solo si no es admin)
+            if not is_admin and not report.belongs_to_user(usuario_id):
                 return Response({
                     'success': False,
                     'error': 'No tienes permisos para eliminar este reporte'
@@ -552,7 +581,6 @@ class ReportDeleteView(APIView):
             
             # Determinar tipo de eliminación
             hard_delete = request.GET.get('hard_delete', '').lower() == 'true'
-            is_admin = getattr(request.user, 'is_staff', False) if hasattr(request, 'user') else False
             
             if hard_delete and not is_admin:
                 return Response({
@@ -562,9 +590,23 @@ class ReportDeleteView(APIView):
             
             with transaction.atomic():
                 if hard_delete:
-                    # Eliminación física
+                    # Eliminación física - dejar que Django maneje el CASCADE
                     report_title = report.titulo
+                    
+                    # Solo eliminar archivos físicos del sistema de archivos
+                    archivos = report.archivos.all()
+                    for archivo in archivos:
+                        try:
+                            if archivo.archivo and hasattr(archivo.archivo, 'path'):
+                                import os
+                                if os.path.isfile(archivo.archivo.path):
+                                    os.remove(archivo.archivo.path)
+                        except (ValueError, OSError, AttributeError) as file_error:
+                            print(f"Warning: No se pudo eliminar archivo físico: {file_error}")
+                    
+                    # Eliminar el reporte - Django manejará las relaciones CASCADE
                     report.delete()
+                    
                     return Response({
                         'success': True,
                         'message': f'Reporte "{report_title}" eliminado permanentemente'
@@ -579,6 +621,9 @@ class ReportDeleteView(APIView):
                     }, status=status.HTTP_200_OK)
             
         except Exception as e:
+            import traceback
+            error_detail = traceback.format_exc()
+            print(f"Error eliminando reporte: {error_detail}")
             return Response({
                 'success': False,
                 'error': 'Error interno del servidor',

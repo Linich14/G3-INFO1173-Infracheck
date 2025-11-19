@@ -36,6 +36,15 @@ class Notification(models.Model):
         related_name='notificaciones',
         verbose_name='Reporte relacionado'
     )
+    comentario = models.ForeignKey(
+        'reports.ComentarioReporte',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notificaciones',
+        verbose_name='Comentario relacionado',
+        db_column='comentario_id'
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')
     fecha_lectura = models.DateTimeField(null=True, blank=True, verbose_name='Fecha de lectura')
     

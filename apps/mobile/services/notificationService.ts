@@ -8,6 +8,7 @@ export interface Notification {
   tipo: 'info' | 'success' | 'warning' | 'error';
   leida: boolean;
   denuncia_id: number | null;
+  comentario_id: number | null;
   fecha_creacion: string;
   fecha_lectura: string | null;
   tiempo_transcurrido: string;
@@ -36,13 +37,14 @@ export const getNotifications = async (unreadOnly: boolean = false): Promise<Not
         throw new Error('No tienes permisos para acceder a las notificaciones. Por favor, inicia sesión nuevamente.');
       }
       const errorData = await response.json().catch(() => ({}));
+      console.error('[notificationService] Error data:', errorData);
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
-  } catch (error: any) {
-    console.error('Error fetching notifications:', error);
+    const data = await response.json();
     
+    return data;
+  } catch (error: any) {
     if (error.message?.includes('Session expired') || error.message?.includes('permisos')) {
       throw error;
     }
@@ -109,26 +111,19 @@ export const markAllAsRead = async (): Promise<{ success: boolean; message: stri
   }
 };
 
-// Interfaz para crear notificaciones (Admin)
 export interface CreateNotificationData {
-  usuario_id: number;
+  usuario_identifier?: string | number;
   titulo: string;
   mensaje: string;
   tipo: 'info' | 'success' | 'warning' | 'error';
-  denuncia_id?: number;
+  reporte_id?: number;
+  send_to_all?: boolean;
 }
 
-export interface CreateNotificationResponse {
-  success: boolean;
-  message: string;
-  data: Notification;
-}
-
-// Crear notificación (Solo Admin)
-export const createNotification = async (data: CreateNotificationData): Promise<CreateNotificationResponse> => {
+export const createNotification = async (data: CreateNotificationData): Promise<{ success: boolean; message: string; notificacion?: any }> => {
   try {
     const response = await authenticatedFetch(
-      `${API_CONFIG.BASE_URL}/api/notifications/admin/create/`,
+      `${API_CONFIG.BASE_URL}/api/notifications/create/`,
       {
         method: 'POST',
         headers: {
@@ -139,18 +134,15 @@ export const createNotification = async (data: CreateNotificationData): Promise<
     );
 
     if (!response.ok) {
-      if (response.status === 403) {
-        throw new Error('No tienes permisos de administrador');
-      }
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || errorData.errors || `HTTP error! status: ${response.status}`);
+      throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error: any) {
     console.error('Error creating notification:', error);
     
-    if (error.message?.includes('Session expired') || error.message?.includes('permisos')) {
+    if (error.message?.includes('Session expired')) {
       throw error;
     }
     

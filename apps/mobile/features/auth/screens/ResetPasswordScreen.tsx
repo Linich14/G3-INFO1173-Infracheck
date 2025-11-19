@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { resetPassword } from '../services/authService';
 import { isValidPassword, getPasswordValidationState } from '~/utils/validation';
+import { useLanguage } from '~/contexts/LanguageContext';
+import { useToast } from '~/features/posts/contexts/ToastContext';
 
 const ResetPasswordScreen: React.FC = () => {
   const router = useRouter();
   const { reset_token } = useLocalSearchParams<{ reset_token: string }>();
+  const { t } = useLanguage();
+  const { showSuccess, showError } = useToast();
   
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
   // Estado de validación de contraseña en tiempo real
@@ -27,39 +28,29 @@ const ResetPasswordScreen: React.FC = () => {
   const handleResetPassword = async () => {
     // Validar que los campos no estén vacíos
     if (!newPassword.trim() || !confirmPassword.trim()) {
-      setFeedbackMessage('Por favor, completa todos los campos.');
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('resetPasswordErrorEmpty'));
       return;
     }
 
     // Validar que la contraseña cumpla con los requisitos
     if (!isValidPassword(newPassword)) {
-      setFeedbackMessage('La contraseña no cumple con los requisitos de seguridad.');
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('resetPasswordErrorRequirements'));
       return;
     }
 
     // Validar que las contraseñas coincidan
     if (newPassword !== confirmPassword) {
-      setFeedbackMessage('Las contraseñas no coinciden.');
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('resetPasswordErrorNoMatch'));
       return;
     }
 
     // Validar que tenemos el token
     if (!reset_token) {
-      setFeedbackMessage('Token de reset no válido. Intenta el proceso nuevamente.');
-      setIsSuccess(false);
-      setFeedbackModalVisible(true);
+      showError(t('resetPasswordErrorNoToken'));
       return;
     }
 
-    // Mostrar modal de carga
     setLoading(true);
-    setFeedbackModalVisible(true);
     
     try {
       const result = await resetPassword({ 
@@ -68,21 +59,19 @@ const ResetPasswordScreen: React.FC = () => {
         confirm_password: confirmPassword
       });
       
-      setLoading(false);
-      setIsSuccess(result.success);
-      setFeedbackMessage(result.message);
-      
       if (result.success) {
+        showSuccess(result.message);
         // Esperar un momento antes de navegar al login
         setTimeout(() => {
-          setFeedbackModalVisible(false);
           router.replace('/(auth)/sign-in');
-        }, 3000);
+        }, 2000);
+      } else {
+        showError(result.message);
       }
     } catch (error: any) {
+      showError(t('recoverConnectionError'));
+    } finally {
       setLoading(false);
-      setIsSuccess(false);
-      setFeedbackMessage('Error de conexión. Verifica tu conexión a internet.');
     }
   };
 
@@ -93,7 +82,7 @@ const ResetPasswordScreen: React.FC = () => {
         <View className='flex-row justify-between'>
           <View className="top-5 left-10 w-32 h-32 bg-white rounded-full justify-center" />
           <View className='justify-center items-end mr-4'>
-            <Text className="text-white text-3xl font-bold">Nueva Contraseña</Text>
+            <Text className="text-white text-3xl font-bold">{t('resetPasswordTitle')}</Text>
           </View>
         </View>
       </View>
@@ -128,7 +117,7 @@ const ResetPasswordScreen: React.FC = () => {
               onPress={() => router.back()}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               accessibilityRole="button"
-              accessibilityLabel="Volver"
+              accessibilityLabel={t('back')}
               activeOpacity={0.6}
               className="items-center justify-center bg-primary p-3 px-4 rounded-[12px]"
             >
@@ -136,7 +125,7 @@ const ResetPasswordScreen: React.FC = () => {
             </TouchableOpacity>
             
             {/* Texto centrado */}
-            <Text className="text-white text-5xl font-bold">¡Ya casi!</Text>
+            <Text className="text-white text-5xl font-bold">{t('resetPasswordAlmostThere')}</Text>
             
             {/* Espacio vacío para balancear */}
             <View className="w-16" />
@@ -145,10 +134,10 @@ const ResetPasswordScreen: React.FC = () => {
           {/* Información contextual */}
           <View className="w-full items-center mb-8">
             <Text className="text-white text-lg text-center">
-              Ingresa tu nueva contraseña
+              {t('resetPasswordInstruction')}
             </Text>
             <Text className="text-gray-400 text-sm text-center mt-2">
-              Debe cumplir con los requisitos de seguridad
+              {t('resetPasswordRequirements')}
             </Text>
           </View>
 
@@ -156,7 +145,7 @@ const ResetPasswordScreen: React.FC = () => {
           <View className="w-full items-center space-y-6 mb-8">
             {/* Campo Nueva Contraseña */}
             <View className="space-y-2 w-72">
-              <Text className="text-white text-xl font-bold">Nueva Contraseña</Text>
+              <Text className="text-white text-xl font-bold">{t('resetPasswordNewLabel')}</Text>
               <View className="relative">
                 <TextInput
                   value={newPassword}
@@ -187,19 +176,19 @@ const ResetPasswordScreen: React.FC = () => {
             {/* Indicadores de requisitos de contraseña */}
             {showPasswordRequirements && (
               <View className="w-72 mt-4">
-                <Text className="text-white text-sm mb-2">Requisitos de contraseña:</Text>
+                <Text className="text-white text-sm mb-2">{t('passwordRequirementsTitle')}</Text>
                 <View className="space-y-1">
                   <Text className={`text-xs ${passwordValidation.length ? 'text-green-400' : 'text-red-400'}`}>
-                    {passwordValidation.length ? '✓' : '✗'} Entre 8 y 16 caracteres
+                    {passwordValidation.length ? '✓' : '✗'} {t('resetPasswordReqLength')}
                   </Text>
                   <Text className={`text-xs ${passwordValidation.uppercase ? 'text-green-400' : 'text-red-400'}`}>
-                    {passwordValidation.uppercase ? '✓' : '✗'} Al menos una mayúscula
+                    {passwordValidation.uppercase ? '✓' : '✗'} {t('resetPasswordReqUppercase')}
                   </Text>
                   <Text className={`text-xs ${passwordValidation.number ? 'text-green-400' : 'text-red-400'}`}>
-                    {passwordValidation.number ? '✓' : '✗'} Al menos un número
+                    {passwordValidation.number ? '✓' : '✗'} {t('resetPasswordReqNumber')}
                   </Text>
                   <Text className={`text-xs ${passwordValidation.noSpecial ? 'text-green-400' : 'text-red-400'}`}>
-                    {passwordValidation.noSpecial ? '✓' : '✗'} Solo letras y números
+                    {passwordValidation.noSpecial ? '✓' : '✗'} {t('resetPasswordReqNoSpecial')}
                   </Text>
                 </View>
               </View>
@@ -207,7 +196,7 @@ const ResetPasswordScreen: React.FC = () => {
 
             {/* Campo Confirmar Contraseña */}
             <View className="space-y-2 w-72 pt-4">
-              <Text className="text-white text-xl font-bold">Confirmar Contraseña</Text>
+              <Text className="text-white text-xl font-bold">{t('resetPasswordConfirmLabel')}</Text>
               <View className="relative">
                 <TextInput
                   value={confirmPassword}
@@ -237,8 +226,8 @@ const ResetPasswordScreen: React.FC = () => {
                   newPassword === confirmPassword ? 'text-green-400' : 'text-red-400'
                 }`}>
                   {newPassword === confirmPassword 
-                    ? '✓ Las contraseñas coinciden' 
-                    : '✗ Las contraseñas no coinciden'
+                    ? t('resetPasswordMatch')
+                    : t('resetPasswordNoMatch')
                   }
                 </Text>
               )}
@@ -256,70 +245,12 @@ const ResetPasswordScreen: React.FC = () => {
               }}
             >
               <Text className="text-white text-lg font-bold">
-                {loading ? 'Actualizando...' : 'Cambiar Contraseña'}
+                {loading ? t('resetPasswordUpdating') : t('resetPasswordButton')}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
-
-      {/* Modal de feedback */}
-      <Modal
-        visible={feedbackModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFeedbackModalVisible(false)}
-      >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          <View style={{ backgroundColor: 'white', padding: 24, borderRadius: 12, minWidth: 300, alignItems: 'center', maxWidth: '90%' }}>
-            {loading ? (
-              <>
-                <ActivityIndicator size="large" color="#537CF2" style={{ marginBottom: 16 }} />
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  Actualizando contraseña...
-                </Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>
-                  Por favor espera mientras actualizamos tu contraseña
-                </Text>
-              </>
-            ) : (
-              <>
-                <View style={{ 
-                  width: 60, 
-                  height: 60, 
-                  borderRadius: 30, 
-                  backgroundColor: isSuccess ? '#10B981' : '#EF4444',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: 16
-                }}>
-                  <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>
-                    {isSuccess ? '✓' : '✕'}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>
-                  {isSuccess ? '¡Contraseña actualizada!' : 'Error'}
-                </Text>
-                <Text style={{ fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 }}>
-                  {feedbackMessage}
-                </Text>
-                {isSuccess ? (
-                  <Text style={{ fontSize: 12, color: '#666', textAlign: 'center' }}>
-                    Redirigiendo al inicio de sesión...
-                  </Text>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => setFeedbackModalVisible(false)}
-                    style={{ backgroundColor: '#537CF2', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
-                  >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Reintentar</Text>
-                  </TouchableOpacity>
-                )}
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };

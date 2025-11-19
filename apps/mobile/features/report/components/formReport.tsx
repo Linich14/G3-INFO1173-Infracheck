@@ -1,10 +1,11 @@
-import { View, Text, TextInput, Pressable } from 'react-native';
+import { View, Text, TextInput, Pressable, Switch } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import ModalMap from './modalMap';
 import MediaSection from './mediaSelected';
 import { SelectorNivelUrgencia } from './SelectorNivelUrgencia';
 import { ReportFormData, ReportFormErrors } from '../types';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface Location {
     latitude: number;
@@ -45,33 +46,40 @@ const FormReport = ({
     onSetShowMapModal,
     mediaStats,
 }: FormReportProps) => {
+    const { t } = useLanguage();
     const TITLE_MAX_LENGTH = 50;
     const DESCRIPTION_MAX_LENGTH = 3000;
+    const ADDRESS_MAX_LENGTH = 200;
 
     const convertToLocation = (): Location | null => {
-        if (formData.ubicacion.latitud === 0) return null;
+        if (formData.latitud === 0) return null;
         return {
-            latitude: formData.ubicacion.latitud,
-            longitude: formData.ubicacion.longitud,
-            address: formData.ubicacion.direccion,
+            latitude: formData.latitud,
+            longitude: formData.longitud,
+            address: formData.direccion,
         };
     };
 
     const handleLocationSelect = (location: Location) => {
-        onSelectLocation(location);
+        onUpdateField('latitud', location.latitude);
+        onUpdateField('longitud', location.longitude);
+        if (location.address) {
+            onUpdateField('direccion', location.address);
+        }
         onSetShowMapModal(false);
     };
 
     return (
         <>
             <View className={style.firstContainer}>
+                {/* Título */}
                 <View>
                     <TextInput
                         placeholderTextColor={'#FFFFFF'}
                         className={`w-min-[20px] border-b-2 pb-1 text-2xl text-white ${
                             errors.titulo ? 'border-b-red-500' : 'border-b-slate-600'
                         }`}
-                        placeholder="Título"
+                        placeholder={t('reportFormTitlePlaceholder')}
                         value={formData.titulo}
                         onChangeText={(text) => onUpdateField('titulo', text)}
                         multiline={true}
@@ -87,13 +95,14 @@ const FormReport = ({
                     </View>
                 </View>
 
+                {/* Descripción */}
                 <View>
                     <TextInput
                         placeholderTextColor={'#FFFFFF'}
                         className={`w-min-[20px] border-b-2 pb-1 text-white ${
                             errors.descripcion ? 'border-b-red-500' : 'border-b-slate-600'
                         }`}
-                        placeholder="Descripción del problema"
+                        placeholder={t('reportFormDescriptionPlaceholder')}
                         value={formData.descripcion}
                         onChangeText={(text) => onUpdateField('descripcion', text)}
                         multiline={true}
@@ -109,6 +118,7 @@ const FormReport = ({
                     </View>
                 </View>
 
+                {/* Tipo de Denuncia */}
                 <View>
                     <View
                         className={`overflow-visible rounded-lg bg-secondary ${errors.tipoDenuncia ? 'border border-red-500' : ''}`}>
@@ -119,80 +129,38 @@ const FormReport = ({
                             onValueChange={(value) => onUpdateField('tipoDenuncia', value)}
                             dropdownIconColor="#FFFFFF">
                             <Picker.Item
-                                label="Selecciona una categoría"
+                                label={t('reportFormTypePlaceholder')}
                                 value=""
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Vialidad y veredas"
-                                value="vialidad_veredas"
+                                label={t('reportFormType1')}
+                                value="1"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Alumbrado público"
-                                value="alumbrado_publico"
+                                label={t('reportFormType2')}
+                                value="2"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Drenaje y aguas lluvias"
-                                value="drenaje_aguas"
+                                label={t('reportFormType3')}
+                                value="3"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Áreas verdes y arbolado"
-                                value="areas_verdes"
+                                label={t('reportFormType6')}
+                                value="6"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
                             <Picker.Item
-                                label="Mobiliario urbano y plazas"
-                                value="mobiliario_urbano"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Señalización y demarcación"
-                                value="senalizacion"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Ciclovías y movilidad activa"
-                                value="ciclovias"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Paraderos y equipamiento de transporte"
-                                value="paraderos_transporte"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Infraestructura municipal (edificios y recintos)"
-                                value="infraestructura_municipal"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Limpieza y recuperación de espacio público"
-                                value="limpieza_espacio_publico"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Accesibilidad"
-                                value="accesibilidad"
-                                color="#FFFFFF"
-                                style={{ backgroundColor: '#13161E' }}
-                            />
-                            <Picker.Item
-                                label="Riesgos y emergencias"
-                                value="riesgos_emergencias"
+                                label={t('reportFormType7')}
+                                value="7"
                                 color="#FFFFFF"
                                 style={{ backgroundColor: '#13161E' }}
                             />
@@ -204,8 +172,9 @@ const FormReport = ({
                 </View>
             </View>
 
+            {/* Sección de Medios */}
             <View className={style.container + 'mt-4'}>
-                <Text className="text-xl text-white">Medios</Text>
+                <Text className="text-xl text-white">{t('reportFormMediaTitle')}</Text>
                 <MediaSection
                     selectedImages={formData.imagenes}
                     selectedVideo={formData.video}
@@ -217,35 +186,39 @@ const FormReport = ({
                 />
             </View>
 
+            {/* Sección de Ubicación */}
             <View className={style.container + 'mt-4'}>
-                <Text className="text-xl text-white">Ubicación</Text>
+                <Text className="text-xl text-white">{t('reportFormLocationTitle')}</Text>
+
+                {/* Selector de Ciudad */}
                 <View
-                    className={`overflow-hidden rounded-lg bg-secondary  ${errors.nivelUrgencia ? 'border border-red-500' : ''}`}>
+                    className={`overflow-visible rounded-lg bg-secondary ${errors.ciudad ? 'border border-red-500' : ''}`}>
                     <Picker
                         style={{ color: '#FFFFFF', backgroundColor: 'transparent' }}
                         itemStyle={{ color: '#FFFFFF', fontSize: 18 }}
-                        selectedValue={formData.nivelUrgencia}
-                        onValueChange={(value) => onUpdateField('nivelUrgencia', value)}
+                        selectedValue={formData.ciudad}
+                        onValueChange={(value) => onUpdateField('ciudad', value)}
                         dropdownIconColor="#FFFFFF">
                         <Picker.Item
-                            label="Seleccione Ciudad"
+                            label={t('reportFormSelectCity')}
                             value=""
                             color="#FFFFFF"
                             enabled={false}
                             style={{ backgroundColor: '#13161E' }}
                         />
                         <Picker.Item
-                            label="Temuco"
+                            label={'Temuco'}
                             value="1"
                             color="#FFFFFF"
                             style={{ backgroundColor: '#13161E' }}
                         />
                     </Picker>
-                    {errors.idCiudad && (
-                        <Text className="mt-1 text-sm text-red-500">{errors.idCiudad}</Text>
-                    )}
                 </View>
+                {errors.ciudad && (
+                    <Text className="mt-1 text-sm text-red-500">{errors.ciudad}</Text>
+                )}
 
+                {/* Selector de ubicación en mapa */}
                 <Pressable
                     onPress={() => onSetShowMapModal(true)}
                     className={`group w-full items-center justify-center rounded-lg p-3 active:bg-slate-500 ${
@@ -254,29 +227,73 @@ const FormReport = ({
                     <MaterialCommunityIcons name="map-marker" size={30} color="white" />
                     <Text className="mt-2 text-sm text-white">
                         {convertToLocation()
-                            ? `Lat: ${formData.ubicacion.latitud.toFixed(4)}, Lng: ${formData.ubicacion.longitud.toFixed(4)}`
-                            : 'Seleccionar en el mapa'}
+                            ? `Lat: ${formData.latitud.toFixed(4)}, Lng: ${formData.longitud.toFixed(4)}`
+                            : t('reportFormSelectLocation')}
                     </Text>
                 </Pressable>
                 {errors.ubicacion && (
                     <Text className="mt-1 text-sm text-red-500">{errors.ubicacion}</Text>
                 )}
+
+                {/* Campo de dirección */}
+                <View>
+                    <TextInput
+                        placeholderTextColor={'#FFFFFF'}
+                        className={`w-min-[20px] border-b-2 pb-1 text-white ${
+                            errors.direccion ? 'border-b-red-500' : 'border-b-slate-600'
+                        }`}
+                        placeholder={t('reportFormAddressPlaceholder')}
+                        value={formData.direccion}
+                        onChangeText={(text) => onUpdateField('direccion', text)}
+                        multiline={true}
+                        maxLength={ADDRESS_MAX_LENGTH}
+                    />
+                    <View className="mt-1 flex-row justify-between">
+                        {errors.direccion && (
+                            <Text className="text-sm text-red-500">{errors.direccion}</Text>
+                        )}
+                        <Text className="ml-auto text-xs text-gray-400">
+                            {formData.direccion.length}/{ADDRESS_MAX_LENGTH}
+                        </Text>
+                    </View>
+                </View>
             </View>
 
-            <View className={style.container + 'mb-4 mt-4'}>
+            {/* Sección de Urgencia */}
+            <View className={style.container + 'mt-4'}>
                 <SelectorNivelUrgencia
-                    value={formData.nivelUrgencia}
-                    onChange={(value) => onUpdateField('nivelUrgencia', value)}
-                    error={errors.nivelUrgencia}
+                    value={formData.urgencia}
+                    onChange={(value) => onUpdateField('urgencia', value)}
+                    error={errors.urgencia}
                 />
+            </View>
+
+            {/* Sección de Visibilidad */}
+            <View className={style.container + 'mb-4 mt-4'}>
+                <Text className="mb-3 text-xl text-white">{t('reportFormConfigTitle')}</Text>
+                <View className="flex-row items-center justify-between">
+                    <Text className="text-white">{t('reportFormPublicToggleLabel')}</Text>
+                    <Switch
+                        value={formData.visible}
+                        onValueChange={(value) => onUpdateField('visible', value)}
+                        trackColor={{ false: '#767577', true: '#81b0ff' }}
+                        thumbColor={formData.visible ? '#f5dd4b' : '#f4f3f4'}
+                    />
+                </View>
+                <Text className="mt-1 text-xs text-gray-400">
+                    {formData.visible
+                        ? t('reportFormPublicDescription')
+                        : t('reportFormPrivateDescription')}
+                </Text>
             </View>
 
             <ModalMap
                 visible={showMapModal}
                 onClose={() => onSetShowMapModal(false)}
-                onSelectLocation={handleLocationSelect}
+                onLocationSelect={onSelectLocation} // Cambiar de onSelectLocation a onLocationSelect
                 initialLocation={convertToLocation() || undefined}
-                title="Seleccionar Ubicación del Problema"
+                title={t('reportFormMapTitle')}
+                mode="select"
             />
         </>
     );
@@ -285,72 +302,6 @@ const FormReport = ({
 const style = {
     container: 'w-full flex-col gap-4 rounded-lg bg-tertiary p-4 ',
     firstContainer: 'w-full flex-col gap-4 rounded-b-lg bg-tertiary p-4 ',
-};
-
-const nativeStyles = {
-    picker: {
-        backgroundColor: 'transparent',
-        color: '#FFFFFF',
-        borderRadius: 8,
-        height: 50,
-    },
-    pickerWithBackground: {
-        backgroundColor: '#13161E',
-        color: '#FFFFFF',
-        borderRadius: 8,
-        height: 50,
-        paddingHorizontal: 12,
-    },
-    pickerComplete: {
-        backgroundColor: '#13161E',
-        color: '#FFFFFF',
-        borderRadius: 8,
-        height: 60,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        marginVertical: 4,
-    },
-    pickerClear: {
-        backgroundColor: 'transparent',
-        color: '#FFFFFF',
-        height: 50,
-        paddingHorizontal: 16,
-    },
-    pickerExpanded: {
-        backgroundColor: 'transparent',
-        color: '#FFFFFF',
-        height: 120, // Altura aumentada para mostrar múltiples opciones
-        paddingHorizontal: 16,
-    },
-    pickerMultipleVisible: {
-        backgroundColor: 'transparent',
-        color: '#FFFFFF',
-        height: 150,
-        paddingHorizontal: 16,
-    },
-    pickerItemStyle: {
-        color: '#FFFFFF',
-        backgroundColor: '#13161E',
-        fontSize: 16,
-        height: 50,
-    },
-    pickerItemExpanded: {
-        color: '#FFFFFF',
-        backgroundColor: 'transparent',
-        fontSize: 18,
-        height: 60, // Altura mayor para iOS
-    },
-    pickerItemMultiple: {
-        color: '#FFFFFF',
-        backgroundColor: '#13161E',
-        fontSize: 16,
-        height: 35,
-    },
-    pickerItem: {
-        color: '#FFFFFF',
-        backgroundColor: '#13161E',
-        fontSize: 16,
-    },
 };
 
 export default FormReport;

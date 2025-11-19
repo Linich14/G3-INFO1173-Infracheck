@@ -19,9 +19,10 @@ class ReportHistory(models.Model):
     id = models.AutoField(primary_key=True)
     reporte = models.ForeignKey(
         ReportModel,
-        on_delete=models.CASCADE,
+        on_delete=models.DO_NOTHING,  # Cambiado de CASCADE a DO_NOTHING para evitar errores si la tabla no existe
         related_name='historial',
-        verbose_name='Reporte'
+        verbose_name='Reporte',
+        db_constraint=False  # Deshabilitar constraint de FK a nivel de BD
     )
     usuario = models.ForeignKey(
         Usuario,

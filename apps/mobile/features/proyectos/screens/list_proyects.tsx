@@ -1,7 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, FlatList, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useProjects } from '../hooks/useProjects';
+import ProjectCard from '../../../components/ProjectCard';
+import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface ProjectItem {
   id: number;
@@ -18,100 +21,12 @@ interface ProjectItem {
 type FilterType = 'todos' | 'prioridad' | 'estado';
 type SortOrder = 'recientes' | 'antiguos' | 'prioridad' | 'votos';
 
-const dataProyectos: ProjectItem[] = [
-  {
-    id: 1,
-    lugar: 'Calle esquina Alemania con Prat',
-    estado: 'En Progreso',
-    color: 'bg-purple-700',
-    prioridad: 'Muy Importante',
-    reportesAsociados: 3,
-    votosAFavor: 46,
-    tipoDenuncia: 'Infraestructura Vial',
-    fechaCreacion: new Date('2024-12-20'),
-  },
-  {
-    id: 2,
-    lugar: 'Centro Temuco - Proyecto A',
-    estado: 'Completado',
-    color: 'bg-green-800',
-    prioridad: 'Importante',
-    reportesAsociados: 5,
-    votosAFavor: 82,
-    tipoDenuncia: 'Mantenimiento',
-    fechaCreacion: new Date('2024-12-18'),
-  },
-  {
-    id: 3,
-    lugar: 'Plaza central',
-    estado: 'Pendiente',
-    color: 'bg-blue-700',
-    prioridad: 'Normal',
-    reportesAsociados: 2,
-    votosAFavor: 15,
-    tipoDenuncia: 'Espacios Públicos',
-    fechaCreacion: new Date('2024-12-22'),
-  },
-  {
-    id: 4,
-    lugar: 'Avenida Siempre Viva',
-    estado: 'Aprobado',
-    color: 'bg-yellow-700',
-    prioridad: 'Importante',
-    reportesAsociados: 1,
-    votosAFavor: 7,
-    tipoDenuncia: 'Iluminación Pública',
-    fechaCreacion: new Date('2024-12-15'),
-  },
-  {
-    id: 5,
-    lugar: 'Calle Falsa X',
-    estado: 'Rechazado',
-    color: 'bg-gray-700',
-    prioridad: 'Normal',
-    reportesAsociados: 4,
-    votosAFavor: 23,
-    tipoDenuncia: 'Servicios Básicos',
-    fechaCreacion: new Date('2024-12-19'),
-  },
-  {
-    id: 6,
-    lugar: 'Centro Temuco - Proyecto B',
-    estado: 'En Progreso',
-    color: 'bg-purple-700',
-    prioridad: 'Muy Importante',
-    reportesAsociados: 8,
-    votosAFavor: 124,
-    tipoDenuncia: 'Infraestructura Vial',
-    fechaCreacion: new Date('2024-12-21'),
-  },
-  {
-    id: 7,
-    lugar: 'Parque Municipal',
-    estado: 'Pendiente',
-    color: 'bg-blue-700',
-    prioridad: 'Normal',
-    reportesAsociados: 3,
-    votosAFavor: 35,
-    tipoDenuncia: 'Espacios Públicos',
-    fechaCreacion: new Date('2024-12-17'),
-  },
-  {
-    id: 8,
-    lugar: 'Calle Arturo Prat',
-    estado: 'Aprobado',
-    color: 'bg-yellow-700',
-    prioridad: 'Muy Importante',
-    reportesAsociados: 6,
-    votosAFavor: 89,
-    tipoDenuncia: 'Mantenimiento',
-    fechaCreacion: new Date('2024-12-23'),
-  },
-];
+
 
 export default function App() {
-  // Estados para filtros y ordenamiento
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const { t } = useLanguage();
+  
+  // UI state for controls
   const [filterType, setFilterType] = useState<FilterType>('todos');
   const [filterValue, setFilterValue] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('recientes');
@@ -120,46 +35,68 @@ export default function App() {
   // Configuración de paginación
   const ITEMS_PER_PAGE = 5;
 
-  // Obtener valores únicos para filtros
-  const uniquePriorities = Array.from(new Set(dataProyectos.map((p) => p.prioridad)));
-  const uniqueStates = Array.from(new Set(dataProyectos.map((p) => p.estado)));
+  // Hook: fetches projects (applies server-side filters when possible)
+  const {
+    items: _ignoredItems,
+    allResults,
+    total,
+    page,
+    pageSize,
+    loading,
+    error,
+    filters,
+    setFilters,
+    sort,
+    setSort,
+    setPage,
+    refresh,
+  } = useProjects({ pageSize: ITEMS_PER_PAGE });
 
-  // Función de filtrado y ordenamiento
+  // Refrescar la lista cuando la pantalla recibe foco (vuelve de detalles)
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  // derive unique filter options from fetched results
+  const uniquePriorities = useMemo(() => Array.from(new Set(allResults.map((p) => p.prioridad).filter(Boolean as any))), [allResults]);
+  const uniqueStates = useMemo(() => Array.from(new Set(allResults.map((p) => p.estado).filter(Boolean as any))), [allResults]);
+
+  // Client-side filtering & sorting (we still send server filters via setFilters when user chooses)
   const filteredAndSortedProjects = useMemo(() => {
-    let filtered = [...dataProyectos];
+    let filtered = [...allResults];
 
-    // Aplicar búsqueda por texto
+    // Aplicar búsqueda por texto local (server may also filter)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(
-        (project) =>
-          project.lugar.toLowerCase().includes(query) ||
-          project.tipoDenuncia?.toLowerCase().includes(query) ||
-          project.estado.toLowerCase().includes(query) ||
-          project.prioridad.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter((project) => {
+        const lugar = (project.lugar || project.titulo || '').toLowerCase();
+        const tipo = (project.tipoDenuncia || '').toLowerCase();
+        const estado = (project.estado || '').toLowerCase();
+        const prioridad = (project.prioridad || '').toLowerCase();
+        return lugar.includes(query) || tipo.includes(query) || estado.includes(query) || prioridad.includes(query);
+      });
     }
 
-    // Aplicar filtros
+    // Aplicar filtros UI
     if (filterType === 'prioridad' && filterValue) {
-      filtered = filtered.filter((project) => project.prioridad === filterValue);
+      filtered = filtered.filter((project) => (project.prioridad || '') === filterValue);
     } else if (filterType === 'estado' && filterValue) {
-      filtered = filtered.filter((project) => project.estado === filterValue);
+      filtered = filtered.filter((project) => (project.estado || '') === filterValue);
     }
 
-    // Aplicar ordenamiento
+    // Aplicar ordenamiento local
     filtered.sort((a, b) => {
       switch (sortOrder) {
         case 'recientes':
-          return b.fechaCreacion.getTime() - a.fechaCreacion.getTime();
+          return new Date(b.fechaCreacion || '').getTime() - new Date(a.fechaCreacion || '').getTime();
         case 'antiguos':
-          return a.fechaCreacion.getTime() - b.fechaCreacion.getTime();
-        case 'prioridad':
-          const priorityOrder = { 'Muy Importante': 3, Importante: 2, Normal: 1 };
-          return (
-            (priorityOrder[b.prioridad as keyof typeof priorityOrder] || 0) -
-            (priorityOrder[a.prioridad as keyof typeof priorityOrder] || 0)
-          );
+          return new Date(a.fechaCreacion || '').getTime() - new Date(b.fechaCreacion || '').getTime();
+        case 'prioridad': {
+          const priorityOrder: Record<string, number> = { 'Muy Importante': 3, Importante: 2, Normal: 1 };
+          return (priorityOrder[b.prioridad || ''] || 0) - (priorityOrder[a.prioridad || ''] || 0);
+        }
         case 'votos':
           return (b.votosAFavor || 0) - (a.votosAFavor || 0);
         default:
@@ -168,17 +105,17 @@ export default function App() {
     });
 
     return filtered;
-  }, [filterType, filterValue, sortOrder, searchQuery]);
+  }, [allResults, filterType, filterValue, sortOrder, searchQuery]);
 
   // Datos paginados
   const paginatedProjects = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     return filteredAndSortedProjects.slice(startIndex, endIndex);
-  }, [filteredAndSortedProjects, currentPage]);
+  }, [filteredAndSortedProjects, page]);
 
   // Cálculo de páginas totales
-  const totalPages = Math.ceil(filteredAndSortedProjects.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedProjects.length / ITEMS_PER_PAGE));
 
   /**
    * Navega a la pantalla de detalles del proyecto usando router
@@ -195,32 +132,43 @@ export default function App() {
   const handleFilterChange = (type: FilterType, value: string = '') => {
     setFilterType(type);
     setFilterValue(value);
-    setCurrentPage(1); // Reset a primera página al cambiar filtro
+    setPage(1); // Reset a primera página al cambiar filtro
+    // update server-side filters when possible
+    if (type === 'prioridad') {
+      setFilters({ prioridad: value || undefined });
+    } else if (type === 'estado') {
+      setFilters({ estado: value || undefined });
+    } else {
+      setFilters({});
+    }
   };
 
   const handleSortChange = (order: SortOrder) => {
     setSortOrder(order);
-    setCurrentPage(1); // Reset a primera página al cambiar orden
+    setPage(1); // Reset a primera página al cambiar orden
+    // local sort only (backend doesn't support sort currently)
   };
 
   // Funciones de búsqueda
   const handleSearchChange = (text: string) => {
     setSearchQuery(text);
-    setCurrentPage(1); // Reset a primera página al buscar
+    setPage(1); // Reset a primera página al buscar
+    setFilters({ search: text || undefined });
   };
 
   const clearSearch = () => {
     setSearchQuery('');
-    setCurrentPage(1);
+    setPage(1);
+    setFilters({ search: undefined });
   };
 
   // Funciones de navegación para paginación
   const goToPreviousPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
+    setPage((prev: number) => Math.max(prev - 1, 1));
   };
 
   const goToNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    setPage((prev: number) => Math.min(prev + 1, totalPages));
   };
 
   const clearFilters = () => {
@@ -228,7 +176,8 @@ export default function App() {
     setFilterValue('');
     setSortOrder('recientes');
     setSearchQuery('');
-    setCurrentPage(1);
+    setPage(1);
+    setFilters({});
   };
 
   // Función para verificar si hay filtros activos
@@ -240,13 +189,13 @@ export default function App() {
   const getPriorityColor = (prioridad: string) => {
     switch (prioridad) {
       case 'Muy Importante':
-        return 'bg-red-800';
+        return 'bg-red-600';
       case 'Importante':
-        return 'bg-yellow-700';
+        return 'bg-orange-600';
       case 'Normal':
-        return 'bg-blue-700';
+        return 'bg-blue-600';
       default:
-        return 'bg-gray-700';
+        return 'bg-gray-600';
     }
   };
 
@@ -271,13 +220,13 @@ export default function App() {
         disabled={currentPage === 1}>
         <Ionicons name="chevron-back" size={16} color={currentPage === 1 ? 'gray' : 'white'} />
         <Text className={`ml-1 text-sm ${currentPage === 1 ? 'text-gray-400' : 'text-white'}`}>
-          Anterior
+          {t('projectsListPreviousPage')}
         </Text>
       </TouchableOpacity>
 
       <View className="flex-row items-center">
         <Text className="text-sm text-white">
-          Página {currentPage} de {totalPages}
+          {t('projectsListPage')} {currentPage} {t('projectsListOf')} {totalPages}
         </Text>
       </View>
 
@@ -289,7 +238,7 @@ export default function App() {
         disabled={currentPage === totalPages}>
         <Text
           className={`mr-1 text-sm ${currentPage === totalPages ? 'text-gray-400' : 'text-white'}`}>
-          Siguiente
+          {t('projectsListNextPage')}
         </Text>
         <Ionicons
           name="chevron-forward"
@@ -301,7 +250,7 @@ export default function App() {
   );
 
   // Renderizado de elemento de proyecto con información completa
-  const renderProjectItem = ({ item }: { item: ProjectItem }) => (
+  const renderProjectItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       className="mb-3 rounded-lg bg-[#1D212D] p-4"
       onPress={() => handleProjectSelect(item)}>
@@ -370,7 +319,7 @@ export default function App() {
           >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text className="ml-4 text-xl font-bold text-white">Proyectos</Text>
+          <Text className="ml-4 text-xl font-bold text-white">{t('projectsListTitle')}</Text>
         </View>
       </View>
 
@@ -380,7 +329,7 @@ export default function App() {
           <Ionicons name="search" size={20} color="gray" />
           <TextInput
             className="ml-3 flex-1 text-white"
-            placeholder="Buscar por ubicación, tipo de denuncia, estado..."
+            placeholder={t('projectsListSearchPlaceholder')}
             placeholderTextColor="gray"
             value={searchQuery}
             onChangeText={handleSearchChange}
@@ -394,7 +343,7 @@ export default function App() {
         </View>
         {searchQuery.length > 0 && (
           <Text className="mt-2 text-xs text-blue-400">
-            Buscando: &quot;{searchQuery}&quot; - {filteredAndSortedProjects.length} resultado{filteredAndSortedProjects.length !== 1 ? 's' : ''}
+            {t('projectsListSearch')}: &quot;{searchQuery}&quot; - {filteredAndSortedProjects.length} resultado{filteredAndSortedProjects.length !== 1 ? 's' : ''}
           </Text>
         )}
       </View>
@@ -404,20 +353,20 @@ export default function App() {
         <View className="mb-4 rounded-xl bg-[#13161E] p-4">
           {/* Filtros principales */}
           <View className="mb-3">
-            <Text className="mb-2 text-sm font-bold text-blue-400">Filtrar por:</Text>
+            <Text className="mb-2 text-sm font-bold text-blue-400">{t('projectsListFilterAll')}:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <FilterButton
-                title="Todos"
+                title={t('projectsListFilterAll')}
                 isActive={filterType === 'todos'}
                 onPress={() => handleFilterChange('todos')}
               />
               <FilterButton
-                title="Por Prioridad"
+                title={t('projectsListFilterPriority')}
                 isActive={filterType === 'prioridad'}
                 onPress={() => handleFilterChange('prioridad')}
               />
               <FilterButton
-                title="Por Estado"
+                title={t('projectsListFilterStatus')}
                 isActive={filterType === 'estado'}
                 onPress={() => handleFilterChange('estado')}
               />
@@ -425,7 +374,7 @@ export default function App() {
                 <TouchableOpacity
                   className="mr-2 rounded-lg bg-[#537CF2] px-3 py-2"
                   onPress={clearFilters}>
-                  <Text className="text-sm text-white">Limpiar Todo</Text>
+                  <Text className="text-sm text-white">{t('projectsListClearFilters')}</Text>
                 </TouchableOpacity>
               )}
             </ScrollView>
@@ -438,10 +387,10 @@ export default function App() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {uniquePriorities.map((priority) => (
                   <FilterButton
-                    key={priority}
-                    title={priority}
-                    isActive={filterValue === priority}
-                    onPress={() => handleFilterChange('prioridad', priority)}
+                    key={String(priority)}
+                    title={String(priority || '')}
+                    isActive={filterValue === (priority || '')}
+                    onPress={() => handleFilterChange('prioridad', String(priority || ''))}
                   />
                 ))}
               </ScrollView>
@@ -454,10 +403,10 @@ export default function App() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {uniqueStates.map((state) => (
                   <FilterButton
-                    key={state}
-                    title={state}
-                    isActive={filterValue === state}
-                    onPress={() => handleFilterChange('estado', state)}
+                    key={String(state)}
+                    title={String(state || '')}
+                    isActive={filterValue === (state || '')}
+                    onPress={() => handleFilterChange('estado', String(state || ''))}
                   />
                 ))}
               </ScrollView>
@@ -466,25 +415,25 @@ export default function App() {
 
           {/* Ordenamiento */}
           <View>
-            <Text className="mb-2 text-sm font-bold text-blue-400">Ordenar por:</Text>
+            <Text className="mb-2 text-sm font-bold text-blue-400">{t('projectsListSortRecent')}:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <FilterButton
-                title="Más Recientes"
+                title={t('projectsListSortRecent')}
                 isActive={sortOrder === 'recientes'}
                 onPress={() => handleSortChange('recientes')}
               />
               <FilterButton
-                title="Más Antiguos"
+                title={t('projectsListSortOldest')}
                 isActive={sortOrder === 'antiguos'}
                 onPress={() => handleSortChange('antiguos')}
               />
               <FilterButton
-                title="Por Prioridad"
+                title={t('projectsListSortPriority')}
                 isActive={sortOrder === 'prioridad'}
                 onPress={() => handleSortChange('prioridad')}
               />
               <FilterButton
-                title="Más Votados"
+                title={t('projectsListSortVotes')}
                 isActive={sortOrder === 'votos'}
                 onPress={() => handleSortChange('votos')}
               />
@@ -497,12 +446,12 @@ export default function App() {
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-lg font-bold text-blue-400">
               {searchQuery.length > 0
-                ? 'Resultados de Búsqueda'
+                ? t('projectsListSearch')
                 : filterType === 'todos'
-                  ? 'Todos los Proyectos'
+                  ? t('projectsListTitle')
                   : filterType === 'prioridad'
-                    ? `Prioridad: ${filterValue || 'Todas'}`
-                    : `Estado: ${filterValue || 'Todos'}`}
+                    ? `${t('projectsListFilterPriority')}: ${filterValue || t('projectsListFilterAll')}`
+                    : `${t('projectsListFilterStatus')}: ${filterValue || t('projectsListFilterAll')}`}
             </Text>
             <Text className="text-sm text-gray-400">
               {filteredAndSortedProjects.length} elemento{filteredAndSortedProjects.length !== 1 ? 's' : ''}
@@ -512,16 +461,16 @@ export default function App() {
           {paginatedProjects.length > 0 ? (
             <>
               <FlatList
-                data={paginatedProjects}
+                data={paginatedProjects as any}
                 renderItem={renderProjectItem}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) => String(item.id)}
                 scrollEnabled={false}
                 showsVerticalScrollIndicator={false}
               />
 
               {totalPages > 1 && (
                 <PaginationControls
-                  currentPage={currentPage}
+                  currentPage={page}
                   totalPages={totalPages}
                   onPrevious={goToPreviousPage}
                   onNext={goToNextPage}
@@ -532,7 +481,7 @@ export default function App() {
             <View className="items-center py-8">
               <Ionicons name="folder-open-outline" size={48} color="gray" />
               <Text className="mt-2 text-center text-gray-400">
-                No se encontraron proyectos con los filtros aplicados
+                {t('projectsListEmptyDescription')}
               </Text>
             </View>
           )}

@@ -15,3 +15,8 @@ export function formatRut(rut: string) {
   else formatted = dv;
   return formatted;
 }
+
+// Utilidad para limpiar el RUT (quitar puntos y guión)
+export function cleanRut(rut: string): string {
+  return rut.replace(/[^0-9kK]/g, '');
+}

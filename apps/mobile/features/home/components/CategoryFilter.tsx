@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 interface CategoryFilterProps {
   selectedCategoria: string | null;
@@ -12,6 +13,28 @@ export default function CategoryFilter({
   onCategoriaChange,
   categorias = ['Infraestructura', 'Señalización', 'Alumbrado', 'Limpieza', 'Áreas Verdes', 'Servicios Públicos']
 }: CategoryFilterProps) {
+  const { t, locale } = useLanguage();
+  
+  // Mapa para traducir categorías del backend según el idioma actual
+  const getCategoryTranslation = useMemo(() => {
+    const categoryMap: Record<string, { es: string; en: string }> = {
+      'Infraestructura': { es: 'Infraestructura', en: 'Infrastructure' },
+      'Señalización': { es: 'Señalización', en: 'Signage' },
+      'Alumbrado': { es: 'Alumbrado', en: 'Lighting' },
+      'Limpieza': { es: 'Limpieza', en: 'Cleaning' },
+      'Áreas Verdes': { es: 'Áreas Verdes', en: 'Green Areas' },
+      'Servicios Públicos': { es: 'Servicios Públicos', en: 'Public Services' },
+      'Seguridad': { es: 'Seguridad', en: 'Security' },
+      'Transporte': { es: 'Transporte', en: 'Transport' },
+      'Otro': { es: 'Otro', en: 'Other' }
+    };
+    
+    return (categoria: string): string => {
+      if (!categoryMap[categoria]) return categoria;
+      return categoryMap[categoria][locale] || categoria;
+    };
+  }, [locale]);
+  
   return (
     <View className="px-4 py-3 bg-[#13161E]">
       <ScrollView 
@@ -29,7 +52,7 @@ export default function CategoryFilter({
           <Text className={`font-medium ${
             selectedCategoria === null ? 'text-white' : 'text-gray-400'
           }`}>
-            Todas
+            {t('categoryFilterAll')}
           </Text>
         </TouchableOpacity>
         
@@ -46,7 +69,7 @@ export default function CategoryFilter({
             <Text className={`font-medium ${
               selectedCategoria === categoria ? 'text-white' : 'text-gray-400'
             }`}>
-              {categoria}
+              {getCategoryTranslation(categoria)}
             </Text>
           </TouchableOpacity>
         ))}

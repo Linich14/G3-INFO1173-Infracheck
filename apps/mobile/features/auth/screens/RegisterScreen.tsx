@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     Image,
     ScrollView,
-    Modal,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
@@ -19,6 +18,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { registerUser } from '../services/registerService';
 import { RegisterData } from '../types/RegisterData';
 import { validateRegisterData, getPasswordValidationState } from '../../../utils/validation';
+import { useLanguage } from '~/contexts/LanguageContext';
+import { useToast } from '~/features/posts/contexts/ToastContext';
 
 const RegisterScreen: React.FC = () => {
     const router = useRouter();
@@ -33,34 +34,32 @@ const RegisterScreen: React.FC = () => {
     const [phone, setPhone] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
-    const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
-    const [feedbackMessage, setFeedbackMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const { t } = useLanguage();
+    const { showSuccess, showError } = useToast();
 
     const handleConfirm = async () => {
         const data: RegisterData = getRegisterData();
         setShowModal(false);
-        setFeedbackModalVisible(true);
         setLoading(true);
-        // Espera artificial para mostrar el modal de carga antes de enviar los datos
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        
         try {
             const result = await registerUser(data);
             if (result.success) {
-                setFeedbackMessage('¡Registro exitoso! Serás redirigido al inicio de sesión.');
-                setLoading(false);
+                showSuccess(t('registerSuccess'));
                 setTimeout(() => {
-                    setFeedbackModalVisible(false);
                     router.replace('/(auth)/sign-in');
-                }, 1800);
+                }, 1500);
             } else {
-                setFeedbackMessage(
-                    'Error en el registro: ' + (result.message || 'Intenta nuevamente.')
+                showError(
+                    t('registerErrorPrefix') + (result.message || 'Intenta nuevamente.')
                 );
-                setLoading(false);
             }
         } catch (error: any) {
-            setFeedbackMessage('Error en el registro: ' + (error.message || 'Intenta nuevamente.'));
+            showError(
+                t('registerErrorPrefix') + (error.message || 'Intenta nuevamente.')
+            );
+        } finally {
             setLoading(false);
         }
     };
@@ -92,7 +91,7 @@ const RegisterScreen: React.FC = () => {
 
     const handleRegister = () => {
         const data: RegisterData = getRegisterData();
-        const validation = validateRegisterData(data);
+        const validation = validateRegisterData(data, (key) => t(key));
         if (!validation.isValid) {
             // Mapear errores a cada campo
             const errors: { [key: string]: string } = {};
@@ -103,9 +102,7 @@ const RegisterScreen: React.FC = () => {
             return;
         }
         setFieldErrors({});
-        setFeedbackModalVisible(true); // Mostrar modal de feedback inmediatamente
-        setLoading(true); // Mostrar spinner inmediatamente
-        handleConfirm(); // Llamar a la lógica de registro (con delay artificial)
+        handleConfirm();
     };
 
     return (
@@ -116,7 +113,7 @@ const RegisterScreen: React.FC = () => {
                 <View className="flex-row justify-between">
                     <View className="left-10 top-5 h-32 w-32 justify-center rounded-full bg-white" />
                     <View className="mr-4 items-end justify-center">
-                        <Text className="text-4xl font-bold text-white">Registrarse</Text>
+                        <Text className="text-4xl font-bold text-white">{t('registerTitle')}</Text>
                     </View>
                 </View>
             </View>
@@ -160,13 +157,13 @@ const RegisterScreen: React.FC = () => {
                                 onPress={() => router.replace('/')}
                                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                 accessibilityRole="button"
-                                accessibilityLabel="Volver"
+                                accessibilityLabel={t('back')}
                                 activeOpacity={0.6}
                                 className="items-center justify-center rounded-[12px] bg-primary p-3 px-4">
                                 <ArrowLeft size={28} color="#fff" />
                             </TouchableOpacity>
 
-                            <Text className="text-6xl font-bold text-white">Hola!</Text>
+                            <Text className="text-6xl font-bold text-white">{t('registerHello')}</Text>
 
                             {/* Spacer del mismo ancho visual que el botón atrás */}
                             <View style={{ width: 36 }} />
@@ -176,7 +173,7 @@ const RegisterScreen: React.FC = () => {
                         <View className="mb-8 items-center">
                             {/* Campo RUT */}
                             <View className="mb-8 w-72 space-y-2">
-                                <Text className="text-2xl font-bold text-white">RUT</Text>
+                                <Text className="text-2xl font-bold text-white">{t('registerRutLabel')}</Text>
                                 <RutInput
                                     value={rut}
                                     onChangeText={(v) => handleFieldChange('rut', v, setRut)}
@@ -188,7 +185,7 @@ const RegisterScreen: React.FC = () => {
                             {/* Campo Nombre de Usuario */}
                             <View className="mb-8 w-72 space-y-2">
                                 <Text className="text-2xl font-bold text-white">
-                                    Nombre de Usuario
+                                    {t('registerUsernameLabel')}
                                 </Text>
                                 <TextInput
                                     placeholder="pepa"
@@ -217,7 +214,7 @@ const RegisterScreen: React.FC = () => {
                             {/* Campo Correo */}
                             <View className="mb-8 w-72 space-y-2">
                                 <Text className="text-2xl font-bold text-white">
-                                    Correo Electrónico
+                                    {t('registerEmailLabel')}
                                 </Text>
                                 <EmailInput
                                     value={email}
@@ -228,7 +225,7 @@ const RegisterScreen: React.FC = () => {
 
                             {/* Campo Contraseña */}
                             <View className="mb-8 w-72 space-y-2">
-                                <Text className="text-2xl font-bold text-white">Contraseña</Text>
+                                <Text className="text-2xl font-bold text-white">{t('registerPasswordLabel')}</Text>
                                 <TextInput
                                     placeholder="************"
                                     placeholderTextColor="#ccc"
@@ -254,28 +251,28 @@ const RegisterScreen: React.FC = () => {
                                                 color: passwordState.length ? 'green' : 'red',
                                                 fontSize: 13,
                                             }}>
-                                            • Entre 8 y 16 caracteres
+                                            • {t('passwordReqLength')}
                                         </Text>
                                         <Text
                                             style={{
                                                 color: passwordState.uppercase ? 'green' : 'red',
                                                 fontSize: 13,
                                             }}>
-                                            • Al menos una mayúscula
+                                            • {t('passwordReqUppercase')}
                                         </Text>
                                         <Text
                                             style={{
                                                 color: passwordState.number ? 'green' : 'red',
                                                 fontSize: 13,
                                             }}>
-                                            • Al menos un número
+                                            • {t('passwordReqNumber')}
                                         </Text>
                                         <Text
                                             style={{
                                                 color: passwordState.noSpecial ? 'green' : 'red',
                                                 fontSize: 13,
                                             }}>
-                                            • Sin caracteres especiales
+                                            • {t('passwordReqNoSpecial')}
                                         </Text>
                                     </View>
                                 )}
@@ -285,7 +282,7 @@ const RegisterScreen: React.FC = () => {
                                     </Text>
                                 )}
                                 <Text className="pt-4 text-2xl font-bold text-white">
-                                    Repetir Contraseña
+                                    {t('registerRepeatPasswordLabel')}
                                 </Text>
                                 <TextInput
                                     placeholder="************"
@@ -312,8 +309,8 @@ const RegisterScreen: React.FC = () => {
                                             fontSize: 13,
                                         }}>
                                         {confirmPassword === password
-                                            ? 'Las contraseñas coinciden'
-                                            : 'Las contraseñas no coinciden'}
+                                            ? t('passwordsMatch')
+                                            : t('passwordsDoNotMatch')}
                                     </Text>
                                 )}
                                 {fieldErrors.confirmPassword && (
@@ -325,9 +322,9 @@ const RegisterScreen: React.FC = () => {
 
                             {/* Campo Teléfono */}
                             <View className="mb-8 w-72 space-y-2">
-                                <Text className="text-2xl font-bold text-white">Teléfono</Text>
+                                <Text className="text-2xl font-bold text-white">{t('registerPhoneLabel')}</Text>
                                 <View className="flex-row items-center">
-                                    <Text className="mr-2 text-xl text-white">+569</Text>
+                                    <Text className="mr-2 text-xl text-white">{t('registerPhonePrefix')}</Text>
                                     <TextInput
                                         placeholder="12345678"
                                         placeholderTextColor="#ccc"
@@ -361,14 +358,14 @@ const RegisterScreen: React.FC = () => {
                             <TouchableOpacity
                                 className="mb-4 w-48 items-center justify-center rounded-[32px] bg-[#537CF2] py-5 shadow active:opacity-80"
                                 onPress={handleRegister}>
-                                <Text className="text-lg font-bold text-white">Registrarse</Text>
+                                <Text className="text-lg font-bold text-white">{t('welcomeRegister')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 onPress={() => router.replace('/(auth)/sign-in')}
                                 className="w-48 items-center justify-center rounded-[32px] border-2 border-white bg-gray-400 py-5 shadow active:opacity-80">
                                 <Text className="text-lg font-bold text-white">
-                                    Ya tengo cuenta
+                                    {t('registerHaveAccount')}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -408,63 +405,6 @@ const RegisterScreen: React.FC = () => {
         </View>
       </Modal>
       */}
-
-            {/* Modal de feedback de registro */}
-            <Modal
-                visible={feedbackModalVisible}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setFeedbackModalVisible(false)}>
-                <View
-                    style={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        backgroundColor: 'rgba(0,0,0,0.4)',
-                    }}>
-                    <View
-                        style={{
-                            backgroundColor: 'white',
-                            padding: 24,
-                            borderRadius: 12,
-                            minWidth: 220,
-                            alignItems: 'center',
-                        }}>
-                        {loading ? (
-                            <>
-                                <ActivityIndicator
-                                    size="large"
-                                    color="#2563eb"
-                                    style={{ marginBottom: 16 }}
-                                />
-                                <Text style={{ fontSize: 16, marginBottom: 8 }}>
-                                    Registrando usuario...
-                                </Text>
-                            </>
-                        ) : (
-                            <>
-                                <Text style={{ fontSize: 16, marginBottom: 16 }}>
-                                    {feedbackMessage}
-                                </Text>
-                                {!feedbackMessage.includes('exitoso') && (
-                                    <TouchableOpacity
-                                        onPress={() => setFeedbackModalVisible(false)}
-                                        style={{
-                                            backgroundColor: '#2563eb',
-                                            paddingVertical: 8,
-                                            paddingHorizontal: 24,
-                                            borderRadius: 8,
-                                        }}>
-                                        <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                                            Cerrar
-                                        </Text>
-                                    </TouchableOpacity>
-                                )}
-                            </>
-                        )}
-                    </View>
-                </View>
-            </Modal>
         </SafeAreaView>
     );
 };

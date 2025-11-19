@@ -13,6 +13,7 @@ import { useAuth } from '~/contexts/AuthContext';
 import { changePassword } from '../services/profileService';
 import { ChangePasswordData } from '../types';
 import { isValidPassword, getPasswordValidationState } from '~/utils/validation';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 export const ChangePasswordSection: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
@@ -22,6 +23,7 @@ export const ChangePasswordSection: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
     const { logout } = useAuth();
+    const { t } = useLanguage();
 
     // Estado de validación de contraseña en tiempo real
     const passwordValidation = getPasswordValidationState(newPassword);
@@ -29,17 +31,17 @@ export const ChangePasswordSection: React.FC = () => {
     const handleChangePassword = async () => {
         // Validaciones básicas
         if (!currentPassword || !newPassword || !confirmPassword) {
-            Alert.alert('Error', 'Todos los campos son obligatorios');
+            Alert.alert(t('profilePasswordErrorTitle'), t('profilePasswordErrorAllFields'));
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            Alert.alert('Error', 'La nueva contraseña y su confirmación no coinciden');
+            Alert.alert(t('profilePasswordErrorTitle'), t('profilePasswordErrorMismatch'));
             return;
         }
 
         if (!isValidPassword(newPassword)) {
-            Alert.alert('Error', 'La contraseña no cumple con los requisitos de seguridad');
+            Alert.alert(t('profilePasswordErrorTitle'), t('profilePasswordErrorRequirements'));
             return;
         }
 
@@ -54,7 +56,7 @@ export const ChangePasswordSection: React.FC = () => {
             const result = await changePassword(passwordData);
 
             if (result.success) {
-                Alert.alert('Contraseña Cambiada', result.message, [
+                Alert.alert(t('profilePasswordSuccessTitle'), result.message, [
                     {
                         text: 'OK',
                         onPress: () => {
@@ -64,10 +66,10 @@ export const ChangePasswordSection: React.FC = () => {
                     },
                 ]);
             } else {
-                Alert.alert('Error', result.message);
+                Alert.alert(t('profilePasswordErrorTitle'), result.message);
             }
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Error de conexión. Intenta nuevamente.');
+            Alert.alert(t('profilePasswordErrorTitle'), error.message || t('profilePasswordErrorConnection'));
         } finally {
             setIsLoading(false);
             setShowModal(false);
@@ -97,9 +99,9 @@ export const ChangePasswordSection: React.FC = () => {
                     <Lock size={24} color="#537CF2" />
                 </View>
                 <View className="flex-1 justify-center py-4 pr-4">
-                    <Text className="mb-1 text-xl font-bold text-white">Cambiar Contraseña</Text>
+                    <Text className="mb-1 text-xl font-bold text-white">{t('changePasswordTitle')}</Text>
                     <Text className="text-sm text-gray-400">
-                        Actualiza tu contraseña de forma segura
+                        {t('changePasswordSubtitle')}
                     </Text>
                 </View>
                 <View className="items-center justify-center pr-4">
@@ -118,12 +120,12 @@ export const ChangePasswordSection: React.FC = () => {
                         <View className="mb-4 items-center">
                             <Lock size={48} color="#537CF2" />
                             <Text className="mb-2 mt-3 text-xl font-bold text-white">
-                                Cambiar Contraseña
+                                {t('changePasswordModalTitle')}
                             </Text>
                         </View>
 
                         <Text className="mb-6 text-center leading-5 text-gray-300">
-                            Ingresa tu contraseña actual y la nueva contraseña que deseas usar.
+                            {t('changePasswordModalBody')}
                         </Text>
 
                         {/* Current Password Input */}
@@ -131,7 +133,7 @@ export const ChangePasswordSection: React.FC = () => {
                             className="mb-4 rounded-xl border border-[#444] bg-[#2a2a2a] px-4 py-3 text-white"
                             value={currentPassword}
                             onChangeText={setCurrentPassword}
-                            placeholder="Contraseña actual"
+                            placeholder={t('currentPasswordPlaceholder')}
                             placeholderTextColor="#666"
                             secureTextEntry
                             autoCapitalize="none"
@@ -148,7 +150,7 @@ export const ChangePasswordSection: React.FC = () => {
                                 setShowPasswordRequirements(text.length > 0);
                             }}
                             onFocus={() => setShowPasswordRequirements(true)}
-                            placeholder="Nueva contraseña"
+                            placeholder={t('newPasswordPlaceholder')}
                             placeholderTextColor="#666"
                             secureTextEntry
                             autoCapitalize="none"
@@ -159,19 +161,19 @@ export const ChangePasswordSection: React.FC = () => {
                         {/* Indicadores de requisitos de contraseña */}
                         {showPasswordRequirements && (
                             <View className="mb-4 px-2">
-                                <Text className="text-gray-300 text-sm mb-2">Requisitos de contraseña:</Text>
+                                <Text className="text-gray-300 text-sm mb-2">{t('passwordRequirementsTitle')}</Text>
                                 <View className="space-y-1">
                                     <Text className={`text-xs ${passwordValidation.length ? 'text-green-400' : 'text-red-400'}`}>
-                                        {passwordValidation.length ? '✓' : '✗'} Entre 8 y 16 caracteres
+                                        {passwordValidation.length ? '✓' : '✗'} {t('passwordReqLength')}
                                     </Text>
                                     <Text className={`text-xs ${passwordValidation.uppercase ? 'text-green-400' : 'text-red-400'}`}>
-                                        {passwordValidation.uppercase ? '✓' : '✗'} Al menos una mayúscula
+                                        {passwordValidation.uppercase ? '✓' : '✗'} {t('passwordReqUppercase')}
                                     </Text>
                                     <Text className={`text-xs ${passwordValidation.number ? 'text-green-400' : 'text-red-400'}`}>
-                                        {passwordValidation.number ? '✓' : '✗'} Al menos un número
+                                        {passwordValidation.number ? '✓' : '✗'} {t('passwordReqNumber')}
                                     </Text>
                                     <Text className={`text-xs ${passwordValidation.noSpecial ? 'text-green-400' : 'text-red-400'}`}>
-                                        {passwordValidation.noSpecial ? '✓' : '✗'} Solo letras y números
+                                        {passwordValidation.noSpecial ? '✓' : '✗'} {t('passwordReqNoSpecial')}
                                     </Text>
                                 </View>
                             </View>
@@ -182,7 +184,7 @@ export const ChangePasswordSection: React.FC = () => {
                             className="mb-6 rounded-xl border border-[#444] bg-[#2a2a2a] px-4 py-3 text-white"
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
-                            placeholder="Confirmar nueva contraseña"
+                            placeholder={t('confirmNewPasswordPlaceholder')}
                             placeholderTextColor="#666"
                             secureTextEntry
                             autoCapitalize="none"
@@ -195,7 +197,7 @@ export const ChangePasswordSection: React.FC = () => {
                                 className="flex-1 items-center rounded-xl bg-[#333] py-3"
                                 onPress={handleCancel}
                                 disabled={isLoading}>
-                                <Text className="font-medium text-gray-300">Cancelar</Text>
+                                <Text className="font-medium text-gray-300">{t('cancel')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -209,7 +211,7 @@ export const ChangePasswordSection: React.FC = () => {
                                 {isLoading ? (
                                     <ActivityIndicator color="#ffffff" size="small" />
                                 ) : (
-                                    <Text className="font-bold text-white">Cambiar</Text>
+                                    <Text className="font-bold text-white">{t('change')}</Text>
                                 )}
                             </TouchableOpacity>
                         </View>

@@ -1,227 +1,202 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
+import { useLanguage } from '~/contexts/LanguageContext';
 
-const MAX_IMAGES = 10;
-const IMAGE_QUALITY = 0.8;
-const VIDEO_MAX_DURATION = 60;
+export interface MediaStats {
+    imageCount: number;
+    hasVideo: boolean;
+    canAddImages: boolean;
+    canAddVideo: boolean;
+    remainingImageSlots: number;
+}
 
-export function useImagePicker() {
+export const useCamera = () => {
+    const { t } = useLanguage();
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
-    const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+    const [selectedVideo, setSelectedVideo] = useState<string | undefined>();
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [showVideoModal, setShowVideoModal] = useState(false);
 
-    // Función reutilizable para verificar permisos de cámara
-    const requestCameraPermission = useCallback(async (): Promise<boolean> => {
-        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-        if (!permissionResult.granted) {
-            Alert.alert('Permisos', 'Se necesitan permisos de cámara para continuar');
+    const MAX_IMAGES = 5;
+
+    const getMediaStats = (): MediaStats => {
+        return {
+            imageCount: selectedImages.length,
+            hasVideo: !!selectedVideo,
+            canAddImages: selectedImages.length < MAX_IMAGES,
+            canAddVideo: !selectedVideo,
+            remainingImageSlots: MAX_IMAGES - selectedImages.length,
+        };
+    };
+
+    const requestPermissions = async () => {
+        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+        const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (cameraStatus !== 'granted' || mediaStatus !== 'granted') {
+            Alert.alert(
+                t('reportMediaPermissionsTitle'),
+                t('reportMediaPermissionsMessage'),
+                [{ text: 'OK' }]
+            );
             return false;
         }
         return true;
-    }, []);
+    };
 
-    // Función reutilizable para verificar permisos de galería
-    const requestGalleryPermission = useCallback(async (): Promise<boolean> => {
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permissionResult.granted) {
-            Alert.alert('Permisos', 'Se necesitan permisos de galería para continuar');
-            return false;
+    const takePhoto = async () => {
+        if (selectedImages.length >= MAX_IMAGES) {
+            Alert.alert(t('reportMediaLimitImages').replace('{max}', MAX_IMAGES.toString()));
+            return;
         }
-        return true;
-    }, []);
 
-    // Verificar si se pueden agregar más imágenes
-    const canAddMoreImages = useCallback(
-        (count: number = 1): boolean => {
-            if (selectedImages.length + count > MAX_IMAGES) {
-                Alert.alert(
-                    'Límite alcanzado',
-                    `Solo puedes seleccionar un máximo de ${MAX_IMAGES} imágenes`
-                );
-                return false;
-            }
-            return true;
-        },
-        [selectedImages.length]
-    );
+        const hasPermissions = await requestPermissions();
+        if (!hasPermissions) return;
 
-    const takePhoto = useCallback(async (): Promise<void> => {
         try {
-            if (!canAddMoreImages()) return;
-
-            const hasPermission = await requestCameraPermission();
-            if (!hasPermission) return;
-
             const result = await ImagePicker.launchCameraAsync({
-                mediaTypes: ['images'],
-                quality: IMAGE_QUALITY,
-                allowsEditing: false,
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                aspect: [4, 3],
+                quality: 0.8,
             });
 
             if (!result.canceled && result.assets[0]) {
                 setSelectedImages((prev) => [...prev, result.assets[0].uri]);
-                Alert.alert('Éxito', 'Foto tomada correctamente');
+                setShowImageModal(false);
             }
         } catch (error) {
             console.error('Error taking photo:', error);
-            Alert.alert('Error', 'No se pudo tomar la foto. Intenta nuevamente.');
+            Alert.alert(t('reportMediaErrorPhoto'));
         }
-    }, [canAddMoreImages, requestCameraPermission]);
+    };
 
-    const takeVideo = useCallback(async (): Promise<void> => {
+    const pickImageFromGallery = async () => {
+        if (selectedImages.length >= MAX_IMAGES) {
+            Alert.alert(t('reportMediaLimitImages').replace('{max}', MAX_IMAGES.toString()));
+            return;
+        }
+
+        const hasPermissions = await requestPermissions();
+        if (!hasPermissions) return;
+
         try {
-            if (selectedVideo) {
-                Alert.alert('Límite alcanzado', 'Solo puedes agregar un video por reporte');
-                return;
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 0.8,
+            });
+
+            if (!result.canceled && result.assets[0]) {
+                setSelectedImages((prev) => [...prev, result.assets[0].uri]);
+                setShowImageModal(false);
             }
+        } catch (error) {
+            console.error('Error picking image:', error);
+            Alert.alert(t('reportMediaErrorImage'));
+        }
+    };
 
-            const hasPermission = await requestCameraPermission();
-            if (!hasPermission) return;
+    const recordVideo = async () => {
+        if (selectedVideo) {
+            Alert.alert(t('reportMediaLimitVideo'));
+            return;
+        }
 
+        const hasPermissions = await requestPermissions();
+        if (!hasPermissions) return;
+
+        try {
             const result = await ImagePicker.launchCameraAsync({
-                mediaTypes: ['videos'],
-                quality: IMAGE_QUALITY,
-                videoMaxDuration: VIDEO_MAX_DURATION,
-                allowsEditing: false,
+                mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+                allowsEditing: true,
+                videoMaxDuration: 60, // 60 segundos máximo
+                quality: ImagePicker.UIImagePickerControllerQualityType.Medium,
             });
 
             if (!result.canceled && result.assets[0]) {
                 setSelectedVideo(result.assets[0].uri);
-                Alert.alert('Éxito', 'Video grabado correctamente');
+                setShowVideoModal(false);
             }
         } catch (error) {
-            console.error('Error taking video:', error);
-            Alert.alert('Error', 'No se pudo grabar el video. Intenta nuevamente.');
+            console.error('Error recording video:', error);
+            Alert.alert(t('reportMediaErrorVideo'));
         }
-    }, [selectedVideo, requestCameraPermission]);
+    };
 
-    const pickFromGallery = useCallback(async (): Promise<void> => {
-        try {
-            const remainingSlots = MAX_IMAGES - selectedImages.length;
-            if (remainingSlots <= 0) {
-                Alert.alert('Límite alcanzado', `Ya tienes ${MAX_IMAGES} imágenes seleccionadas`);
-                return;
-            }
-
-            const hasPermission = await requestGalleryPermission();
-            if (!hasPermission) return;
-
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['images'],
-                allowsEditing: false,
-                allowsMultipleSelection: true,
-                selectionLimit: remainingSlots,
-                quality: IMAGE_QUALITY,
-            });
-
-            if (!result.canceled && result.assets.length > 0) {
-                const newImageUris = result.assets.map((asset) => asset.uri);
-
-                // Validación adicional por si acaso
-                const totalImages = selectedImages.length + newImageUris.length;
-                if (totalImages > MAX_IMAGES) {
-                    const allowedImages = newImageUris.slice(0, remainingSlots);
-                    setSelectedImages((prev) => [...prev, ...allowedImages]);
-                    Alert.alert(
-                        'Límite alcanzado',
-                        `Solo se agregaron ${allowedImages.length} imágenes para no exceder el límite de ${MAX_IMAGES}`
-                    );
-                } else {
-                    setSelectedImages((prev) => [...prev, ...newImageUris]);
-                    const message =
-                        newImageUris.length === 1
-                            ? 'Imagen seleccionada correctamente'
-                            : `${newImageUris.length} imágenes seleccionadas correctamente`;
-                    Alert.alert('Éxito', message);
-                }
-            }
-        } catch (error) {
-            console.error('Error picking images from gallery:', error);
-            Alert.alert('Error', 'No se pudieron seleccionar las imágenes. Intenta nuevamente.');
+    const pickVideoFromGallery = async () => {
+        if (selectedVideo) {
+            Alert.alert(t('reportMediaLimitVideo'));
+            return;
         }
-    }, [selectedImages.length, requestGalleryPermission]);
 
-    const pickVideoFromGallery = useCallback(async (): Promise<void> => {
+        const hasPermissions = await requestPermissions();
+        if (!hasPermissions) return;
+
         try {
-            if (selectedVideo) {
-                Alert.alert(
-                    'Límite alcanzado',
-                    'Ya tienes un video seleccionado. Elimínalo para agregar otro.'
-                );
-                return;
-            }
-
-            const hasPermission = await requestGalleryPermission();
-            if (!hasPermission) return;
-
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['videos'],
-                allowsEditing: false,
-                quality: IMAGE_QUALITY,
+                mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+                allowsEditing: true,
+                videoMaxDuration: 60,
+                quality: ImagePicker.UIImagePickerControllerQualityType.Medium,
             });
 
             if (!result.canceled && result.assets[0]) {
                 setSelectedVideo(result.assets[0].uri);
-                Alert.alert('Éxito', 'Video seleccionado correctamente');
+                setShowVideoModal(false);
             }
         } catch (error) {
-            console.error('Error picking video from gallery:', error);
-            Alert.alert('Error', 'No se pudo seleccionar el video. Intenta nuevamente.');
+            console.error('Error picking video:', error);
+            Alert.alert(t('reportMediaErrorVideo'));
         }
-    }, [selectedVideo, requestGalleryPermission]);
+    };
 
-    const removeImage = useCallback(
-        (index: number): void => {
-            if (index < 0 || index >= selectedImages.length) {
-                console.warn('Index out of bounds when removing image');
-                return;
-            }
-            setSelectedImages((prev) => prev.filter((_, i) => i !== index));
-        },
-        [selectedImages.length]
-    );
+    const removeImage = (index: number) => {
+        setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+    };
 
-    const removeVideo = useCallback((): void => {
-        setSelectedVideo(null);
-    }, []);
+    const removeVideo = () => {
+        setSelectedVideo(undefined);
+    };
 
-    const removeAllImages = useCallback((): void => {
+    const openImageModal = () => {
+        if (selectedImages.length >= MAX_IMAGES) {
+            Alert.alert(t('reportMediaLimitImages').replace('{max}', MAX_IMAGES.toString()));
+            return;
+        }
+        setShowImageModal(true);
+    };
+
+    const openVideoModal = () => {
+        if (selectedVideo) {
+            Alert.alert(t('reportMediaLimitVideo'));
+            return;
+        }
+        setShowVideoModal(true);
+    };
+
+    const resetMedia = () => {
         setSelectedImages([]);
-    }, []);
-
-    const removeAllMedia = useCallback((): void => {
-        setSelectedImages([]);
-        setSelectedVideo(null);
-    }, []);
-
-    // Estado derivado para mejor rendimiento
-    const mediaStats = {
-        imageCount: selectedImages.length,
-        hasVideo: !!selectedVideo,
-        canAddImages: selectedImages.length < MAX_IMAGES,
-        canAddVideo: !selectedVideo,
-        remainingImageSlots: MAX_IMAGES - selectedImages.length,
+        setSelectedVideo(undefined);
     };
 
     return {
-        // Estado
         selectedImages,
         selectedVideo,
-        mediaStats,
-
-        // Acciones principales
+        showImageModal,
+        showVideoModal,
+        setShowImageModal,
+        setShowVideoModal,
         takePhoto,
-        takeVideo,
-        pickFromGallery,
+        pickImageFromGallery,
+        recordVideo,
         pickVideoFromGallery,
-
-        // Acciones de eliminación
         removeImage,
         removeVideo,
-        removeAllImages,
-        removeAllMedia,
-
-        // Constantes útiles
-        MAX_IMAGES,
+        openImageModal,
+        openVideoModal,
+        resetMedia,
+        getMediaStats,
     };
-}
+};

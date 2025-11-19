@@ -1,7 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, FlatList, TextInput } from 'react-native';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, FlatList, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ReportsStatistics from './ReportsStatistics';
+import ProjectsService from '../services/ProjectsService';
+import ReportsService from '../../listreport/services/ReportsService';
+import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface Report {
   id: number;
@@ -22,92 +25,14 @@ interface ReportsViewProps {
   onBack: () => void;
 }
 
-// Datos falsos de ejemplo - después los reemplazarás con datos reales
-const reportesEjemplo: Report[] = [
-  {
-    id: 1,
-    titulo: 'Bache profundo en intersección',
-    descripcion: 'Hay un bache muy profundo que puede dañar los vehículos. Es urgente repararlo.',
-    fecha: '2024-09-05',
-    usuario: 'Juan Pérez',
-    votos: 23,
-    ubicacionEspecifica: 'Esquina de Av. Alemania con Prat',
-    fechaCreacion: new Date('2024-09-05'),
-  },
-  {
-    id: 2,
-    titulo: 'Un bache qlo malo weon',
-    descripcion: 'La calle presenta irregularidades que dificultan el tránsito de peatones.',
-    fecha: '2024-09-03',
-    usuario: 'María González',
-    votos: 15,
-    ubicacionEspecifica: 'Frente al edificio municipal',
-    fechaCreacion: new Date('2024-09-03'),
-  },
-  {
-    id: 3,
-    titulo: 'Yapo muni pa cuando el bache',
-    descripcion: 'Hice mierda el auto por ese bache',
-    fecha: '2024-09-01',
-    usuario: 'Carlos Silva',
-    votos: 8,
-    ubicacionEspecifica: 'Cerca del semáforo principal',
-    fechaCreacion: new Date('2024-09-01'),
-  },
-  {
-    id: 4,
-    titulo: 'Semáforo no funciona',
-    descripcion: 'El semáforo está intermitente desde hace una semana, causando confusión.',
-    fecha: '2024-08-28',
-    usuario: 'Ana Rodríguez',
-    votos: 42,
-    ubicacionEspecifica: "Intersección Av. Alemania con O'Higgins",
-    fechaCreacion: new Date('2024-08-28'),
-  },
-  {
-    id: 5,
-    titulo: 'Luminaria quemada',
-    descripcion: 'La luminaria está quemada hace 2 semanas, zona muy oscura de noche.',
-    fecha: '2024-08-25',
-    usuario: 'Pedro Martínez',
-    votos: 18,
-    ubicacionEspecifica: 'Poste 142, Av. Alemania altura 800',
-    fechaCreacion: new Date('2024-08-25'),
-  },
-  {
-    id: 6,
-    titulo: 'Vereda destruida',
-    descripcion: 'La vereda está completamente rota, imposible caminar.',
-    fecha: '2024-08-30',
-    usuario: 'Luis López',
-    votos: 31,
-    ubicacionEspecifica: 'Vereda norte, Av. Alemania cuadra 7',
-    fechaCreacion: new Date('2024-08-30'),
-  },
-  {
-    id: 7,
-    titulo: 'Basura acumulada',
-    descripcion: 'Hay basura acumulada que no ha sido recolectada en días.',
-    fecha: '2024-09-07',
-    usuario: 'Carmen Flores',
-    votos: 12,
-    ubicacionEspecifica: 'Contenedores frente al N° 756',
-    fechaCreacion: new Date('2024-09-07'),
-  },
-  {
-    id: 8,
-    titulo: 'Alcantarilla tapada',
-    descripcion: 'Se inunda toda la calle cuando llueve por alcantarilla obstruida.',
-    fecha: '2024-09-02',
-    usuario: 'Roberto Sánchez',
-    votos: 67,
-    ubicacionEspecifica: 'Alcantarilla esquina Prat con Alemania',
-    fechaCreacion: new Date('2024-09-02'),
-  },
-];
-
 export default function ReportsView({ projectId, projectName, onBack }: ReportsViewProps) {
+  const { t } = useLanguage();
   const [showStatistics, setShowStatistics] = useState(false);
+
+  // Estados para reportes reales
+  const [reportes, setReportes] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Estados para búsqueda, filtros y paginación
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -117,9 +42,60 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
   // Configuración de paginación
   const ITEMS_PER_PAGE = 4;
 
+  // Cargar reportes asociados al proyecto
+  useEffect(() => {
+    loadAssociatedReports();
+  }, [projectId]);
+
+  const loadAssociatedReports = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 1. Obtener el proyecto para conseguir el denu_id
+      const proyecto = await ProjectsService.fetchById(projectId);
+      
+      if (!proyecto || !proyecto.denuncia_id) {
+        setError('No se encontró la denuncia asociada al proyecto');
+        setReportes([]);
+        return;
+      }
+
+      // 2. Obtener el reporte/denuncia
+      const response = await ReportsService.fetchAll({ limit: 100 });
+      const reporte = response.results.find(r => String(r.id) === String(proyecto.denuncia_id));
+
+      if (!reporte) {
+        setError('No se encontró el reporte asociado');
+        setReportes([]);
+        return;
+      }
+
+      // 3. Transformar el reporte al formato esperado
+      const reporteTransformado: Report = {
+        id: typeof reporte.id === 'string' ? parseInt(reporte.id) : reporte.id,
+        titulo: reporte.titulo,
+        descripcion: reporte.descripcion,
+        fecha: reporte.fecha,
+        usuario: reporte.autor,
+        votos: reporte.votos || 0,
+        ubicacionEspecifica: reporte.ubicacion,
+        fechaCreacion: new Date(reporte.fecha),
+      };
+
+      setReportes([reporteTransformado]);
+    } catch (err: any) {
+      console.error('Error al cargar reportes asociados:', err);
+      setError(err?.message || 'Error al cargar los reportes');
+      setReportes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Función de filtrado y ordenamiento
   const filteredAndSortedReports = useMemo(() => {
-    let filtered = [...reportesEjemplo];
+    let filtered = [...reportes];
 
     // Aplicar búsqueda por texto
     if (searchQuery.trim()) {
@@ -150,7 +126,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
     });
 
     return filtered;
-  }, [searchQuery, sortOrder]);
+  }, [reportes, searchQuery, sortOrder]);
 
   // Datos paginados
   const paginatedReports = useMemo(() => {
@@ -161,7 +137,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
 
   // Cálculos
   const totalPages = Math.ceil(filteredAndSortedReports.length / ITEMS_PER_PAGE);
-  const totalVotos = reportesEjemplo.reduce((sum, report) => sum + report.votos, 0);
+  const totalVotos = reportes.reduce((sum, report) => sum + report.votos, 0);
 
   // Funciones de manejo
   const handleSearchChange = (text: string) => {
@@ -250,13 +226,13 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
         disabled={currentPage === 1}>
         <Ionicons name="chevron-back" size={16} color={currentPage === 1 ? 'gray' : 'white'} />
         <Text className={`ml-1 text-sm ${currentPage === 1 ? 'text-gray-400' : 'text-white'}`}>
-          Anterior
+          {t('projectsListPreviousPage')}
         </Text>
       </TouchableOpacity>
 
       <View className="flex-row items-center">
         <Text className="text-sm text-white">
-          Página {currentPage} de {totalPages}
+          {t('projectsListPage')} {currentPage} {t('projectsListOf')} {totalPages}
         </Text>
       </View>
 
@@ -268,7 +244,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
         disabled={currentPage === totalPages}>
         <Text
           className={`mr-1 text-sm ${currentPage === totalPages ? 'text-gray-400' : 'text-white'}`}>
-          Siguiente
+          {t('projectsListNextPage')}
         </Text>
         <Ionicons
           name="chevron-forward"
@@ -314,12 +290,41 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
         <TouchableOpacity className="rounded-xl bg-[#537CF2] p-2" onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text className="ml-4 text-xl font-bold text-white">Reportes Asociados</Text>
+        <Text className="ml-4 text-xl font-bold text-white">{t('projectReportsTitle')}</Text>
       </View>
 
-      {/* Barra de Búsqueda */}
-      <View className="mb-4 rounded-xl bg-[#13161E] p-4">
-        <View className="flex-row items-center rounded-lg bg-[#1D212D] px-3 py-2">
+      {/* Loading State */}
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#537CF2" />
+          <Text className="mt-4 text-gray-400">{t('projectReportsLoading')}</Text>
+        </View>
+      ) : error ? (
+        /* Error State */
+        <View className="flex-1 items-center justify-center px-6">
+          <Ionicons name="alert-circle" size={64} color="#EF4444" />
+          <Text className="mt-4 text-center text-lg font-bold text-white">{t('projectReportsError')}</Text>
+          <Text className="mt-2 text-center text-gray-400">{error}</Text>
+          <TouchableOpacity
+            className="mt-6 rounded-lg bg-[#537CF2] px-6 py-3"
+            onPress={loadAssociatedReports}>
+            <Text className="font-semibold text-white">{t('projectReportsRetry')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : reportes.length === 0 ? (
+        /* Empty State */
+        <View className="flex-1 items-center justify-center px-6">
+          <Ionicons name="document-text-outline" size={64} color="#9CA3AF" />
+          <Text className="mt-4 text-center text-lg font-bold text-white">{t('projectReportsEmpty')}</Text>
+          <Text className="mt-2 text-center text-gray-400">
+            {t('projectReportsEmpty')}
+          </Text>
+        </View>
+      ) : (
+        <>
+          {/* Barra de Búsqueda */}
+          <View className="mb-4 rounded-xl bg-[#13161E] p-4">
+            <View className="flex-row items-center rounded-lg bg-[#1D212D] px-3 py-2">
           <Ionicons name="search" size={20} color="gray" />
           <TextInput
             className="ml-3 flex-1 text-white"
@@ -351,7 +356,7 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
             <View className="mr-2 flex-1 rounded-lg bg-[#1D212D] p-3">
               <Text className="text-center text-gray-400">Total Reportes</Text>
               <Text className="text-center text-2xl font-bold text-white">
-                {reportesEjemplo.length}
+                {reportes.length}
               </Text>
             </View>
             <View className="ml-2 flex-1 rounded-lg bg-[#1D212D] p-3">
@@ -454,6 +459,8 @@ export default function ReportsView({ projectId, projectName, onBack }: ReportsV
           </TouchableOpacity>
         </View>
       </ScrollView>
+        </>
+      )}
     </View>
   );
 }

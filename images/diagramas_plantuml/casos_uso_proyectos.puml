@@ -50,25 +50,25 @@ actor "Administrador" as admin #Red
 ' =====================================================
 
 ' Usuario Municipal - Crear proyectos desde reportes
-municipal --> UC1
-municipal --> UC2
-municipal --> UC3
-municipal --> UC4
-municipal --> UC8
-municipal --> UC9
-municipal --> UC10
+municipal -- UC1
+municipal -- UC2
+municipal -- UC3
+municipal -- UC4
+municipal -- UC8
+municipal -- UC9
+municipal -- UC10
 
 ' Usuario Común - Solo listar y ver proyectos
-usuario --> UC2
-usuario --> UC3
+usuario -- UC2
+usuario -- UC3
 
 ' Admin - Gestión completa
-UC2 <-- admin
-UC3 <-- admin
-UC4 <-- admin
-UC5 <-- admin
-UC12 <-- admin
-UC13 <-- admin
+UC2 -- admin
+UC3 -- admin
+UC4 -- admin
+UC5 -- admin
+UC12 -- admin
+UC13 -- admin
 
 ' =====================================================
 ' NOTAS

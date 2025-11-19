@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import ProjectsService from '../services/ProjectsService';
+import ReportsService from '../../listreport/services/ReportsService';
+import { useLanguage } from '../../../contexts/LanguageContext';
 
 // ==================== INTERFACES Y TIPOS ====================
 
@@ -44,52 +47,9 @@ interface FormData {
   fechaInicioEstimada: Date | null;
 }
 
-// ==================== DATOS DE CONFIGURACIÓN ====================
+// ==================== COMPONENTE PRINCIPAL ====================
 
 /**
- * Datos de ejemplo de denuncias ciudadanas disponibles
- * En producción, estos datos vendrían de la API del backend
- * Representan los reportes que los ciudadanos han enviado previamente
- */
-const denunciasDisponibles: Denuncia[] = [
-  {
-    id: 1,
-    titulo: 'Bache profundo en intersección',
-    descripcion: 'Hay un bache muy profundo que puede dañar los vehículos',
-    fecha: '2024-09-05',
-    usuario: 'Juan Pérez',
-    votos: 23,
-    ubicacion: 'Esquina de Av. Alemania con Prat',
-    tipoDenuncia: 'Infraestructura Vial',
-    prioridad: 'Alta',
-  },
-  {
-    id: 2,
-    titulo: 'Farol dañado en plaza central',
-    descripcion: 'Luminaria no funciona desde hace una semana',
-    fecha: '2024-09-03',
-    usuario: 'María González',
-    votos: 15,
-    ubicacion: 'Plaza Central',
-    tipoDenuncia: 'Iluminación Pública',
-    prioridad: 'Media',
-  },
-  {
-    id: 3,
-    titulo: 'Alcantarilla tapada',
-    descripcion: 'Se acumula agua cuando llueve',
-    fecha: '2024-09-01',
-    usuario: 'Carlos Silva',
-    votos: 8,
-    ubicacion: 'Calle Los Aromos',
-    tipoDenuncia: 'Servicios Básicos',
-    prioridad: 'Media',
-  },
-];
-
-/**
- * COMPONENTE PRINCIPAL: CreateProjectScreen
- *
  * PROPÓSITO: Permite a las autoridades municipales crear proyectos de respuesta
  * a las denuncias ciudadanas. Maneja tanto la selección múltiple de denuncias
  * como el formulario completo para definir el proyecto.
@@ -105,6 +65,8 @@ export default function CreateProjectScreen({
   onBack,
   onProjectCreated,
 }: CreateProjectProps) {
+  const { t } = useLanguage();
+  
   // ==================== FUNCIÓN DE NAVEGACIÓN ====================
 
   /**
@@ -122,7 +84,30 @@ export default function CreateProjectScreen({
     }
   };
 
+  /**
+   * Maneja el botón cancelar desde el formulario
+   * Vuelve a la selección de denuncias si no hay denuncia preseleccionada
+   * Si hay denuncia preseleccionada, sale completamente
+   */
+  const handleCancel = () => {
+    if (denunciaSeleccionada) {
+      // Si vino con denuncia preseleccionada, salir completamente
+      handleBack();
+    } else {
+      // Si no, volver a la selección de denuncias
+      setShowDenunciaSelector(true);
+      setDenunciaSelected(null);
+    }
+  };
+
   // ==================== ESTADO DEL COMPONENTE ====================
+
+  /**
+   * Lista de denuncias disponibles cargadas desde la API
+   */
+  const [denunciasDisponibles, setDenunciasDisponibles] = useState<Denuncia[]>([]);
+  const [loadingDenuncias, setLoadingDenuncias] = useState(false);
+  const [errorDenuncias, setErrorDenuncias] = useState<string | null>(null);
 
   /**
    * Denuncia actualmente seleccionada para este proyecto
@@ -151,6 +136,57 @@ export default function CreateProjectScreen({
 
   // Estado para mostrar/ocultar el selector de fecha
   const [showDatePicker, setShowDatePicker] = useState(false);
+  
+  // Estado de carga para mostrar indicador mientras se crea el proyecto
+  const [isCreating, setIsCreating] = useState(false);
+
+  // ==================== EFECTO PARA CARGAR DENUNCIAS ====================
+
+  /**
+   * Carga las denuncias disponibles desde la API al montar el componente
+   */
+  useEffect(() => {
+    const loadDenuncias = async () => {
+      setLoadingDenuncias(true);
+      setErrorDenuncias(null);
+      
+      try {
+        const response = await ReportsService.fetchAll({ limit: 100 });
+        
+        // Mapear reportes a formato de Denuncia
+        const denuncias: Denuncia[] = response.results.map((report) => {
+          // Mapear urgencia a prioridad
+          const prioridadMap: Record<string, 'Alta' | 'Media' | 'Baja'> = {
+            'Crítico': 'Alta',
+            'Alto': 'Alta',
+            'Medio': 'Media',
+            'Bajo': 'Baja',
+          };
+
+          return {
+            id: parseInt(report.id),
+            titulo: report.titulo,
+            descripcion: report.descripcion,
+            fecha: report.fecha,
+            usuario: report.autor,
+            votos: report.votos || 0,
+            ubicacion: report.ubicacion,
+            tipoDenuncia: report.tipoDenuncia,
+            prioridad: prioridadMap[report.nivelUrgencia] || 'Media',
+          };
+        });
+
+        setDenunciasDisponibles(denuncias);
+      } catch (error) {
+        console.error('Error al cargar denuncias:', error);
+        setErrorDenuncias('Error al cargar las denuncias disponibles');
+      } finally {
+        setLoadingDenuncias(false);
+      }
+    };
+
+    loadDenuncias();
+  }, []);
 
   // ==================== FUNCIONES DE MANEJO ====================
 
@@ -189,69 +225,98 @@ export default function CreateProjectScreen({
   /**
    * Función principal para crear el proyecto
    * Realiza validaciones completas antes de proceder
-   * Crea el objeto proyecto y notifica al componente padre
+   * Envía el proyecto a la API del backend
    */
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     // ==================== VALIDACIONES ====================
 
     // Validación 1: Debe haber una denuncia seleccionada
     if (!denunciaSelected) {
-      Alert.alert('Error', 'Debe seleccionar una denuncia para crear el proyecto');
+      Alert.alert(t('projectCreateError'), t('projectCreateErrorNoReport'));
       return;
     }
 
     // Validación 2: El nombre del proyecto es obligatorio
     if (!formData.nombreProyecto.trim()) {
-      Alert.alert('Error', 'El nombre del proyecto es obligatorio');
+      Alert.alert(t('projectCreateError'), t('projectCreateErrorNoName'));
       return;
     }
 
-    // Validación 3: La descripción es obligatoria
+    // Validación 3: La descripción es obligatoria (mínimo 20 caracteres)
     if (!formData.descripcion.trim()) {
-      Alert.alert('Error', 'La descripción del proyecto es obligatoria');
+      Alert.alert(t('projectCreateError'), t('projectCreateErrorNoDescription'));
       return;
     }
 
-    // ==================== CREACIÓN DEL PROYECTO ====================
+    if (formData.descripcion.trim().length < 20) {
+      Alert.alert(t('projectCreateError'), t('projectCreateErrorDescriptionTooShort'));
+      return;
+    }
 
-    /**
-     * Construye el objeto proyecto con toda la información recopilada
-     * Incluye timestamp único como ID y metadatos de creación
-     */
-    const nuevoProyecto = {
-      id: Date.now(), // ID único basado en timestamp
-      nombreProyecto: formData.nombreProyecto,
-      descripcion: formData.descripcion,
-      tipoDenuncia: denunciaSelected.tipoDenuncia,
-      prioridad: formData.prioridadProyecto,
-      fechaInicioEstimada: formData.fechaInicioEstimada?.toISOString() || null,
-      denunciaAsociada: denunciaSelected, // Denuncia que resuelve este proyecto
-      estado: 'Aprobado',
-      fechaCreacion: new Date().toISOString(),
-      createdBy: 'Administrador Municipal', // Aqui tengo que identificar al usuario
+    // ==================== PREPARACIÓN DE DATOS ====================
+
+    // Mapear prioridad de texto a número
+    const prioridadMap: Record<'Alta' | 'Media' | 'Baja', 1 | 2 | 3> = {
+      'Baja': 1,
+      'Media': 2,
+      'Alta': 3,
     };
 
-    // ==================== CONFIRMACIÓN Y NAVEGACIÓN ====================
+    // Preparar datos para la API
+    const projectData = {
+      proy_titulo: formData.nombreProyecto.trim(),
+      proy_descripcion: formData.descripcion.trim(),
+      denu_id: denunciaSelected.id,
+      proy_prioridad: prioridadMap[formData.prioridadProyecto],
+      proy_fecha_inicio_estimada: formData.fechaInicioEstimada 
+        ? formData.fechaInicioEstimada.toISOString().split('T')[0] // Formato YYYY-MM-DD
+        : null,
+      proy_lugar: denunciaSelected.ubicacion,
+      proy_tipo_denuncia: denunciaSelected.tipoDenuncia,
+      proy_estado: 6 as 1 | 2 | 3 | 4 | 5 | 6 | 7, // 6 = Aprobado (según el backend)
+    };
 
-    /**
-     * Muestra confirmación al usuario y ejecuta callbacks
-     * onProjectCreated: Notifica al componente padre sobre el nuevo proyecto
-     * onBack: Navega de regreso a la pantalla anterior
-     */
+    // ==================== LLAMADA A LA API ====================
 
-    Alert.alert(
-      'Proyecto Creado',
-      `El proyecto "${formData.nombreProyecto}" ha sido creado exitosamente`,
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            onProjectCreated?.(nuevoProyecto); // Notifica al padre
-            handleBack(); // Regresa a la pantalla anterior
+    setIsCreating(true);
+
+    try {
+      const proyectoCreado = await ProjectsService.create(projectData);
+
+      // Éxito: mostrar confirmación y navegar
+      Alert.alert(
+        t('projectCreateSuccess'),
+        t('projectCreateSuccessMessage'),
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              onProjectCreated?.(proyectoCreado);
+              handleBack();
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error: any) {
+      // Error: mostrar mensaje al usuario
+      console.error('Error al crear proyecto:', error);
+      
+      let errorMessage = t('projectCreateError');
+      
+      try {
+        // Intentar parsear errores del backend
+        const errors = JSON.parse(error.message);
+        errorMessage = Object.entries(errors)
+          .map(([field, msgs]: [string, any]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+          .join('\n');
+      } catch {
+        errorMessage = error.message || t('projectCreateError');
+      }
+      
+      Alert.alert(t('projectCreateError'), errorMessage);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   // ==================== RENDERIZADO CONDICIONAL ====================
@@ -284,8 +349,29 @@ export default function CreateProjectScreen({
               : 'Toca una denuncia para seleccionarla'}
           </Text>
 
+          {/* Estado de carga */}
+          {loadingDenuncias && (
+            <View className="items-center py-8">
+              <ActivityIndicator size="large" color="#537CF2" />
+              <Text className="mt-2 text-gray-400">Cargando denuncias...</Text>
+            </View>
+          )}
+
+          {/* Estado de error */}
+          {errorDenuncias && !loadingDenuncias && (
+            <View className="items-center py-8">
+              <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+              <Text className="mt-2 text-center text-red-400">{errorDenuncias}</Text>
+              <TouchableOpacity
+                className="mt-4 rounded-lg bg-[#537CF2] px-4 py-2"
+                onPress={() => window.location.reload()}>
+                <Text className="text-white">Reintentar</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Botón para continuar - solo visible si hay selección */}
-          {denunciaSelected && (
+          {denunciaSelected && !loadingDenuncias && (
             <TouchableOpacity
               className="mb-4 rounded-xl bg-[#537CF2] p-4"
               onPress={() => setShowDenunciaSelector(false)}>
@@ -296,8 +382,16 @@ export default function CreateProjectScreen({
           )}
 
           {/* Lista de denuncias disponibles con estado de selección */}
+          {!loadingDenuncias && !errorDenuncias && denunciasDisponibles.length === 0 && (
+            <View className="items-center py-8">
+              <Ionicons name="document-text-outline" size={48} color="gray" />
+              <Text className="mt-2 text-center text-gray-400">
+                No hay denuncias disponibles
+              </Text>
+            </View>
+          )}
 
-          {denunciasDisponibles.map((denuncia) => {
+          {!loadingDenuncias && !errorDenuncias && denunciasDisponibles.map((denuncia) => {
             const isSelected = denunciaSelected?.id === denuncia.id;
             return (
               <TouchableOpacity
@@ -494,15 +588,23 @@ export default function CreateProjectScreen({
         {/* Botones de Acción */}
         <View className="mb-6 flex-row">
           {/* Botón Cancelar - Regresa sin guardar cambios */}
-          <TouchableOpacity className="mr-3 flex-1 rounded-lg bg-[#1D212D] p-4" onPress={handleBack}>
+          <TouchableOpacity className="mr-3 flex-1 rounded-lg bg-[#1D212D] p-4" onPress={handleCancel} disabled={isCreating}>
             <Text className="text-center font-semibold text-white">Cancelar</Text>
           </TouchableOpacity>
 
           {/* Botón Crear Proyecto - Ejecuta validaciones y crea el proyecto */}
           <TouchableOpacity
-            className="flex-1 rounded-lg bg-[#537CF2] p-4"
-            onPress={handleCreateProject}>
-            <Text className="text-center font-semibold text-white">Crear Proyecto</Text>
+            className={`flex-1 rounded-lg p-4 ${isCreating ? 'bg-gray-500' : 'bg-[#537CF2]'}`}
+            onPress={handleCreateProject}
+            disabled={isCreating}>
+            {isCreating ? (
+              <View className="flex-row items-center justify-center">
+                <ActivityIndicator size="small" color="white" />
+                <Text className="ml-2 text-center font-semibold text-white">Creando...</Text>
+              </View>
+            ) : (
+              <Text className="text-center font-semibold text-white">Crear Proyecto</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

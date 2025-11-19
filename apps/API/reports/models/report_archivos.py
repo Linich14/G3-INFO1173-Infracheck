@@ -315,14 +315,9 @@ class ReportArchivo(models.Model):
     
     def delete(self, *args, **kwargs):
         """Override delete para eliminar archivo físico"""
-        # Eliminar archivo físico
-        if self.archivo:
-            try:
-                if os.path.isfile(self.archivo.path):
-                    os.remove(self.archivo.path)
-            except (ValueError, OSError):
-                pass  # El archivo no existe o no se puede eliminar
-        
+        # Nota: La eliminación de archivos físicos se maneja en la vista
+        # para mejor control de errores dentro de transacciones
+        # Solo eliminamos el registro de BD aquí
         super().delete(*args, **kwargs)
 
 

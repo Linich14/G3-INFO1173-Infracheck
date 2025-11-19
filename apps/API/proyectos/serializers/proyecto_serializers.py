@@ -146,6 +146,8 @@ class ProyectoListSerializer(serializers.ModelSerializer):
     votosAFavor = serializers.IntegerField(source='get_votos_a_favor', read_only=True)
     tipoDenuncia = serializers.CharField(source='proy_tipo_denuncia', read_only=True)
     fechaCreacion = serializers.DateTimeField(source='proy_creado', read_only=True)
+    denuncia_id = serializers.IntegerField(source='denu_id.id', read_only=True)
+    progreso = serializers.SerializerMethodField()
     
     # Campos originales
     id = serializers.IntegerField(source='proy_id', read_only=True)
@@ -157,8 +159,27 @@ class ProyectoListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'lugar', 'estado', 'color', 'prioridad',
             'reportesAsociados', 'votosAFavor', 'tipoDenuncia',
-            'fechaCreacion', 'titulo', 'descripcion'
+            'fechaCreacion', 'titulo', 'descripcion', 'denuncia_id', 'progreso'
         ]
+
+    def get_progreso(self, obj):
+        """Estimación simple de progreso:
+        - Si está completado -> 100
+        - Si está en progreso (proy_estado == 2) -> 50
+        - Si está en planificación (1) -> 10
+        - Otros -> 0
+        """
+        try:
+            estado = getattr(obj, 'proy_estado', None)
+            if obj.is_completado():
+                return 100
+            if estado == 2:
+                return 50
+            if estado == 1:
+                return 10
+            return 0
+        except Exception:
+            return 0
 
 
 class ProyectoDetailSerializer(serializers.ModelSerializer):
@@ -189,6 +210,7 @@ class ProyectoDetailSerializer(serializers.ModelSerializer):
     dias_desde_creacion = serializers.SerializerMethodField()
     es_completado = serializers.SerializerMethodField()
     total_archivos = serializers.IntegerField(source='get_total_archivos', read_only=True)
+    progreso = serializers.SerializerMethodField()
     
     class Meta:
         model = ProyectoModel
@@ -198,7 +220,7 @@ class ProyectoDetailSerializer(serializers.ModelSerializer):
             'fechaCreacion', 'nombreProyecto', 'descripcion',
             'fechaInicioEstimada', 'denuncia_id', 'denuncia_titulo',
             'denuncia_ubicacion', 'archivos', 'dias_desde_creacion',
-            'es_completado', 'total_archivos'
+            'es_completado', 'total_archivos', 'progreso'
         ]
     
     def get_dias_desde_creacion(self, obj):
@@ -206,6 +228,19 @@ class ProyectoDetailSerializer(serializers.ModelSerializer):
     
     def get_es_completado(self, obj):
         return obj.is_completado()
+
+    def get_progreso(self, obj):
+        try:
+            estado = getattr(obj, 'proy_estado', None)
+            if obj.is_completado():
+                return 100
+            if estado == 2:
+                return 50
+            if estado == 1:
+                return 10
+            return 0
+        except Exception:
+            return 0
 
 
 class ProyectoReportSerializer(serializers.ModelSerializer):
