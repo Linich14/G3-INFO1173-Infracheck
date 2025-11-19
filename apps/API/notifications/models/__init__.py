@@ -1,3 +1,4 @@
 from notifications.models.notification import Notification
+from notifications.models.push_token import PushToken
 
-__all__ = ['Notification']
+__all__ = ['Notification', 'PushToken']

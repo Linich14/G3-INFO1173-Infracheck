@@ -254,11 +254,12 @@ class NotificationCreateAdminView(APIView):
     
     Body JSON:
     {
-        "usuario_identifier": "12345678-9" o 5,  // RUT o ID
+        "usuario_identifier": "12345678-9" o 5,  // RUT o ID (opcional si send_to_all=true)
         "titulo": "Título de la notificación",
         "mensaje": "Mensaje de la notificación",
         "tipo": "info",  // info, success, warning, error
-        "reporte_id": 123  // opcional
+        "reporte_id": 123,  // opcional
+        "send_to_all": false  // opcional, si es true envía a todos los usuarios
     }
     """
     
@@ -279,12 +280,13 @@ class NotificationCreateAdminView(APIView):
             mensaje = request.data.get('mensaje')
             tipo = request.data.get('tipo', 'info')
             reporte_id = request.data.get('reporte_id')
+            send_to_all = request.data.get('send_to_all', False)
             
             # Validaciones
-            if not usuario_identifier:
+            if not send_to_all and not usuario_identifier:
                 return Response({
                     'success': False,
-                    'error': 'Se requiere usuario_identifier (RUT o ID)'
+                    'error': 'Se requiere usuario_identifier (RUT o ID) o activar send_to_all'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             if not titulo or not mensaje:
@@ -301,7 +303,35 @@ class NotificationCreateAdminView(APIView):
                 except ReportModel.DoesNotExist:
                     logger.warning(f"Reporte {reporte_id} no encontrado")
             
-            # Crear notificación usando el servicio con RUT/ID
+            # Si send_to_all es True, crear notificaciones para todos los usuarios
+            if send_to_all:
+                from domain.entities.usuario import Usuario
+                usuarios = Usuario.objects.filter(usua_estado=1)
+                notificaciones_creadas = []
+                
+                for usuario in usuarios:
+                    notificacion = notification_service.create_notification(
+                        usuario=usuario,
+                        titulo=titulo,
+                        mensaje=mensaje,
+                        tipo=tipo,
+                        denuncia=reporte
+                    )
+                    if notificacion:
+                        notificaciones_creadas.append(notificacion)
+                
+                logger.info(
+                    f"Notificaciones masivas creadas por admin {usuario_admin.usua_nickname}: "
+                    f"{len(notificaciones_creadas)} notificaciones enviadas"
+                )
+                
+                return Response({
+                    'success': True,
+                    'message': f'{len(notificaciones_creadas)} notificaciones creadas exitosamente',
+                    'count': len(notificaciones_creadas)
+                }, status=status.HTTP_201_CREATED)
+            
+            # Crear notificación individual usando el servicio con RUT/ID
             notificacion = notification_service.create_notification(
                 usuario=usuario_identifier,
                 titulo=titulo,

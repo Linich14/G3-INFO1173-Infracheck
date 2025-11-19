@@ -126,31 +126,31 @@ export default function AuthContent() {
       {loading ? (
         <View className="bg-[#13161E] rounded-[12px] p-8 items-center">
           <ActivityIndicator size="large" color="#537CF2" />
-          <Text className="text-gray-400 mt-4">Cargando datos...</Text>
+          <Text className="text-gray-400 mt-4">{t('homeLoadingData')}</Text>
         </View>
       ) : (
         <>
           {/* Estadísticas Rápidas */}
           <View className="bg-[#13161E] rounded-[12px] p-4">
-            <Text className="text-white text-xl font-bold mb-4">Reportes del Día</Text>
+            <Text className="text-white text-xl font-bold mb-4">{t('homeReportsOfDay')}</Text>
             
             <View className="flex-row justify-between mb-4">
               <View className="items-center">
                 <AlertTriangle size={32} color="#FF6B6B" />
                 <Text className="text-white text-lg font-bold mt-2">{stats.urgentes}</Text>
-                <Text className="text-gray-400">Urgentes</Text>
+                <Text className="text-gray-400">{t('homeUrgent')}</Text>
               </View>
               
               <View className="items-center">
                 <FileText size={32} color="#4ECDC4" />
                 <Text className="text-white text-lg font-bold mt-2">{stats.pendientes}</Text>
-                <Text className="text-gray-400">Pendientes</Text>
+                <Text className="text-gray-400">{t('homePending')}</Text>
               </View>
               
               <View className="items-center">
                 <BarChart3 size={32} color="#45B7D1" />
                 <Text className="text-white text-lg font-bold mt-2">{stats.resueltos}</Text>
-                <Text className="text-gray-400">Resueltos</Text>
+                <Text className="text-gray-400">{t('homeResolved')}</Text>
               </View>
             </View>
           </View>
@@ -185,7 +185,7 @@ export default function AuthContent() {
 
       {/* Acciones Rápidas */}
       <View className="bg-[#13161E] rounded-[12px] p-4">
-        <Text className="text-white text-xl font-bold mb-4">Acciones Rápidas</Text>
+        <Text className="text-white text-xl font-bold mb-4">{t('homeQuickActions')}</Text>
         
         <View className="flex-row flex-wrap gap-3 justify-center">
           <TouchableOpacity 
@@ -194,7 +194,7 @@ export default function AuthContent() {
             style={{ width: '47%', height: 120 }}
           >
             <FolderOpen size={24} color="white" />
-            <Text className="text-white text-sm mt-2 text-center">Lista Proyectos</Text>
+            <Text className="text-white text-sm mt-2 text-center">{t('homeProjectsList')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -203,7 +203,7 @@ export default function AuthContent() {
             style={{ width: '47%', height: 120 }}
           >
             <Plus size={24} color="white" />
-            <Text className="text-white text-sm mt-2 text-center">Crear Proyecto</Text>
+            <Text className="text-white text-sm mt-2 text-center">{t('homeCreateProject')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -212,7 +212,7 @@ export default function AuthContent() {
             style={{ width: '47%', height: 120 }}
           >
             <FileText size={24} color="white" />
-            <Text className="text-white text-sm mt-2 text-center">Lista Reportes</Text>
+            <Text className="text-white text-sm mt-2 text-center">{t('homeReportsList')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -221,7 +221,7 @@ export default function AuthContent() {
             style={{ width: '47%', height: 120 }}
           >
             <BarChart3 size={24} color="white" />
-            <Text className="text-white text-sm mt-2 text-center">Ver Estadísticas</Text>
+            <Text className="text-white text-sm mt-2 text-center">{t('homeViewStatistics')}</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -159,6 +159,31 @@ class ProjectsService {
       );
     }
   }
+
+  /**
+   * Actualiza el estado de un proyecto
+   * @param projectId - ID del proyecto a actualizar
+   * @param estado - Nuevo estado (1-7)
+   * @returns El proyecto actualizado
+   */
+  async updateStatus(projectId: number, estado: 1 | 2 | 3 | 4 | 5 | 6 | 7): Promise<Project> {
+    try {
+      const resp = await api.patch(`/api/proyectos/${projectId}/update/`, { proy_estado: estado });
+      
+      // Invalidar cache
+      this.invalidateId(projectId);
+      this.invalidateByKeyPrefix('project:list');
+      
+      return resp.data;
+    } catch (err: any) {
+      console.error('Error al actualizar estado del proyecto:', err?.response?.data || err?.message);
+      throw new Error(
+        err?.response?.data?.error 
+          || err?.message 
+          || 'Error al actualizar el estado del proyecto'
+      );
+    }
+  }
 }
 
 export default new ProjectsService(60);
