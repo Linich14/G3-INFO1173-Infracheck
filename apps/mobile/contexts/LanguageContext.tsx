@@ -259,6 +259,14 @@ const TRANSLATIONS: Record<
         projectReportProblemTip4: string;
         projectReportProblemCancel: string;
         projectReportProblemSubmit: string;
+        // Projects - Create Project
+        projectCreateError: string;
+        projectCreateErrorNoReport: string;
+        projectCreateErrorNoName: string;
+        projectCreateErrorNoDescription: string;
+        projectCreateErrorDescriptionTooShort: string;
+        projectCreateSuccess: string;
+        projectCreateSuccessMessage: string;
         // Sound Notifications
         soundNotificationTitle: string;
         soundEnabled: string;
@@ -1302,6 +1310,14 @@ const TRANSLATIONS: Record<
         projectReportProblemTip4: '• Sugiere posibles soluciones si las conoces',
         projectReportProblemCancel: 'Cancelar',
         projectReportProblemSubmit: 'Enviar Reporte',
+        // Projects - Create Project
+        projectCreateError: 'Error',
+        projectCreateErrorNoReport: 'Debes seleccionar una denuncia',
+        projectCreateErrorNoName: 'El nombre del proyecto es obligatorio',
+        projectCreateErrorNoDescription: 'La descripción es obligatoria',
+        projectCreateErrorDescriptionTooShort: 'La descripción debe tener al menos 20 caracteres',
+        projectCreateSuccess: 'Proyecto Creado',
+        projectCreateSuccessMessage: 'El proyecto se ha creado exitosamente',
         soundNotificationTitle: 'Sonidos de Notificación',
         soundEnabled: 'Activado',
         soundDisabled: 'Desactivado',
@@ -2355,6 +2371,14 @@ const TRANSLATIONS: Record<
         projectReportProblemTip4: '• Suggest possible solutions if you know them',
         projectReportProblemCancel: 'Cancel',
         projectReportProblemSubmit: 'Submit Report',
+        // Projects - Create Project
+        projectCreateError: 'Error',
+        projectCreateErrorNoReport: 'You must select a report',
+        projectCreateErrorNoName: 'Project name is required',
+        projectCreateErrorNoDescription: 'Description is required',
+        projectCreateErrorDescriptionTooShort: 'Description must be at least 20 characters',
+        projectCreateSuccess: 'Project Created',
+        projectCreateSuccessMessage: 'The project has been created successfully',
         soundNotificationTitle: 'Notification Sounds',
         soundEnabled: 'Enabled',
         soundDisabled: 'Disabled',
