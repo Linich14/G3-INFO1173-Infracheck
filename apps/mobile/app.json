@@ -14,6 +14,14 @@
       "expo-web-browser",
       "@maplibre/maplibre-react-native",
       [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#537CF2",
+          "sounds": []
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "Necesitamos tu ubicación para mostrar lugares cercanos y centrar el mapa.",

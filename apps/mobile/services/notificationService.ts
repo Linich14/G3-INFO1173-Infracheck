@@ -112,11 +112,12 @@ export const markAllAsRead = async (): Promise<{ success: boolean; message: stri
 };
 
 export interface CreateNotificationData {
-  usuario_identifier: string | number;
+  usuario_identifier?: string | number;
   titulo: string;
   mensaje: string;
   tipo: 'info' | 'success' | 'warning' | 'error';
   reporte_id?: number;
+  send_to_all?: boolean;
 }
 
 export const createNotification = async (data: CreateNotificationData): Promise<{ success: boolean; message: string; notificacion?: any }> => {

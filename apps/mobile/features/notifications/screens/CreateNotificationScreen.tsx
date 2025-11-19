@@ -27,6 +27,7 @@ export default function CreateNotificationScreen() {
     const [mensaje, setMensaje] = useState('');
     const [tipo, setTipo] = useState<NotificationType>('info');
     const [denunciaId, setDenunciaId] = useState('');
+    const [sendToAll, setSendToAll] = useState(false);
 
     // Tipos de notificación con sus configuraciones
     const tiposNotificacion = [
@@ -38,7 +39,7 @@ export default function CreateNotificationScreen() {
 
     const handleCreate = async () => {
         // Validaciones
-        if (!usuarioIdentifier.trim()) {
+        if (!sendToAll && !usuarioIdentifier.trim()) {
             Alert.alert(t('notifyErrorTitle'), t('notifyErrorUserRequired'));
             return;
         }
@@ -55,7 +56,7 @@ export default function CreateNotificationScreen() {
 
         try {
             const data = {
-                usuario_identifier: usuarioIdentifier.trim(),
+                ...(sendToAll ? { send_to_all: true } : { usuario_identifier: usuarioIdentifier.trim() }),
                 titulo: titulo.trim(),
                 mensaje: mensaje.trim(),
                 tipo,
@@ -67,7 +68,9 @@ export default function CreateNotificationScreen() {
             if (response.success) {
                 Alert.alert(
                     t('notifySuccessTitle'),
-                    t('notifySuccessMessage'),
+                    sendToAll 
+                        ? 'Notificación enviada a todos los usuarios exitosamente'
+                        : t('notifySuccessMessage'),
                     [
                         {
                             text: t('notifySuccessCreateAnother'),
@@ -77,6 +80,7 @@ export default function CreateNotificationScreen() {
                                 setMensaje('');
                                 setDenunciaId('');
                                 setTipo('info');
+                                setSendToAll(false);
                             },
                         },
                         {
@@ -125,22 +129,40 @@ export default function CreateNotificationScreen() {
 
                     {/* Formulario */}
                     <View className="space-y-4">
+                        {/* Opción: Enviar a todos */}
+                        <TouchableOpacity
+                            onPress={() => setSendToAll(!sendToAll)}
+                            className="bg-[#537CF2]/10 border border-[#537CF2]/30 rounded-lg p-4 mb-4 flex-row items-center"
+                        >
+                            <View className={`w-6 h-6 rounded border-2 mr-3 items-center justify-center ${sendToAll ? 'bg-[#537CF2] border-[#537CF2]' : 'border-gray-500'}`}>
+                                {sendToAll && <Ionicons name="checkmark" size={18} color="#fff" />}
+                            </View>
+                            <View className="flex-1">
+                                <Text className="text-white font-semibold">Enviar a todos los usuarios</Text>
+                                <Text className="text-gray-400 text-xs mt-1">
+                                    Activa esta opción para enviar la notificación a todos los usuarios del sistema
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+
                         {/* RUT o ID Usuario */}
-                        <View className="mb-4">
-                            <Text className="text-white font-semibold mb-2">
-                                {t('notifyUserIdLabel')} <Text className="text-red-500">*</Text>
-                            </Text>
-                            <TextInput
-                                className="bg-secondary text-white px-4 py-3 rounded-lg border border-gray-700"
-                                placeholder={t('notifyUserIdPlaceholder')}
-                                placeholderTextColor="#6b7280"
-                                value={usuarioIdentifier}
-                                onChangeText={setUsuarioIdentifier}
-                            />
-                            <Text className="text-gray-500 text-xs mt-1">
-                                {t('notifyUserIdHint')}
-                            </Text>
-                        </View>
+                        {!sendToAll && (
+                            <View className="mb-4">
+                                <Text className="text-white font-semibold mb-2">
+                                    {t('notifyUserIdLabel')} <Text className="text-red-500">*</Text>
+                                </Text>
+                                <TextInput
+                                    className="bg-secondary text-white px-4 py-3 rounded-lg border border-gray-700"
+                                    placeholder={t('notifyUserIdPlaceholder')}
+                                    placeholderTextColor="#6b7280"
+                                    value={usuarioIdentifier}
+                                    onChangeText={setUsuarioIdentifier}
+                                />
+                                <Text className="text-gray-500 text-xs mt-1">
+                                    {t('notifyUserIdHint')}
+                                </Text>
+                            </View>
+                        )}
 
                         {/* Título */}
                         <View className="mb-4">
