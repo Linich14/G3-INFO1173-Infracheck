@@ -7,17 +7,20 @@ import {
     View,
     Modal,
     StatusBar,
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Carousel from 'react-native-reanimated-carousel';
 import { useSharedValue } from 'react-native-reanimated';
 import { useReportDetails } from '../hooks/useReportDetails';
+import { useReportEdit } from '../hooks/useReportEdit';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useUserContext } from '../../../contexts/UserContext';
 import { useLanguage } from '~/contexts/LanguageContext';
 import ModalMap from '../components/modalMap';
 import { CommentsModal, Report } from '~/features/comments';
+import EditReportScreen from './EditReport.screen';
 
 type Props = {
     reportId: string;
@@ -65,9 +68,10 @@ const getReportTypeTranslation = (type: string, t: any): string => {
     return typeMap[type] || type;
 };
 
-export default function ReportDetailsScreen({ reportId, onBack }: Props) {
+export default function ReportDetailsScreen({ reportId, comentarioId, onBack }: Props) {
     const { t, locale } = useLanguage();
     const { report, loading, error, refetch } = useReportDetails(reportId);
+    const { deleteReport } = useReportEdit();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fullscreenImageIndex, setFullscreenImageIndex] = useState(0);
     const [showFullscreen, setShowFullscreen] = useState(false);
@@ -80,9 +84,12 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
 
     // Estado para controlar el modal del mapa
     const [showMapModal, setShowMapModal] = useState(false);
-    
+
     // Estado para controlar el modal de comentarios
     const [showCommentsModal, setShowCommentsModal] = useState(false);
+
+    // Nuevo estado para mostrar pantalla de edición
+    const [showEditScreen, setShowEditScreen] = useState(false);
 
     // Obtener el usuario actual del UserContext
     const { user } = useUserContext();
@@ -130,6 +137,51 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
     // Función para cerrar el modal del mapa
     const handleCloseMap = () => {
         setShowMapModal(false);
+    };
+
+    // Función para manejar edición
+    const handleEdit = () => {
+        setShowEditScreen(true);
+    };
+
+    // Función para manejar eliminación
+    const handleDelete = () => {
+        Alert.alert(
+            t('reportDetailsDeleteConfirmTitle') || 'Eliminar Reporte',
+            t('reportDetailsDeleteConfirmMessage') ||
+                '¿Estás seguro de que quieres ocultar este reporte? Esta acción se puede deshacer.',
+            [
+                {
+                    text: t('cancel') || 'Cancelar',
+                    style: 'cancel',
+                },
+                {
+                    text: t('delete') || 'Eliminar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        const result = await deleteReport(reportId, false); // Soft delete
+                        if (result.success) {
+                            Alert.alert(t('success') || 'Éxito', result.message, [
+                                {
+                                    text: t('ok') || 'OK',
+                                    onPress: onBack,
+                                },
+                            ]);
+                        } else {
+                            Alert.alert(t('error') || 'Error', result.message, [
+                                { text: t('ok') || 'OK' },
+                            ]);
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    // Función para volver de la pantalla de edición
+    const handleBackFromEdit = () => {
+        setShowEditScreen(false);
+        refetch(); // Recargar datos actualizados
     };
 
     // Renderizar item del carrusel normal con parallax
@@ -305,6 +357,30 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
         );
     }
 
+    // Si estamos en modo edición, mostrar la pantalla de edición
+    if (showEditScreen && report) {
+        return (
+            <EditReportScreen
+                reportId={reportId}
+                initialData={{
+                    titulo: report.titulo,
+                    descripcion: report.descripcion,
+                    direccion: report.ubicacion.direccion,
+                    latitud: report.ubicacion.latitud,
+                    longitud: report.ubicacion.longitud,
+                    urgencia: report.nivelUrgencia,
+                    tipoDenuncia: report.tipoDenuncia,
+                    ciudad: report.ciudad,
+                    visible: true,
+                }}
+                onBack={handleBackFromEdit}
+                onSuccess={() => {
+                    // Opcional: mostrar mensaje de éxito
+                }}
+            />
+        );
+    }
+
     return (
         <SafeAreaView className="flex-1 bg-background">
             {/* Header */}
@@ -456,7 +532,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                     <View className="mr-2 flex-1 rounded-xl bg-secondary p-4">
                         <View className="flex-row items-center">
                             <Ionicons name="calendar-outline" size={20} color="#537CF2" />
-                            <Text className="ml-2 text-sm font-medium text-gray-300">{t('reportDetailsDateLabel')}</Text>
+                            <Text className="ml-2 text-sm font-medium text-gray-300">
+                                {t('reportDetailsDateLabel')}
+                            </Text>
                         </View>
                         <Text className="mt-1 font-semibold text-white">
                             {formatDate(report.fecha, locale)}
@@ -470,7 +548,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                                 size={20}
                                 color={getUrgencyColor(report.nivelUrgencia)}
                             />
-                            <Text className="ml-2 text-sm font-medium text-gray-300">{t('reportDetailsUrgencyLabel')}</Text>
+                            <Text className="ml-2 text-sm font-medium text-gray-300">
+                                {t('reportDetailsUrgencyLabel')}
+                            </Text>
                         </View>
                         <View
                             className="mt-1 self-start rounded-full px-3 py-1"
@@ -505,7 +585,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                 <View className="mx-4 mt-4 rounded-xl bg-secondary p-4">
                     <View className="mb-3 flex-row items-center">
                         <Ionicons name="document-text-outline" size={20} color="#537CF2" />
-                        <Text className="ml-2 text-lg font-semibold text-white">{t('reportDetailsDescriptionLabel')}</Text>
+                        <Text className="ml-2 text-lg font-semibold text-white">
+                            {t('reportDetailsDescriptionLabel')}
+                        </Text>
                     </View>
                     <Text className="leading-6 text-gray-200">{report.descripcion}</Text>
                 </View>
@@ -514,7 +596,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                 <View className="mx-4 mt-4 rounded-xl bg-secondary p-4">
                     <View className="mb-3 flex-row items-center">
                         <Ionicons name="location-outline" size={20} color="#537CF2" />
-                        <Text className="ml-2 text-lg font-semibold text-white">{t('reportDetailsLocationLabel')}</Text>
+                        <Text className="ml-2 text-lg font-semibold text-white">
+                            {t('reportDetailsLocationLabel')}
+                        </Text>
                     </View>
 
                     <View className="mb-3 rounded-lg p-3">
@@ -522,10 +606,16 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                             {report.ubicacion.direccion}
                         </Text>
                         <View className="flex-row justify-between">
-                            <Text className="text-gray-400">{t('reportDetailsLocationLat')}: {report.ubicacion.latitud}</Text>
-                            <Text className="text-gray-400">{t('reportDetailsLocationLng')}: {report.ubicacion.longitud}</Text>
+                            <Text className="text-gray-400">
+                                {t('reportDetailsLocationLat')}: {report.ubicacion.latitud}
+                            </Text>
+                            <Text className="text-gray-400">
+                                {t('reportDetailsLocationLng')}: {report.ubicacion.longitud}
+                            </Text>
                         </View>
-                        <Text className="mt-1 text-sm text-gray-400">{t('reportDetailsLocationCity')}: {report.ciudad}</Text>
+                        <Text className="mt-1 text-sm text-gray-400">
+                            {t('reportDetailsLocationCity')}: {report.ciudad}
+                        </Text>
                     </View>
 
                     <TouchableOpacity
@@ -533,7 +623,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                         className="rounded-lg bg-[#537CF2] p-3">
                         <View className="flex-row items-center justify-center">
                             <Ionicons name="map-outline" size={18} color="white" />
-                            <Text className="ml-2 font-medium text-white">{t('reportDetailsViewMap')}</Text>
+                            <Text className="ml-2 font-medium text-white">
+                                {t('reportDetailsViewMap')}
+                            </Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -543,7 +635,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                     <View className="mx-4 mt-4 rounded-xl bg-secondary p-4">
                         <View className="mb-3 flex-row items-center">
                             <Ionicons name="videocam-outline" size={20} color="#537CF2" />
-                            <Text className="ml-2 text-lg font-semibold text-white">{t('reportDetailsVideoLabel')}</Text>
+                            <Text className="ml-2 text-lg font-semibold text-white">
+                                {t('reportDetailsVideoLabel')}
+                            </Text>
                         </View>
 
                         <TouchableOpacity className="rounded-lg border border-gray-400 border-opacity-30 bg-tertiary p-4">
@@ -564,7 +658,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                 <View className="mx-4 mt-4 rounded-xl bg-secondary p-4">
                     <View className="mb-3 flex-row items-center">
                         <Ionicons name="stats-chart-outline" size={20} color="#537CF2" />
-                        <Text className="ml-2 text-lg font-semibold text-white">{t('reportDetailsStatsLabel')}</Text>
+                        <Text className="ml-2 text-lg font-semibold text-white">
+                            {t('reportDetailsStatsLabel')}
+                        </Text>
                     </View>
 
                     <View className="space-y-2">
@@ -644,7 +740,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                             </TouchableOpacity>
                         )}
 
-                        <TouchableOpacity className="mb-3 rounded-xl bg-[#537CF2] p-4">
+                        <TouchableOpacity
+                            className="mb-3 rounded-xl bg-[#537CF2] p-4"
+                            onPress={handleEdit}>
                             <View className="flex-row items-center justify-center">
                                 <Ionicons name="create-outline" size={20} color="white" />
                                 <Text className="ml-2 font-semibold text-white">
@@ -653,7 +751,9 @@ export default function ReportDetailsScreen({ reportId, onBack }: Props) {
                             </View>
                         </TouchableOpacity>
 
-                        <TouchableOpacity className="rounded-xl bg-red-600 p-4">
+                        <TouchableOpacity
+                            className="rounded-xl bg-red-600 p-4"
+                            onPress={handleDelete}>
                             <View className="flex-row items-center justify-center">
                                 <Ionicons name="trash-outline" size={20} color="white" />
                                 <Text className="ml-2 font-semibold text-white">

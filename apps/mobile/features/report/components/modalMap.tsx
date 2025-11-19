@@ -16,7 +16,7 @@ interface Location {
 interface ModalMapProps {
     visible: boolean;
     onClose: () => void;
-    onSelectLocation?: (location: Location) => void;
+    onLocationSelect?: (location: Location) => void;
     initialLocation?: Location;
     title?: string;
     mode?: 'select' | 'view';
@@ -26,7 +26,7 @@ interface ModalMapProps {
 const ModalMap = ({
     visible,
     onClose,
-    onSelectLocation,
+    onLocationSelect,
     initialLocation,
     title,
     mode = 'select',
@@ -40,80 +40,78 @@ const ModalMap = ({
         handleAcceptPermission,
         handleCancelPermission,
     } = useUserLocation();
-    const [selectedLocation, setSelectedLocation] = useState<Location | null>(
-        initialLocation || null
-    );
+
+    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
     const [cameraCenter, setCameraCenter] = useState<[number, number] | null>(null);
     const [isMapReady, setIsMapReady] = useState(false);
-    const [hasInitialized, setHasInitialized] = useState(false);
 
     // Determinar el título basado en el modo
-    const modalTitle = title || (mode === 'view' ? t('reportMapViewTitle') : t('reportMapSelectTitle'));
+    const modalTitle =
+        title || (mode === 'view' ? t('reportMapViewTitle') : t('reportMapSelectTitle'));
 
     // Determinar si es modo de solo visualización
     const isViewMode = mode === 'view';
 
-    // Inicialización solo una vez al abrir el modal
+    // Efecto para inicializar el mapa cuando se abre
     useEffect(() => {
-        if (visible && !hasInitialized) {
+        if (visible) {
+            console.log('Modal opened, mode:', mode);
+            console.log('Initial location:', initialLocation);
+            console.log('View location:', viewLocation);
+
+            // Reset estados
+            setIsMapReady(false);
+
             let centerLocation: Location | null = null;
 
             // En modo visualización, usar viewLocation si está disponible
             if (isViewMode && viewLocation) {
                 centerLocation = viewLocation;
                 setSelectedLocation(viewLocation);
+                console.log('Using view location:', viewLocation);
             }
-            // En modo selección, usar location del usuario o initialLocation
-            else if (!isViewMode && location) {
-                centerLocation = {
-                    latitude: location.coords.latitude,
-                    longitude: location.coords.longitude,
-                };
-
-                if (!selectedLocation) {
-                    setSelectedLocation(centerLocation);
-                }
-            }
-            // Si hay initialLocation, usarla como centro
-            else if (initialLocation) {
-                centerLocation = initialLocation;
-                if (!selectedLocation) {
+            // En modo selección, priorizar initialLocation
+            else if (!isViewMode) {
+                if (initialLocation) {
+                    centerLocation = initialLocation;
                     setSelectedLocation(initialLocation);
+                    console.log('Using initial location:', initialLocation);
+                } else if (location) {
+                    centerLocation = {
+                        latitude: location.coords.latitude,
+                        longitude: location.coords.longitude,
+                    };
+                    setSelectedLocation(centerLocation);
+                    console.log('Using user location:', centerLocation);
                 }
             }
 
-            // Establecer centro de cámara SOLO en la inicialización
+            // Establecer centro de cámara
             if (centerLocation) {
                 const center: [number, number] = [
                     centerLocation.longitude,
                     centerLocation.latitude,
                 ];
                 setCameraCenter(center);
-                setHasInitialized(true);
+                console.log('Setting camera center:', center);
             }
-        }
-    }, [
-        visible,
-        location,
-        isViewMode,
-        viewLocation,
-        initialLocation,
-        hasInitialized,
-        selectedLocation,
-    ]);
-
-    useEffect(() => {
-        if (!visible) {
+        } else {
+            // Limpiar estados cuando se cierra
+            console.log('Modal closed, resetting states');
             setCameraCenter(null);
             setIsMapReady(false);
-            setSelectedLocation(initialLocation || null);
-            setHasInitialized(false);
+            setSelectedLocation(null);
         }
-    }, [visible, initialLocation]);
+    }, [visible, location, isViewMode, viewLocation, initialLocation]);
 
     const handleMapPress = (event: any) => {
-        // Solo permitir selección si no es modo visualización
-        if (!isMapReady || isViewMode) return;
+        console.log('Map pressed, isMapReady:', isMapReady, 'isViewMode:', isViewMode);
+
+        // Solo permitir selección si no es modo visualización y el mapa está listo
+        if (!isMapReady || isViewMode) {
+            console.log('Map press ignored - not ready or view mode');
+            return;
+        }
 
         const { coordinates } = event.geometry;
         const newLocation = {
@@ -121,13 +119,18 @@ const ModalMap = ({
             longitude: coordinates[0],
         };
 
-        // Solo actualizar la ubicación seleccionada, SIN centrar la cámara
+        console.log('New location selected:', newLocation);
         setSelectedLocation(newLocation);
     };
 
     const handleMarkerDragEnd = (event: any) => {
+        console.log('Marker drag end, isViewMode:', isViewMode);
+
         // Solo permitir arrastrar si no es modo visualización
-        if (isViewMode) return;
+        if (isViewMode) {
+            console.log('Marker drag ignored - view mode');
+            return;
+        }
 
         const { coordinates } = event.geometry;
         const newLocation = {
@@ -135,30 +138,59 @@ const ModalMap = ({
             longitude: coordinates[0],
         };
 
-        // Solo actualizar la ubicación seleccionada, SIN centrar la cámara
+        console.log('Marker dragged to:', newLocation);
         setSelectedLocation(newLocation);
     };
 
     const handleConfirmLocation = () => {
-        if (selectedLocation && onSelectLocation && !isViewMode) {
-            onSelectLocation(selectedLocation);
+        console.log('Confirm location pressed');
+        console.log('Selected location:', selectedLocation);
+        console.log('onLocationSelect function:', typeof onLocationSelect);
+        console.log('Is view mode:', isViewMode);
+
+        if (selectedLocation && onLocationSelect && !isViewMode) {
+            console.log('Confirming location:', selectedLocation);
+            // Agregar address si no existe
+            const locationWithAddress = {
+                ...selectedLocation,
+                address:
+                    selectedLocation.address ||
+                    `${selectedLocation.latitude.toFixed(6)}, ${selectedLocation.longitude.toFixed(6)}`,
+            };
+            onLocationSelect(locationWithAddress);
             onClose();
+        } else {
+            console.log('Cannot confirm - missing requirements');
+            console.log('Has selectedLocation:', !!selectedLocation);
+            console.log('Has onLocationSelect:', !!onLocationSelect);
+            console.log('Is not view mode:', !isViewMode);
         }
     };
 
-    // Función para centrar en el usuario manualmente (sin mover el pin)
+    // Función para centrar en el usuario manualmente
     const handleCenterOnUser = () => {
+        console.log('Center on user pressed');
+
         if (location) {
             const userLocation = {
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
             };
+            console.log('Centering on user location:', userLocation);
             setSelectedLocation(userLocation);
             const center: [number, number] = [userLocation.longitude, userLocation.latitude];
             setCameraCenter(center);
         } else if (errorMsg) {
-            Alert.alert(t('reportValidationUnexpectedError'), t('reportMapLocationError'));
+            Alert.alert(
+                t('reportValidationUnexpectedError') || 'Error',
+                t('reportMapLocationError') || 'Error de ubicación'
+            );
         }
+    };
+
+    const handleMapReady = () => {
+        console.log('Map is ready');
+        setIsMapReady(true);
     };
 
     return (
@@ -186,8 +218,10 @@ const ModalMap = ({
                     <View className="border-b border-[#537CF2]/30 bg-[#537CF2]/20 p-3">
                         <Text className="text-center text-sm text-[#537CF2]">
                             {isViewMode
-                                ? t('reportMapViewInstruction')
-                                : t('reportMapInstruction')}
+                                ? t('reportMapViewInstruction') ||
+                                  'Visualizando ubicación del reporte'
+                                : t('reportMapInstruction') ||
+                                  'Toca en el mapa para seleccionar ubicación'}
                         </Text>
                     </View>
 
@@ -197,7 +231,7 @@ const ModalMap = ({
                             mapStyle={MAP_CONFIG.STYLE_URL}
                             style={{ flex: 1 }}
                             onPress={handleMapPress}
-                            onDidFinishLoadingMap={() => setIsMapReady(true)}>
+                            onDidFinishLoadingMap={handleMapReady}>
                             {/* Solo mostrar UserLocation en modo selección */}
                             {!isViewMode && <UserLocation visible={true} />}
 
@@ -209,7 +243,7 @@ const ModalMap = ({
                                 />
                             )}
 
-                            {selectedLocation && isMapReady && (
+                            {selectedLocation && (
                                 <PointAnnotation
                                     id={isViewMode ? 'view-marker' : 'draggable-marker'}
                                     coordinate={[
@@ -239,13 +273,22 @@ const ModalMap = ({
                                 </Pressable>
                             </View>
                         )}
+
+                        {/* Indicador de estado del mapa */}
+                        {!isMapReady && (
+                            <View className="absolute inset-0 items-center justify-center bg-black/30">
+                                <Text className="text-white">Cargando mapa...</Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* Información de ubicación con tema oscuro */}
                     {selectedLocation && (
                         <View className="border-t border-gray-600 bg-[#1A1F2E] p-3">
                             <Text className="text-center text-sm font-medium text-white">
-                                {isViewMode ? t('reportMapLocationLabel') : t('reportMapSelectedLabel')}
+                                {isViewMode
+                                    ? t('reportMapLocationLabel') || 'Ubicación del reporte'
+                                    : t('reportMapSelectedLabel') || 'Ubicación seleccionada'}
                             </Text>
                             <Text className="text-center text-xs text-gray-400">
                                 Lat: {selectedLocation.latitude.toFixed(6)}, Lng:{' '}
@@ -260,7 +303,9 @@ const ModalMap = ({
                             onPress={onClose}
                             className="flex-1 items-center rounded-lg bg-gray-600 p-3">
                             <Text className="font-medium text-white">
-                                {isViewMode ? t('reportMapClose') : t('reportMapCancel')}
+                                {isViewMode
+                                    ? t('reportMapClose') || 'Cerrar'
+                                    : t('reportMapCancel') || 'Cancelar'}
                             </Text>
                         </Pressable>
 
@@ -268,11 +313,18 @@ const ModalMap = ({
                         {!isViewMode && (
                             <Pressable
                                 onPress={handleConfirmLocation}
-                                disabled={!selectedLocation}
+                                disabled={!selectedLocation || !isMapReady}
                                 className={`flex-1 items-center rounded-lg p-3 ${
-                                    selectedLocation ? 'bg-[#537CF2]' : 'bg-gray-700'
+                                    selectedLocation && isMapReady ? 'bg-[#537CF2]' : 'bg-gray-700'
                                 }`}>
-                                <Text className="font-medium text-white">{t('reportMapConfirm')}</Text>
+                                <Text
+                                    className={`font-medium ${
+                                        selectedLocation && isMapReady
+                                            ? 'text-white'
+                                            : 'text-gray-400'
+                                    }`}>
+                                    {t('reportMapConfirm') || 'Confirmar'}
+                                </Text>
                             </Pressable>
                         )}
                     </View>

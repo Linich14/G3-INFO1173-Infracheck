@@ -143,9 +143,7 @@ export class ReportService {
                 return {
                     success: false,
                     message:
-                        responseData.detail ||
-                        responseData.message ||
-                        'reportServiceErrorCreate',
+                        responseData.detail || responseData.message || 'reportServiceErrorCreate',
                 };
             }
 
@@ -340,6 +338,160 @@ export class ReportService {
         return errors;
     }
 
+    /**
+     * Actualizar un reporte existente - PATCH /api/reports/{id}/update/
+     */
+    static async updateReport(reportId: string, data: any): Promise<any> {
+        try {
+            console.log('Updating report:', reportId, data);
+
+            // Verificar autenticación
+            const authenticated = await isAuthenticated();
+            if (!authenticated) {
+                return {
+                    success: false,
+                    message: 'reportServiceSessionExpired',
+                };
+            }
+
+            const response = await api.patch(`/api/reports/${reportId}/update/`, data, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            return {
+                success: true,
+                message: response.data.message || 'Reporte actualizado exitosamente',
+                data: response.data,
+            };
+        } catch (error: any) {
+            console.error('Error updating report:', error);
+            console.error('Error response:', error.response?.data);
+
+            if (error.response) {
+                const statusCode = error.response.status;
+                const responseData = error.response.data;
+
+                if (statusCode === 400 && responseData.errors) {
+                    return {
+                        success: false,
+                        message: 'Errores en el formulario',
+                        errors: responseData.errors,
+                    };
+                }
+
+                if (statusCode === 401) {
+                    return {
+                        success: false,
+                        message: 'Sesión expirada. Inicie sesión nuevamente.',
+                    };
+                }
+
+                if (statusCode === 403) {
+                    return {
+                        success: false,
+                        message: 'No tienes permisos para editar este reporte',
+                    };
+                }
+
+                if (statusCode === 404) {
+                    return {
+                        success: false,
+                        message: 'Reporte no encontrado',
+                    };
+                }
+
+                return {
+                    success: false,
+                    message:
+                        responseData.error ||
+                        responseData.message ||
+                        'Error al actualizar el reporte',
+                };
+            }
+
+            return {
+                success: false,
+                message: 'Error de conexión. Intente nuevamente.',
+            };
+        }
+    }
+
+    /**
+     * Eliminar un reporte - DELETE /api/reports/{id}/delete/
+     */
+    static async deleteReport(reportId: string, hardDelete: boolean = false): Promise<any> {
+        try {
+            console.log('Deleting report:', reportId, { hardDelete });
+
+            // Verificar autenticación
+            const authenticated = await isAuthenticated();
+            if (!authenticated) {
+                return {
+                    success: false,
+                    message: 'Sesión expirada. Inicie sesión nuevamente.',
+                };
+            }
+
+            const url = hardDelete
+                ? `/api/reports/${reportId}/delete/?hard_delete=true`
+                : `/api/reports/${reportId}/delete/`;
+
+            const response = await api.delete(url);
+
+            return {
+                success: true,
+                message:
+                    response.data.message ||
+                    (hardDelete
+                        ? 'Reporte eliminado permanentemente'
+                        : 'Reporte ocultado exitosamente'),
+            };
+        } catch (error: any) {
+            console.error('Error deleting report:', error);
+            console.error('Error response:', error.response?.data);
+
+            if (error.response) {
+                const statusCode = error.response.status;
+                const responseData = error.response.data;
+
+                if (statusCode === 401) {
+                    return {
+                        success: false,
+                        message: 'Sesión expirada. Inicie sesión nuevamente.',
+                    };
+                }
+
+                if (statusCode === 403) {
+                    return {
+                        success: false,
+                        message: 'No tienes permisos para eliminar este reporte',
+                    };
+                }
+
+                if (statusCode === 404) {
+                    return {
+                        success: false,
+                        message: 'Reporte no encontrado',
+                    };
+                }
+
+                return {
+                    success: false,
+                    message:
+                        responseData.error ||
+                        responseData.message ||
+                        'Error al eliminar el reporte',
+                };
+            }
+
+            return {
+                success: false,
+                message: 'Error de conexión. Intente nuevamente.',
+            };
+        }
+    }
 }
 
 // Exportar funciones individuales para compatibilidad con código existente
@@ -350,6 +502,10 @@ export const validateReportData = ReportService.validateReportData.bind(ReportSe
 export const getFollowedReports = ReportService.getFollowedReports.bind(ReportService);
 export const followReport = ReportService.followReport.bind(ReportService);
 export const unfollowReport = ReportService.unfollowReport.bind(ReportService);
+
+// Exportar nuevas funciones
+export const updateReport = ReportService.updateReport.bind(ReportService);
+export const deleteReport = ReportService.deleteReport.bind(ReportService);
 
 // Exportar por defecto
 export default ReportService;
