@@ -1,14 +1,33 @@
-import React from "react";
-import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { ScrollView, View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Users2, BarChart3, Bell } from "lucide-react-native";
 import { router } from "expo-router";
 import { SystemMetrics } from "~/components/SystemMetrics";
 import { useLanguage } from "~/contexts/LanguageContext";
+import { getAdminStats, AdminStats } from "~/services/adminService";
 
 export default function AdminContent() {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      setLoading(true);
+      const data = await getAdminStats();
+      setStats(data);
+    } catch (err) {
+      console.error('Error loading stats:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScrollView
@@ -25,29 +44,41 @@ export default function AdminContent() {
       <View className="bg-[#13161E] rounded-[12px] p-4">
         <Text className="text-white text-xl font-bold mb-4">{t('adminUserManagement')}</Text>
         
-        <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
-          <View className="flex-row justify-between items-center">
-            <View>
-              <Text className="text-white font-bold">{t('adminNewRegistrationsToday')}</Text>
-              <Text className="text-gray-400">{t('adminNewUsers')}</Text>
-            </View>
-            <View className="bg-green-500 px-3 py-1 rounded-full">
-              <Text className="text-white text-xs">+15%</Text>
-            </View>
+        {loading ? (
+          <View className="py-8 items-center">
+            <ActivityIndicator size="large" color="#537CF2" />
           </View>
-        </View>
+        ) : (
+          <>
+            <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
+              <View className="flex-row justify-between items-center">
+                <View className="flex-1">
+                  <Text className="text-white font-bold">{t('adminNewRegistrationsToday')}</Text>
+                  <Text className="text-gray-400">{t('adminNewUsers')}</Text>
+                </View>
+                <View className="bg-green-500 px-4 py-2 rounded-full">
+                  <Text className="text-white font-bold text-lg">
+                    {stats?.new_users_today || 0}
+                  </Text>
+                </View>
+              </View>
+            </View>
 
-        <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
-          <View className="flex-row justify-between items-center">
-            <View>
-              <Text className="text-white font-bold">{t('adminActiveUsers')}</Text>
-              <Text className="text-gray-400">{t('adminActiveUsersLast24h')}</Text>
+            <View className="bg-[#1D212D] rounded-lg p-3 mb-3">
+              <View className="flex-row justify-between items-center">
+                <View className="flex-1">
+                  <Text className="text-white font-bold">{t('adminActiveUsers')}</Text>
+                  <Text className="text-gray-400">Total de usuarios activos</Text>
+                </View>
+                <View className="bg-blue-500 px-4 py-2 rounded-full">
+                  <Text className="text-white font-bold text-lg">
+                    {stats?.total_users?.toLocaleString() || 0}
+                  </Text>
+                </View>
+              </View>
             </View>
-            <View className="bg-blue-500 px-3 py-1 rounded-full">
-              <Text className="text-white text-xs">{t('adminStable')}</Text>
-            </View>
-          </View>
-        </View>
+          </>
+        )}
       </View>
 
       {/* Panel de Control */}
