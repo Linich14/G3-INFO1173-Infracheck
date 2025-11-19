@@ -18,7 +18,7 @@ import ModalFileOption from '../components/modalFileOption';
 
 type Props = {
     reportId: string;
-    images: Array<{ id: number; url: string }> | string[]; // Acepta ambos formatos
+    images: Array<{ id: number; url: string; tipo?: string }> | string[]; // Acepta ambos formatos
     onBack: () => void;
     onSuccess?: () => void;
 };
@@ -56,7 +56,7 @@ export default function ManageImagesScreen({ reportId, images, onBack, onSuccess
         }
 
         // Si ya es un array de objetos, validar y usar tal como está
-        return (images as Array<{ id: number; url: string }>).filter(
+        return (images as Array<{ id: number; url: string; tipo?: string }>).filter(
             (image) =>
                 image &&
                 image.id !== undefined &&
@@ -150,7 +150,7 @@ export default function ManageImagesScreen({ reportId, images, onBack, onSuccess
         }
 
         // Si las imágenes originalmente eran strings, mostrar advertencia
-        if (typeof images[0] === 'string') {
+        if (images.length > 0 && typeof images[0] === 'string') {
             Alert.alert(
                 t('warning') || 'Advertencia',
                 'Las imágenes no tienen IDs reales de la base de datos. Esta operación podría no funcionar correctamente.',
@@ -269,22 +269,6 @@ export default function ManageImagesScreen({ reportId, images, onBack, onSuccess
                 className="flex-1 px-4"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 20 }}>
-                {/* Debug info */}
-                {__DEV__ && (
-                    <View className="mt-4 rounded-lg bg-yellow-500/20 p-4">
-                        <Text className="text-center text-sm text-yellow-400">
-                            DEBUG: Raw images: {Array.isArray(images) ? images.length : 0},
-                            Normalized: {normalizedImages.length}
-                            {typeof images[0] === 'string' && (
-                                <Text className="text-orange-400">
-                                    {'\n'}ℹ️ Imágenes recibidas como URLs simples (generando IDs
-                                    temporales)
-                                </Text>
-                            )}
-                        </Text>
-                    </View>
-                )}
-
                 {/* Instrucciones */}
                 <View className="mt-6 rounded-lg bg-[#537CF2]/20 p-4">
                     <Text className="text-center text-sm text-[#537CF2]">
@@ -481,7 +465,7 @@ export default function ManageImagesScreen({ reportId, images, onBack, onSuccess
                         )}
                         {newImages.length > 0 && (
                             <Text className="text-center text-green-400">
-                                {t('manageImagesSelectedToUpload') || 'Nuevas para subir'}{' '}
+                                {t('manageImagesSelectedToUpload') || 'Nuevas para subir'}:{' '}
                                 {newImages.length}
                             </Text>
                         )}
@@ -544,28 +528,5 @@ export default function ManageImagesScreen({ reportId, images, onBack, onSuccess
                 type="image"
             />
         </SafeAreaView>
-    );
-}
-
-// Función para manejar gestión de imágenes
-const handleManageImages = () => {
-    // Filtrar solo las imágenes de los archivos
-    const imageFiles = report.archivos?.filter((archivo) => archivo.tipo === 'imagen') || [];
-
-    console.log('Passing images to ManageImages:', imageFiles);
-    setShowManageImagesScreen(true);
-};
-
-// En el JSX, cambiar la condición para pasar los datos correctos
-{
-    showManageImagesScreen && report && (
-        <ManageImagesScreen
-            reportId={reportId}
-            images={report.archivos?.filter((archivo) => archivo.tipo === 'imagen') || []}
-            onBack={handleBackFromManageImages}
-            onSuccess={() => {
-                // Opcional: mostrar mensaje de éxito
-            }}
-        />
     );
 }

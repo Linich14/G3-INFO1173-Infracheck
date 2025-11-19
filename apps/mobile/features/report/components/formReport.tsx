@@ -290,7 +290,7 @@ const FormReport = ({
             <ModalMap
                 visible={showMapModal}
                 onClose={() => onSetShowMapModal(false)}
-                onSelectLocation={handleLocationSelect}
+                onLocationSelect={onSelectLocation} // Cambiar de onSelectLocation a onLocationSelect
                 initialLocation={convertToLocation() || undefined}
                 title={t('reportFormMapTitle')}
                 mode="select"
