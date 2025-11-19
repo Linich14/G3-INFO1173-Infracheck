@@ -138,11 +138,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({
 
       const response = await getComments(reportId, token);
       
-      // Guardar el mensaje de comentarios vacíos si existe
-      if (response.message) {
-        setEmptyMessage(response.message);
-      }
-      
       // Transformar los comentarios del backend al formato local
       const transformedComments: Comment[] = response.comentarios.map(comment => ({
         id: comment.id,
