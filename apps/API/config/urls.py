@@ -38,7 +38,7 @@ urlpatterns = [
 
     path('api/proyectos/', include('proyectos.urls')),
     
-    path('api/audit/', include('audit.urls')),
+    path('api/admin/', include('audit.urls')),
 
     path('api/users/', admin_list_users, name='admin-list-users'),
     path('api/users/search/', admin_search_users, name='admin-search-users'),

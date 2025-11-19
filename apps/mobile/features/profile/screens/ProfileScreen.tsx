@@ -117,30 +117,32 @@ function ProfileScreen() {
                 {/* User Information */}
                 <UserInfo user={user} />
 
-                {/* My Reports Section */}
-                <View className="px-4">
-                    <View className="mt-6 px-3.5">
-                        <TouchableOpacity
-                            onPress={handleViewMyReports}
-                            className="w-full flex-row rounded-xl bg-[#1D212D] shadow-sm"
-                            activeOpacity={0.7}>
-                            <View className="aspect-[1.3] w-[65px] items-center justify-center">
-                                <FileText size={24} color="#537CF2" />
-                            </View>
-                            <View className="flex-1 justify-center py-3.5 pr-4">
-                                <Text className="mb-0.5 text-xl font-bold text-white">
-                                    {t('profileMyReportsTitle')}
-                                </Text>
-                                <Text className="text-sm text-gray-400">
-                                    {t('profileMyReportsDescription')}
-                                </Text>
-                            </View>
-                            <View className="items-center justify-center pr-4">
-                                <FileText size={16} color="#537CF2" />
-                            </View>
-                        </TouchableOpacity>
+                {/* My Reports Section - Solo para usuarios normales (rous_id === 3) */}
+                {user.rous_id === 3 && (
+                    <View className="px-4">
+                        <View className="mt-6 px-3.5">
+                            <TouchableOpacity
+                                onPress={handleViewMyReports}
+                                className="w-full flex-row rounded-xl bg-[#1D212D] shadow-sm"
+                                activeOpacity={0.7}>
+                                <View className="aspect-[1.3] w-[65px] items-center justify-center">
+                                    <FileText size={24} color="#537CF2" />
+                                </View>
+                                <View className="flex-1 justify-center py-3.5 pr-4">
+                                    <Text className="mb-0.5 text-xl font-bold text-white">
+                                        {t('profileMyReportsTitle')}
+                                    </Text>
+                                    <Text className="text-sm text-gray-400">
+                                        {t('profileMyReportsDescription')}
+                                    </Text>
+                                </View>
+                                <View className="items-center justify-center pr-4">
+                                    <FileText size={16} color="#537CF2" />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </View>
+                )}
 
                 {/* Change Password Section */}
                 <View className="px-4">

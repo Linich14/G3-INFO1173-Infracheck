@@ -152,7 +152,7 @@ const NotificationListScreen: React.FC = () => {
           </View>
         ) : (
           <View className="px-4 py-3">
-            {notifications.map((notification) => (
+            {notifications.map((notification: Notification) => (
               <TouchableOpacity
                 key={notification.id}
                 onPress={() => handleNotificationPress(notification)}
