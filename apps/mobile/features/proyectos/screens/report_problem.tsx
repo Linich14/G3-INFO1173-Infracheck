@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface ReportFormData {
   descripcion: string;
@@ -12,6 +13,7 @@ interface ReportProblemProps {
 }
 
 export default function ReportProblem({ onBack, onProblemReported }: ReportProblemProps) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<ReportFormData>({
     descripcion: '',
   });
@@ -23,12 +25,12 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
   const handleSubmitReport = () => {
     // Validación simple
     if (!formData.descripcion.trim()) {
-      Alert.alert('Error', 'Por favor describe el problema antes de enviarlo');
+      Alert.alert(t('projectReportProblemError'), t('projectReportProblemPlaceholder'));
       return;
     }
 
     if (formData.descripcion.trim().length < 10) {
-      Alert.alert('Error', 'La descripción debe tener al menos 10 caracteres');
+      Alert.alert(t('projectReportProblemError'), t('projectReportProblemErrorTooShort'));
       return;
     }
 
@@ -45,8 +47,8 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
     };
 
     Alert.alert(
-      'Problema Reportado',
-      'Tu reporte ha sido enviado exitosamente. Gracias por contribuir a mejorar la infraestructura.',
+      t('projectReportProblemSuccess'),
+      t('projectReportProblemSuccessMessage'),
       [
         {
           text: 'OK',
@@ -69,7 +71,7 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
         <TouchableOpacity className="rounded-xl bg-[#537CF2] p-2" onPress={onBack}>
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        <Text className="ml-4 text-xl font-bold text-white">Reportar Problema</Text>
+        <Text className="ml-4 text-xl font-bold text-white">{t('projectReportProblemTitle')}</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
@@ -77,22 +79,22 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
         <View className="mb-6 rounded-xl border border-[#537CF2]/30 bg-[#537CF2]/20 p-4">
           <View className="mb-2 flex-row items-center">
             <Ionicons name="information-circle" size={20} color="#60A5FA" />
-            <Text className="ml-2 font-semibold text-blue-400">¿Cómo reportar?</Text>
+            <Text className="ml-2 font-semibold text-blue-400">{t('projectReportProblemHow')}</Text>
           </View>
           <Text className="text-sm leading-5 text-gray-300">
-            Describe el problema que observaste de manera clara y detallada, qué está pasando y
-            cualquier información que consideres importante.
+            {t('projectReportProblemHowDescription')}
           </Text>
         </View>
 
         {/* Formulario Principal */}
         <View className="mb-6 rounded-xl bg-[#13161E] p-6">
-          <Text className="mb-4 text-lg font-bold text-blue-400">Describe el Problema</Text>
+          <Text className="mb-4 text-lg font-bold text-blue-400">{t('projectReportProblemDescribe')}</Text>
 
           {/* Caja de texto grande */}
           <View className="mb-4">
             <TextInput
               className="min-h-[200px] rounded-lg bg-[#1D212D] p-4 text-base leading-6 text-white"
+              placeholder={t('projectReportProblemPlaceholder')}
               placeholderTextColor="#9CA3AF"
               value={formData.descripcion}
               onChangeText={handleTextChange}
@@ -104,7 +106,7 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
 
             {/* Contador de caracteres */}
             <View className="mt-2 flex-row items-center justify-between">
-              <Text className="text-xs text-gray-500">Mínimo 10 caracteres</Text>
+              <Text className="text-xs text-gray-500">{t('projectReportProblemMinChars')}</Text>
               <Text
                 className={`text-xs ${
                   remainingChars < 100
@@ -113,7 +115,7 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
                       ? 'text-red-400'
                       : 'text-gray-400'
                 }`}>
-                {remainingChars} caracteres restantes
+                {remainingChars} {t('projectReportProblemCharsRemaining')}
               </Text>
             </View>
           </View>
@@ -122,13 +124,13 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
         {/* Consejos */}
         <View className="mb-6 rounded-xl bg-[#13161E] p-4">
           <Text className="text-md mb-3 font-semibold text-green-400">
-            💡 Consejos para un buen reporte:
+            {t('projectReportProblemTips')}
           </Text>
           <View className="space-y-2">
-            <Text className="text-sm text-gray-300">• Sé específico</Text>
-            <Text className="text-sm text-gray-300">• Explica qué salió mal</Text>
-            <Text className="text-sm text-gray-300">• Menciona si es urgente o peligroso</Text>
-            <Text className="text-sm text-gray-300">• Añade cualquier detalle útil</Text>
+            <Text className="text-sm text-gray-300">{t('projectReportProblemTip1')}</Text>
+            <Text className="text-sm text-gray-300">{t('projectReportProblemTip2')}</Text>
+            <Text className="text-sm text-gray-300">{t('projectReportProblemTip3')}</Text>
+            <Text className="text-sm text-gray-300">{t('projectReportProblemTip4')}</Text>
           </View>
         </View>
       </ScrollView>
@@ -137,7 +139,7 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
       <View className="border-t border-[#1D212D] pb-6 pt-4">
         <View className="flex-row gap-3">
           <TouchableOpacity className="flex-1 rounded-lg bg-[#1D212D] p-4" onPress={onBack}>
-            <Text className="text-center font-semibold text-white">Cancelar</Text>
+            <Text className="text-center font-semibold text-white">{t('projectReportProblemCancel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -150,7 +152,7 @@ export default function ReportProblem({ onBack, onProblemReported }: ReportProbl
               className={`text-center font-semibold ${
                 formData.descripcion.trim().length >= 10 ? 'text-white' : 'text-gray-400'
               }`}>
-              Enviar Reporte
+              {t('projectReportProblemSubmit')}
             </Text>
           </TouchableOpacity>
         </View>

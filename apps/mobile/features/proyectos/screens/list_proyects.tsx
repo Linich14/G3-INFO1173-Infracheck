@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useProjects } from '../hooks/useProjects';
 import ProjectCard from '../../../components/ProjectCard';
+import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface ProjectItem {
   id: number;
@@ -23,6 +24,8 @@ type SortOrder = 'recientes' | 'antiguos' | 'prioridad' | 'votos';
 
 
 export default function App() {
+  const { t } = useLanguage();
+  
   // UI state for controls
   const [filterType, setFilterType] = useState<FilterType>('todos');
   const [filterValue, setFilterValue] = useState<string>('');
@@ -179,13 +182,13 @@ export default function App() {
   const getPriorityColor = (prioridad: string) => {
     switch (prioridad) {
       case 'Muy Importante':
-        return 'bg-red-800';
+        return 'bg-red-600';
       case 'Importante':
-        return 'bg-yellow-700';
+        return 'bg-orange-600';
       case 'Normal':
-        return 'bg-blue-700';
+        return 'bg-blue-600';
       default:
-        return 'bg-gray-700';
+        return 'bg-gray-600';
     }
   };
 
@@ -210,13 +213,13 @@ export default function App() {
         disabled={currentPage === 1}>
         <Ionicons name="chevron-back" size={16} color={currentPage === 1 ? 'gray' : 'white'} />
         <Text className={`ml-1 text-sm ${currentPage === 1 ? 'text-gray-400' : 'text-white'}`}>
-          Anterior
+          {t('projectsListPreviousPage')}
         </Text>
       </TouchableOpacity>
 
       <View className="flex-row items-center">
         <Text className="text-sm text-white">
-          Página {currentPage} de {totalPages}
+          {t('projectsListPage')} {currentPage} {t('projectsListOf')} {totalPages}
         </Text>
       </View>
 
@@ -228,7 +231,7 @@ export default function App() {
         disabled={currentPage === totalPages}>
         <Text
           className={`mr-1 text-sm ${currentPage === totalPages ? 'text-gray-400' : 'text-white'}`}>
-          Siguiente
+          {t('projectsListNextPage')}
         </Text>
         <Ionicons
           name="chevron-forward"
@@ -309,7 +312,7 @@ export default function App() {
           >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text className="ml-4 text-xl font-bold text-white">Proyectos</Text>
+          <Text className="ml-4 text-xl font-bold text-white">{t('projectsListTitle')}</Text>
         </View>
       </View>
 
@@ -319,7 +322,7 @@ export default function App() {
           <Ionicons name="search" size={20} color="gray" />
           <TextInput
             className="ml-3 flex-1 text-white"
-            placeholder="Buscar por ubicación, tipo de denuncia, estado..."
+            placeholder={t('projectsListSearchPlaceholder')}
             placeholderTextColor="gray"
             value={searchQuery}
             onChangeText={handleSearchChange}
@@ -333,7 +336,7 @@ export default function App() {
         </View>
         {searchQuery.length > 0 && (
           <Text className="mt-2 text-xs text-blue-400">
-            Buscando: &quot;{searchQuery}&quot; - {filteredAndSortedProjects.length} resultado{filteredAndSortedProjects.length !== 1 ? 's' : ''}
+            {t('projectsListSearch')}: &quot;{searchQuery}&quot; - {filteredAndSortedProjects.length} resultado{filteredAndSortedProjects.length !== 1 ? 's' : ''}
           </Text>
         )}
       </View>
@@ -343,20 +346,20 @@ export default function App() {
         <View className="mb-4 rounded-xl bg-[#13161E] p-4">
           {/* Filtros principales */}
           <View className="mb-3">
-            <Text className="mb-2 text-sm font-bold text-blue-400">Filtrar por:</Text>
+            <Text className="mb-2 text-sm font-bold text-blue-400">{t('projectsListFilterAll')}:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <FilterButton
-                title="Todos"
+                title={t('projectsListFilterAll')}
                 isActive={filterType === 'todos'}
                 onPress={() => handleFilterChange('todos')}
               />
               <FilterButton
-                title="Por Prioridad"
+                title={t('projectsListFilterPriority')}
                 isActive={filterType === 'prioridad'}
                 onPress={() => handleFilterChange('prioridad')}
               />
               <FilterButton
-                title="Por Estado"
+                title={t('projectsListFilterStatus')}
                 isActive={filterType === 'estado'}
                 onPress={() => handleFilterChange('estado')}
               />
@@ -364,7 +367,7 @@ export default function App() {
                 <TouchableOpacity
                   className="mr-2 rounded-lg bg-[#537CF2] px-3 py-2"
                   onPress={clearFilters}>
-                  <Text className="text-sm text-white">Limpiar Todo</Text>
+                  <Text className="text-sm text-white">{t('projectsListClearFilters')}</Text>
                 </TouchableOpacity>
               )}
             </ScrollView>
@@ -405,25 +408,25 @@ export default function App() {
 
           {/* Ordenamiento */}
           <View>
-            <Text className="mb-2 text-sm font-bold text-blue-400">Ordenar por:</Text>
+            <Text className="mb-2 text-sm font-bold text-blue-400">{t('projectsListSortRecent')}:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <FilterButton
-                title="Más Recientes"
+                title={t('projectsListSortRecent')}
                 isActive={sortOrder === 'recientes'}
                 onPress={() => handleSortChange('recientes')}
               />
               <FilterButton
-                title="Más Antiguos"
+                title={t('projectsListSortOldest')}
                 isActive={sortOrder === 'antiguos'}
                 onPress={() => handleSortChange('antiguos')}
               />
               <FilterButton
-                title="Por Prioridad"
+                title={t('projectsListSortPriority')}
                 isActive={sortOrder === 'prioridad'}
                 onPress={() => handleSortChange('prioridad')}
               />
               <FilterButton
-                title="Más Votados"
+                title={t('projectsListSortVotes')}
                 isActive={sortOrder === 'votos'}
                 onPress={() => handleSortChange('votos')}
               />
@@ -436,12 +439,12 @@ export default function App() {
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-lg font-bold text-blue-400">
               {searchQuery.length > 0
-                ? 'Resultados de Búsqueda'
+                ? t('projectsListSearch')
                 : filterType === 'todos'
-                  ? 'Todos los Proyectos'
+                  ? t('projectsListTitle')
                   : filterType === 'prioridad'
-                    ? `Prioridad: ${filterValue || 'Todas'}`
-                    : `Estado: ${filterValue || 'Todos'}`}
+                    ? `${t('projectsListFilterPriority')}: ${filterValue || t('projectsListFilterAll')}`
+                    : `${t('projectsListFilterStatus')}: ${filterValue || t('projectsListFilterAll')}`}
             </Text>
             <Text className="text-sm text-gray-400">
               {filteredAndSortedProjects.length} elemento{filteredAndSortedProjects.length !== 1 ? 's' : ''}
@@ -471,7 +474,7 @@ export default function App() {
             <View className="items-center py-8">
               <Ionicons name="folder-open-outline" size={48} color="gray" />
               <Text className="mt-2 text-center text-gray-400">
-                No se encontraron proyectos con los filtros aplicados
+                {t('projectsListEmptyDescription')}
               </Text>
             </View>
           )}

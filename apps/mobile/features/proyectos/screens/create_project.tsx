@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ProjectsService from '../services/ProjectsService';
 import ReportsService from '../../listreport/services/ReportsService';
+import { useLanguage } from '../../../contexts/LanguageContext';
 
 // ==================== INTERFACES Y TIPOS ====================
 
@@ -64,6 +65,8 @@ export default function CreateProjectScreen({
   onBack,
   onProjectCreated,
 }: CreateProjectProps) {
+  const { t } = useLanguage();
+  
   // ==================== FUNCIÓN DE NAVEGACIÓN ====================
 
   /**
@@ -229,24 +232,24 @@ export default function CreateProjectScreen({
 
     // Validación 1: Debe haber una denuncia seleccionada
     if (!denunciaSelected) {
-      Alert.alert('Error', 'Debe seleccionar una denuncia para crear el proyecto');
+      Alert.alert(t('projectCreateError'), t('projectCreateErrorNoReport'));
       return;
     }
 
     // Validación 2: El nombre del proyecto es obligatorio
     if (!formData.nombreProyecto.trim()) {
-      Alert.alert('Error', 'El nombre del proyecto es obligatorio');
+      Alert.alert(t('projectCreateError'), t('projectCreateErrorNoName'));
       return;
     }
 
     // Validación 3: La descripción es obligatoria (mínimo 20 caracteres)
     if (!formData.descripcion.trim()) {
-      Alert.alert('Error', 'La descripción del proyecto es obligatoria');
+      Alert.alert(t('projectCreateError'), t('projectCreateErrorNoDescription'));
       return;
     }
 
     if (formData.descripcion.trim().length < 20) {
-      Alert.alert('Error', 'La descripción debe tener al menos 20 caracteres');
+      Alert.alert(t('projectCreateError'), t('projectCreateErrorDescriptionTooShort'));
       return;
     }
 
@@ -282,8 +285,8 @@ export default function CreateProjectScreen({
 
       // Éxito: mostrar confirmación y navegar
       Alert.alert(
-        'Proyecto Creado',
-        `El proyecto "${formData.nombreProyecto}" ha sido creado exitosamente`,
+        t('projectCreateSuccess'),
+        t('projectCreateSuccessMessage'),
         [
           {
             text: 'OK',
@@ -298,7 +301,7 @@ export default function CreateProjectScreen({
       // Error: mostrar mensaje al usuario
       console.error('Error al crear proyecto:', error);
       
-      let errorMessage = 'Error al crear el proyecto';
+      let errorMessage = t('projectCreateError');
       
       try {
         // Intentar parsear errores del backend
@@ -307,10 +310,10 @@ export default function CreateProjectScreen({
           .map(([field, msgs]: [string, any]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
           .join('\n');
       } catch {
-        errorMessage = error.message || 'Error desconocido al crear el proyecto';
+        errorMessage = error.message || t('projectCreateError');
       }
       
-      Alert.alert('Error', errorMessage);
+      Alert.alert(t('projectCreateError'), errorMessage);
     } finally {
       setIsCreating(false);
     }
