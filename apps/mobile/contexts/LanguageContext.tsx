@@ -423,6 +423,7 @@ const TRANSLATIONS: Record<
         adminManageUsers: string;
         adminAnalytics: string;
         adminCreateNotification: string;
+        adminViewReports: string;
         // Home - Admin Drawer Menu
         adminDrawerMenuTitle: string;
         adminDrawerMenuProfileTap: string;
@@ -1494,6 +1495,7 @@ const TRANSLATIONS: Record<
         adminManageUsers: 'Gestionar Usuarios',
         adminAnalytics: 'Analytics',
         adminCreateNotification: 'Crear Notificación',
+        adminViewReports: 'Ver Reportes',
         // Home - Admin Drawer Menu
         adminDrawerMenuTitle: 'Menú Admin',
         adminDrawerMenuProfileTap: 'Toca para ver perfil',
@@ -2579,6 +2581,7 @@ const TRANSLATIONS: Record<
         adminManageUsers: 'Manage Users',
         adminAnalytics: 'Analytics',
         adminCreateNotification: 'Create Notification',
+        adminViewReports: 'View Reports',
         // Home - Admin Drawer Menu
         adminDrawerMenuTitle: 'Admin Menu',
         adminDrawerMenuProfileTap: 'Tap to view profile',

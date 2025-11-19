@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ScrollView, View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Users2, BarChart3, Bell } from "lucide-react-native";
+import { Users2, BarChart3, Bell, FileText } from "lucide-react-native";
 import { router } from "expo-router";
 import { SystemMetrics } from "~/components/SystemMetrics";
 import { useLanguage } from "~/contexts/LanguageContext";
@@ -111,6 +111,15 @@ export default function AdminContent() {
           >
             <Bell size={24} color="white" />
             <Text className="text-white mt-2 text-center">{t('adminCreateNotification')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            onPress={() => router.push('/admin/reports-view')}
+            className="bg-[#537CF2] rounded-lg p-4 items-center justify-center"
+            style={{ width: '47%', height: 120 }}
+          >
+            <FileText size={24} color="white" />
+            <Text className="text-white mt-2 text-center">{t('adminViewReports')}</Text>
           </TouchableOpacity>
         </View>
       </View>

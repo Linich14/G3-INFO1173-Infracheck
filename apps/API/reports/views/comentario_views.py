@@ -105,7 +105,8 @@ def crear_comentario_reporte(request, report_id):
             # No fallar la creación del comentario si falla la notificación
 
         # Verificar si es administrador
-        es_admin = usuario.rous_id.rous_nombre.lower() == 'admin'
+        rol_nombre = usuario.rous_id.rous_nombre.lower().strip()
+        es_admin = 'admin' in rol_nombre
 
         return Response(
             {
@@ -161,7 +162,8 @@ def listar_comentarios_reporte(request, report_id):
         reporte = get_object_or_404(ReportModel, id=report_id)
 
         # Verificar si el usuario es administrador
-        es_admin = usuario.rous_id.rous_nombre.lower() == 'admin'
+        rol_nombre = usuario.rous_id.rous_nombre.lower().strip()
+        es_admin = 'admin' in rol_nombre
 
         # Verificar si el usuario ya ha comentado en este reporte
         usuario_ha_comentado = ComentarioReporte.objects.filter(
@@ -204,7 +206,7 @@ def listar_comentarios_reporte(request, report_id):
                 },
                 'es_autor': es_autor,
                 'puede_eliminar': puede_eliminar,
-                'es_admin': es_admin and es_autor  # Solo marcamos si es admin Y autor del comentario
+                'es_admin': es_admin  # Indica si el usuario actual es admin (no si el comentario es de admin)
             })
 
         # Contar total de comentarios visibles
@@ -279,7 +281,8 @@ def eliminar_comentario_reporte(request, comment_id):
 
         # Validar permisos: solo el autor o admin pueden eliminar
         es_autor = comentario.usuario.usua_id == usuario.usua_id
-        es_admin = usuario.rous_id.rous_nombre.lower() == 'admin'
+        rol_nombre = usuario.rous_id.rous_nombre.lower().strip()
+        es_admin = 'admin' in rol_nombre
 
         if not (es_autor or es_admin):
             raise UserPermissionError(

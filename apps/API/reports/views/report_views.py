@@ -553,17 +553,27 @@ class ReportDeleteView(APIView):
                     'error': 'Token de autenticación inválido o expirado'
                 }, status=status.HTTP_401_UNAUTHORIZED)
             
+            # Verificar si el usuario es administrador
+            usuario = getattr(request, 'auth_user', None)
+            rol_nombre = usuario.rous_id.rous_nombre.lower().strip() if usuario and usuario.rous_id else ''
+            is_admin = 'admin' in rol_nombre
+            
             # Obtener el reporte
             try:
-                report = ReportModel.objects.get(id=report_id, usuario_id=usuario_id)
+                if is_admin:
+                    # Admin puede eliminar cualquier reporte
+                    report = ReportModel.objects.get(id=report_id)
+                else:
+                    # Usuario normal solo puede eliminar sus propios reportes
+                    report = ReportModel.objects.get(id=report_id, usuario_id=usuario_id)
             except ReportModel.DoesNotExist:
                 return Response({
                     'success': False,
                     'error': 'Reporte no encontrado'
                 }, status=status.HTTP_404_NOT_FOUND)
             
-            # Verificar permisos
-            if not report.belongs_to_user(usuario_id):
+            # Verificar permisos (solo si no es admin)
+            if not is_admin and not report.belongs_to_user(usuario_id):
                 return Response({
                     'success': False,
                     'error': 'No tienes permisos para eliminar este reporte'
@@ -571,7 +581,6 @@ class ReportDeleteView(APIView):
             
             # Determinar tipo de eliminación
             hard_delete = request.GET.get('hard_delete', '').lower() == 'true'
-            is_admin = getattr(request.user, 'is_staff', False) if hasattr(request, 'user') else False
             
             if hard_delete and not is_admin:
                 return Response({
@@ -581,9 +590,23 @@ class ReportDeleteView(APIView):
             
             with transaction.atomic():
                 if hard_delete:
-                    # Eliminación física
+                    # Eliminación física - dejar que Django maneje el CASCADE
                     report_title = report.titulo
+                    
+                    # Solo eliminar archivos físicos del sistema de archivos
+                    archivos = report.archivos.all()
+                    for archivo in archivos:
+                        try:
+                            if archivo.archivo and hasattr(archivo.archivo, 'path'):
+                                import os
+                                if os.path.isfile(archivo.archivo.path):
+                                    os.remove(archivo.archivo.path)
+                        except (ValueError, OSError, AttributeError) as file_error:
+                            print(f"Warning: No se pudo eliminar archivo físico: {file_error}")
+                    
+                    # Eliminar el reporte - Django manejará las relaciones CASCADE
                     report.delete()
+                    
                     return Response({
                         'success': True,
                         'message': f'Reporte "{report_title}" eliminado permanentemente'
@@ -598,6 +621,9 @@ class ReportDeleteView(APIView):
                     }, status=status.HTTP_200_OK)
             
         except Exception as e:
+            import traceback
+            error_detail = traceback.format_exc()
+            print(f"Error eliminando reporte: {error_detail}")
             return Response({
                 'success': False,
                 'error': 'Error interno del servidor',

@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
     Platform,
     StyleSheet,
+    Alert,
 } from 'react-native';
 import {
     UserCircle2,
@@ -19,6 +20,7 @@ import {
     Share2,
     UserPlus,
     UserCheck,
+    Trash2,
 } from 'lucide-react-native';
 import { ReportCardProps } from '../types';
 import { useReportVotes } from '../hooks/useReportVotes';
@@ -27,6 +29,8 @@ import { useToast } from '../contexts/ToastContext';
 import { useRouter } from 'expo-router';
 import VoteButton from './VoteButton';
 import { useLanguage } from '~/contexts/LanguageContext';
+import { useAuth } from '~/contexts/AuthContext';
+import { adminReportService } from '~/services/api/adminReportService';
 
 const ReportCard: React.FC<ReportCardProps> = ({
     id,
@@ -55,8 +59,13 @@ const ReportCard: React.FC<ReportCardProps> = ({
     const router = useRouter();
     const { t } = useLanguage();
     const toast = useToast();
+    const { userRole } = useAuth();
     const [imageError, setImageError] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const hasImage = !!image && !imageError;
+    
+    // Verificar si el usuario es administrador
+    const isAdmin = userRole?.rous_nombre?.toLowerCase().includes('admin') ?? false;
 
     // Priorizar datos embebidos sobre props legacy
     const finalVoteCount = votos?.count ?? initialVoteCount;
@@ -102,6 +111,36 @@ const ReportCard: React.FC<ReportCardProps> = ({
         if (authorId) {
             router.push(`/user/${authorId}`);
         }
+    };
+
+    const handleDeleteReport = async () => {
+        Alert.alert(
+            'Eliminar Reporte',
+            '¿Estás seguro de que deseas eliminar este reporte? Esta acción no se puede deshacer.',
+            [
+                {
+                    text: 'Cancelar',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setIsDeleting(true);
+                            await adminReportService.deleteReport(id, true);
+                            toast.showSuccess('Reporte eliminado exitosamente');
+                            // Recargar la página o actualizar la lista
+                            router.back();
+                        } catch (error: any) {
+                            toast.showError(error.message || 'Error al eliminar el reporte');
+                        } finally {
+                            setIsDeleting(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const handleImageError = () => {
@@ -187,6 +226,23 @@ const ReportCard: React.FC<ReportCardProps> = ({
                             )}
                         </TouchableOpacity>
                     </View>
+
+                    {/* Botón de eliminación para administradores */}
+                    {isAdmin && (
+                        <View className="flex-shrink-0 ml-2">
+                            <TouchableOpacity
+                                className="p-2 rounded-full bg-red-500/20 border border-red-500"
+                                onPress={handleDeleteReport}
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? (
+                                    <ActivityIndicator size="small" color="#ef4444" />
+                                ) : (
+                                    <Trash2 size={18} color="#ef4444" />
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
 
                 <Pressable onPress={goToDetail}>
